@@ -140,6 +140,7 @@ dependencies:
   - zlib=1.2.13
   - zstd=1.5.2
   - pip:
+    - ipython 8.13.2 
     - astor==0.8.1
     - bids==0.0
     - bids-validator==1.11.0
