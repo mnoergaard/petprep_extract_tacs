@@ -5,6 +5,7 @@ import glob
 import re
 import shutil
 import json
+import pkg_resources
 from bids import BIDSLayout
 from nipype.interfaces.utility import IdentityInterface, Merge
 from nipype.pipeline import Workflow
@@ -14,7 +15,7 @@ from niworkflows.utils.misc import check_valid_fs_license
 from petprep_extract_tacs.utils.pet import create_weighted_average_pet
 from nipype.interfaces.freesurfer import MRICoreg, ApplyVolTransform, MRIConvert, Concatenate
 from petprep_extract_tacs.interfaces.petsurfer import GTMSeg, GTMPVC
-from petprep_extract_tacs.interfaces.segment import SegmentBS, SegmentHA_T1, SegmentThalamicNuclei
+from petprep_extract_tacs.interfaces.segment import SegmentBS, SegmentHA_T1, SegmentThalamicNuclei, MRISclimbicSeg
 from petprep_extract_tacs.interfaces.fs_model import SegStats
 from petprep_extract_tacs.utils.utils import ctab_to_dsegtsv, avgwf_to_tacs, summary_to_stats, gtm_to_tacs, gtm_stats_to_stats, gtm_to_dsegtsv
 
@@ -59,7 +60,8 @@ def main(args):
     else:
         infosource.iterables = [('subject_id', args.participant_label)]
 
-    templates = {'wm_file': 'derivatives/freesurfer/sub-{subject_id}/mri/wmparc.mgz',
+    templates = {'orig_file': 'derivatives/freesurfer/sub-{subject_id}/mri/orig.mgz',
+                'wm_file': 'derivatives/freesurfer/sub-{subject_id}/mri/wmparc.mgz',
                 'brainmask_file': 'derivatives/freesurfer/sub-{subject_id}/mri/brainmask.mgz',
                 'fs_subject_dir': 'derivatives/freesurfer',
                 'pet_file': 'sub-{subject_id}/pet/*_pet.[n]*' if not sessions else 'sub-{subject_id}/ses-{session_id}/pet/*_pet.[n]*',
@@ -303,6 +305,36 @@ def main(args):
         
         convert_wm_seg_file = Node(MRIConvert(out_file = 'desc-whiteMatter_dseg.nii.gz'),
                                 name = 'convert_wm_seg_file')
+        
+        if args.raphe is True:
+            segment_raphe = Node(MRISclimbicSeg(keep_ac = True,
+                                                percentile = 99.9,
+                                                vmp = True,
+                                                write_volumes = True,
+                                                out_file = 'desc-raphe_dseg.nii.gz'),
+                        name = 'segment_raphe')
+            segment_raphe.inputs.model = pkg_resources.resource_filename('petprep_extract_tacs', 'utils/raphe+pons.n21.d114.h5')
+            segment_raphe.inputs.ctab = pkg_resources.resource_filename('petprep_extract_tacs', 'utils/raphe+pons.ctab')
+        
+            segstats_raphe = Node(SegStats(exclude_id = 0,
+                                        default_color_table = True,
+                                        avgwf_txt_file = 'desc-raphe_tacs.txt',
+                                        ctab_out_file = 'desc-raphe_dseg.ctab',
+                                        summary_file = 'desc-raphe_stats.txt'),
+                                name = 'segstats_raphe')
+            
+            create_raphe_tacs = Node(Function(input_names = ['avgwf_file', 'ctab_file', 'json_file'],
+                                            output_names = ['out_file'],
+                                            function = avgwf_to_tacs),
+                                    name = 'create_raphe_tacs')
+            
+            create_raphe_dsegtsv = Node(Function(input_names = ['ctab_file'],
+                                              output_names = ['out_file'],
+                                              function = ctab_to_dsegtsv),
+                                        name = 'create_raphe_dsegtsv')
+            
+            convert_raphe_seg_file = Node(MRIConvert(out_file = 'desc-raphe_dseg.nii.gz'),
+                                    name = 'convert_raphe_seg_file')
 
     
     workflow = Workflow(name='extract_tacs_pet_workflow', base_dir=args.bids_dir)
@@ -456,6 +488,8 @@ if __name__ == '__main__':
     parser.add_argument('--thalamicNuclei', help='Extract time activity curves from the thalamic nuclei', action='store_true')
     parser.add_argument('--hippocampusAmygdala', help='Extract time activity curves from the hippocampus and amygdala', action='store_true')
     parser.add_argument('--wm', help='Extract time activity curves from the white matter', action='store_true')
+    parser.add_argument('--raphe', help='Extract time activity curves from the raphe nuclei', action='store_true')
+    parser.add_argument('--limbic', help='Extract time activity curves from the limbic system', action='store_true')
     parser.add_argument('--skip_bids_validator', help='Whether or not to perform BIDS dataset validation',
                    action='store_true')
     parser.add_argument('-v', '--version', action='version',
