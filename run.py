@@ -460,8 +460,7 @@ def main(args):
                         (create_raphe_tacs, datasink, [('out_file', 'datasink.@raphe_tacs')]),
                         (segment_raphe, datasink, [('out_file', 'datasink.@raphe_segmentation_file')]),
                         (segment_raphe,create_raphe_stats, [('out_stats', 'summary_file')]),
-                        (create_raphe_stats, datasink, [('out_file', 'datasink.@raphe_stats')]),
-                        (segment_raphe, datasink, [('out_stats', 'datasink.@raphe_stats')])
+                        (create_raphe_stats, datasink, [('out_file', 'datasink.@raphe_stats')])
                     ])
 
     wf = workflow.run(plugin='MultiProc', plugin_args={'n_procs' : int(args.n_procs)})
