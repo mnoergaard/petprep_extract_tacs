@@ -317,11 +317,12 @@ def main(args):
             segment_raphe.inputs.ctab = pkg_resources.resource_filename('petprep_extract_tacs', 'utils/raphe+pons.ctab')
         
             segstats_raphe = Node(SegStats(exclude_id = 0,
-                                        default_color_table = True,
                                         avgwf_txt_file = 'desc-raphe_tacs.txt',
                                         ctab_out_file = 'desc-raphe_dseg.ctab',
                                         summary_file = 'desc-raphe_stats.txt'),
                                 name = 'segstats_raphe')
+            
+            segstats_raphe.inputs.color_table_file = pkg_resources.resource_filename('petprep_extract_tacs', 'utils/raphe+pons_cleaned.ctab')
             
             create_raphe_tacs = Node(Function(input_names = ['avgwf_file', 'ctab_file', 'json_file'],
                                             output_names = ['out_file'],
@@ -347,11 +348,12 @@ def main(args):
             segment_limbic.inputs.ctab = pkg_resources.resource_filename('petprep_extract_tacs', 'utils/sclimbic.ctab')
         
             segstats_limbic = Node(SegStats(exclude_id = 0,
-                                        default_color_table = True,
                                         avgwf_txt_file = 'desc-limbic_tacs.txt',
                                         ctab_out_file = 'desc-limbic_dseg.ctab',
                                         summary_file = 'desc-limbic_stats.txt'),
                                 name = 'segstats_limbic')
+            
+            segstats_limbic.inputs.color_table_file = pkg_resources.resource_filename('petprep_extract_tacs', 'utils/sclimbic_cleaned.ctab')
             
             create_limbic_tacs = Node(Function(input_names = ['avgwf_file', 'ctab_file', 'json_file'],
                                             output_names = ['out_file'],
