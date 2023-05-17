@@ -229,7 +229,7 @@ def limbic_to_dsegtsv(out_stats):
                             comment='#',
                             delim_whitespace=True, 
                             usecols=[1,4], 
-                            names=['index','name'])
+                            names=['index','name']) 
     
     # Create the output file name by replacing '.stats' with '.tsv' in the input file name.
     tsv_file = out_stats.replace('.stats','.tsv')
@@ -278,3 +278,16 @@ def limbic_to_stats(out_stats):
     
     # Return the output file name.
     return tsv_file
+
+def plot_reg(fixed_image, moving_image):
+    from niworkflows.viz.notebook import display
+    import os
+    
+    display(fixed_image, moving_image, fixed_label='T1w', moving_label='PET')
+
+    orig_svg_file = os.path.join(os.getcwd(),'report.svg')
+    out_svg_file = orig_svg_file.replace('report','from-pet_to-t1w_reg')
+
+    os.rename(orig_svg_file, out_svg_file)
+
+    return out_svg_file

@@ -114,6 +114,11 @@ def main(args):
     convert_brainmask = Node(MRIConvert(out_file = 'space-T1w_desc-brain_mask.nii.gz'),
                              name = 'convert_brainmask')
     
+    plot_reg = Node(Function(input_names = ['fixed_image', 'moving_image'],
+                             output_names = ['out_file'],
+                             function = plot_reg),
+                        name = 'plot_reg')
+    
     gtmseg = Node(GTMSeg(out_file = 'space-T1w_desc-gtmseg_dseg.nii.gz',
                          xcerseg = True),
                   name = 'gtmseg')
@@ -399,6 +404,9 @@ def main(args):
                         (move_twa_to_anat, datasink, [('transformed_file', 'datasink.@transformed_twa_file')]),
                         (selectfiles, convert_brainmask, [('brainmask_file', 'in_file')]),
                         (convert_brainmask, datasink, [('out_file', 'datasink.@brainmask_file')]),
+                        (convert_brainmask, plot_reg, [('out_file', 'fixed_image')]),
+                        (move_twa_to_anat, plot_reg, [('transformed_file', 'moving_image')]),
+                        (plot_reg, datasink, [('out_file', 'datasink.@plot_reg')]),
                         (infosource, gtmseg, [(('subject_id', add_sub), 'subject_id')]),
                         (selectfiles, gtmseg, [('fs_subject_dir', 'subjects_dir')]),
                         (selectfiles, gtmpvc, [('pet_file', 'in_file')]),
