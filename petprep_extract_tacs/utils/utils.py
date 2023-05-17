@@ -111,7 +111,7 @@ def summary_to_stats(summary_file):
     summary_df_output = pd.DataFrame([summary_df['volume_mm3'].to_list()], columns=summary_df['name'].to_list())
     
     # Create the output file name by replacing '.stats' with '.tsv' in the input file name.
-    tsv_file = summary_file.replace(['.txt','.dat'], '.tsv')
+    tsv_file = summary_file.replace('.txt', '.tsv').replace('.stats', '.tsv')
     
     # Write the new DataFrame to the output file.
    # We use a tab separator, and we don't write the index.
