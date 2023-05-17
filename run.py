@@ -344,6 +344,7 @@ def main(args):
             segment_limbic = Node(MRISclimbicSeg(write_volumes = True,
                                                 out_file = 'desc-limbic_dseg.nii.gz'),
                         name = 'segment_limbic')
+            segment_limbic.inputs.ctab = pkg_resources.resource_filename('petprep_extract_tacs', 'utils/sclimbic.ctab')
         
             segstats_limbic = Node(SegStats(exclude_id = 0,
                                         default_color_table = True,
