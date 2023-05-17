@@ -60,12 +60,22 @@ def main(args):
     else:
         infosource.iterables = [('subject_id', args.participant_label)]
 
-    templates = {'orig_file': 'derivatives/freesurfer/sub-{subject_id}/mri/orig.mgz',
-                'wm_file': 'derivatives/freesurfer/sub-{subject_id}/mri/wmparc.mgz',
-                'brainmask_file': 'derivatives/freesurfer/sub-{subject_id}/mri/brainmask.mgz',
-                'fs_subject_dir': 'derivatives/freesurfer',
-                'pet_file': 'sub-{subject_id}/pet/*_pet.[n]*' if not sessions else 'sub-{subject_id}/ses-{session_id}/pet/*_pet.[n]*',
-                'json_file': 'sub-{subject_id}/pet/*_pet.json' if not sessions else 'sub-{subject_id}/ses-{session_id}/pet/*_pet.json'}
+
+    if args.petprep_hmc is True:
+        templates = {'orig_file': 'derivatives/freesurfer/sub-{subject_id}/mri/orig.mgz',
+                    'wm_file': 'derivatives/freesurfer/sub-{subject_id}/mri/wmparc.mgz',
+                    'brainmask_file': 'derivatives/freesurfer/sub-{subject_id}/mri/brainmask.mgz',
+                    'fs_subject_dir': 'derivatives/freesurfer',
+                    'pet_file': 'derivatives/petprep_hmc/sub-{subject_id}/*_pet.[n]*' if not sessions else 'derivatives/petprep_hmc/sub-{subject_id}/ses-{session_id}/*_pet.[n]*',
+                    'json_file': 'sub-{subject_id}/pet/*_pet.json' if not sessions else 'sub-{subject_id}/ses-{session_id}/pet/*_pet.json'} 
+    else:
+        templates = {'orig_file': 'derivatives/freesurfer/sub-{subject_id}/mri/orig.mgz',
+                    'wm_file': 'derivatives/freesurfer/sub-{subject_id}/mri/wmparc.mgz',
+                    'brainmask_file': 'derivatives/freesurfer/sub-{subject_id}/mri/brainmask.mgz',
+                    'fs_subject_dir': 'derivatives/freesurfer',
+                    'pet_file': 'sub-{subject_id}/pet/*_pet.[n]*' if not sessions else 'sub-{subject_id}/ses-{session_id}/pet/*_pet.[n]*',
+                    'json_file': 'sub-{subject_id}/pet/*_pet.json' if not sessions else 'sub-{subject_id}/ses-{session_id}/pet/*_pet.json'}
+        
            
     selectfiles = Node(SelectFiles(templates, 
                                base_directory = args.bids_dir), 
@@ -90,12 +100,10 @@ def main(args):
     coreg_pet_to_t1w = Node(MRICoreg(out_lta_file = 'from-pet_to-t1w_reg.lta'),
                        name = 'coreg_pet_to_t1w')
     
-    create_time_weighted_average = Node(Function(input_names = ['pet_file', 'bids_dir'],
+    create_time_weighted_average = Node(Function(input_names = ['pet_file', 'json_file'],
                                             output_names = ['out_file'],
                                             function = create_weighted_average_pet),
                                    name = 'create_weighted_average_pet')
-    
-    create_time_weighted_average.inputs.bids_dir = args.bids_dir
 
     move_pet_to_anat = Node(ApplyVolTransform(transformed_file = 'space-T1w_pet.nii.gz'),
                             name = 'move_pet_to_anat')
@@ -548,6 +556,7 @@ if __name__ == '__main__':
     parser.add_argument('--wm', help='Extract time activity curves from the white matter', action='store_true')
     parser.add_argument('--raphe', help='Extract time activity curves from the raphe nuclei', action='store_true')
     parser.add_argument('--limbic', help='Extract time activity curves from the limbic system', action='store_true')
+    parser.add_argument('--petprep_hmc', help='Use outputs from petprep_hmc as input to workflow', action='store_true')
     parser.add_argument('--skip_bids_validator', help='Whether or not to perform BIDS dataset validation',
                    action='store_true')
     parser.add_argument('-v', '--version', action='version',
