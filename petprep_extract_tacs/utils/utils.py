@@ -240,7 +240,7 @@ def raphe_to_dsegtsv(out_stats):
     # Return the output file name.
     return tsv_file
 
-def raphe_to_stats(summary_file):
+def raphe_to_stats(out_stats):
     """
     This function reads a 'summary.stats' file, transforms the data, and saves it as a '.tsv' file.
 
@@ -256,7 +256,7 @@ def raphe_to_stats(summary_file):
     # Read the 'summary.stats' file into a DataFrame.
     # We only take the 4th and 5th columns (0-indexed), which we name 'volume_mm3' and 'name'.
     # Lines starting with '#' are ignored.
-    summary_df = pd.read_csv(summary_file, 
+    summary_df = pd.read_csv(out_stats, 
                              comment='#',
                              header = None, 
                              delim_whitespace=True,
@@ -269,7 +269,7 @@ def raphe_to_stats(summary_file):
     summary_df_output = pd.DataFrame([summary_df['volume_mm3'].to_list()], columns=summary_df['name'].to_list())
     
     # Create the output file name by replacing '.stats' with '.tsv' in the input file name.
-    tsv_file = summary_file.replace('.stats', '_stats.tsv')
+    tsv_file = out_stats.replace('.stats', '_stats.tsv')
     
     # Write the new DataFrame to the output file.
    # We use a tab separator, and we don't write the index.
