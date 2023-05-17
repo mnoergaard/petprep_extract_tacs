@@ -323,6 +323,8 @@ def main(args):
                                         summary_file = 'desc-raphe_stats.txt'),
                                 name = 'segstats_raphe')
             
+            segstats_raphe.inputs.ctab_file = pkg_resources.resource_filename('petprep_extract_tacs', 'utils/raphe+pons.ctab')
+            
             create_raphe_tacs = Node(Function(input_names = ['avgwf_file', 'ctab_file', 'json_file'],
                                             output_names = ['out_file'],
                                             function = avgwf_to_tacs),
@@ -453,7 +455,6 @@ def main(args):
                         (segment_raphe, segstats_raphe, [('out_file', 'segmentation_file')]),
                         (move_pet_to_anat, segstats_raphe, [('transformed_file', 'in_file')]),
                         (segstats_raphe, create_raphe_tacs, [('avgwf_txt_file', 'avgwf_file')]),
-                        (segment_raphe, create_raphe_tacs, [('ctab', 'ctab_file')]),
                         (selectfiles, create_raphe_tacs, [('json_file', 'json_file')]),
                         (create_raphe_tacs, datasink, [('out_file', 'datasink.@raphe_tacs')]),
                         (segment_raphe, datasink, [('out_file', 'datasink.@raphe_segmentation_file')]),
