@@ -356,6 +356,9 @@ def main(args):
                                             output_names = ['out_file'],
                                             function = avgwf_to_tacs),
                                     name = 'create_limbic_tacs')
+            
+            create_limbic_tacs.inputs.ctab_file = pkg_resources.resource_filename('petprep_extract_tacs', 'utils/sclimbic_cleaned.ctab')
+
                         
             create_limbic_stats = Node(Function(input_names = ['out_stats'],
                                         output_names = ['out_file'],
@@ -493,8 +496,7 @@ def main(args):
                         (selectfiles, segment_limbic, [('orig_file', 'in_file')]),
                         (segment_limbic, segstats_limbic, [('out_file', 'segmentation_file')]),
                         (move_pet_to_anat, segstats_limbic, [('transformed_file', 'in_file')]),
-                        (segstats_limbic, create_limbic_tacs, [('avgwf_txt_file', 'avgwf_file'),
-                                                        ('ctab_out_file', 'ctab_file')]),
+                        (segstats_limbic, create_limbic_tacs, [('avgwf_txt_file', 'avgwf_file')]),
                         (selectfiles, create_limbic_tacs, [('json_file', 'json_file')]),
                         (create_limbic_tacs, datasink, [('out_file', 'datasink.@limbic_tacs')]),
                         (segment_limbic, datasink, [('out_file', 'datasink.@limbic_segmentation_file')]),
