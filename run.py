@@ -334,10 +334,6 @@ def main(args):
                                               output_names = ['out_file'],
                                               function = ctab_to_dsegtsv),
                                         name = 'create_raphe_dsegtsv')
-            
-            convert_raphe_seg_file = Node(MRIConvert(out_file = 'desc-raphe_dseg.nii.gz'),
-                                    name = 'convert_raphe_seg_file')
-
     
     workflow = Workflow(name='extract_tacs_pet_workflow', base_dir=args.bids_dir)
     workflow.config['execution']['remove_unnecessary_outputs'] = 'false'
@@ -458,6 +454,8 @@ def main(args):
                         (selectfiles, create_raphe_tacs, [('json_file', 'json_file')]),
                         (create_raphe_tacs, datasink, [('out_file', 'datasink.@raphe_tacs')]),
                         (segment_raphe, datasink, [('out_file', 'datasink.@raphe_segmentation_file')]),
+                        (segment_raphe,summary_to_stats, [('out_stats', 'summary_file')]),
+                        (summary_to_stats, datasink, [('out_file', 'datasink.@raphe_stats')]),
                         (segment_raphe, datasink, [('out_stats', 'datasink.@raphe_stats')])
                     ])
 

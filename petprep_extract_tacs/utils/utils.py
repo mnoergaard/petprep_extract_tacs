@@ -111,7 +111,7 @@ def summary_to_stats(summary_file):
     summary_df_output = pd.DataFrame([summary_df['volume_mm3'].to_list()], columns=summary_df['name'].to_list())
     
     # Create the output file name by replacing '.stats' with '.tsv' in the input file name.
-    tsv_file = summary_file.replace('.txt', '.tsv')
+    tsv_file = summary_file.replace(['.txt','.dat'], '.tsv')
     
     # Write the new DataFrame to the output file.
    # We use a tab separator, and we don't write the index.
@@ -197,6 +197,28 @@ def gtm_to_tacs(in_file, json_file, gtm_stats):
     return tsv_file
 
 def gtm_to_dsegtsv(gtm_stats):
+
+    import pandas as pd
+    import numpy as np
+    import json
+    
+    gtm_df = pd.read_csv(gtm_stats, 
+                            header = None, 
+                            delim_whitespace=True, 
+                            usecols=[1,2], 
+                            names=['index','name'])
+    
+    # Create the output file name by replacing '.stats' with '.tsv' in the input file name.
+    tsv_file = gtm_stats.replace('gtm.stats.dat','desc-gtmseg_dseg.tsv')
+    
+    # Write the new DataFrame to the output file.
+   # We use a tab separator, and we don't write the index.
+    gtm_df.to_csv(tsv_file, sep='\t', index=False)
+    
+    # Return the output file name.
+    return tsv_file
+
+def raphe_to_dsegtsv(gtm_stats):
 
     import pandas as pd
     import numpy as np
