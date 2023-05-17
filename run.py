@@ -448,7 +448,10 @@ def main(args):
                         (create_wm_stats, datasink, [('out_file', 'datasink.@wm_stats')]),
                         (create_wm_dsegtsv, datasink, [('out_file', 'datasink.@wm_dseg')]),
                         (selectfiles, convert_wm_seg_file, [('wm_file', 'in_file')]),
-                        (convert_wm_seg_file, datasink, [('out_file', 'datasink.@wm_segmentation_file')])
+                        (convert_wm_seg_file, datasink, [('out_file', 'datasink.@wm_segmentation_file')]),
+                        (selectfiles, segment_raphe, [('raphe_file', 'in_file')]),
+                        (segment_raphe, datasink, [('out_file', 'datasink.@raphe_segmentation_file')]),
+                        (segment_raphe, datasink, [('out_stats', 'datasink.@raphe_stats')])
                     ])
 
     wf = workflow.run(plugin='MultiProc', plugin_args={'n_procs' : int(args.n_procs)})
