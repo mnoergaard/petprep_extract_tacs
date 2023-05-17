@@ -330,6 +330,11 @@ def main(args):
             
             create_raphe_tacs.inputs.ctab_file = pkg_resources.resource_filename('petprep_extract_tacs', 'utils/raphe+pons_cleaned.ctab')
             
+            create_raphe_stats = Node(Function(input_names = ['summary_file'],
+                                        output_names = ['out_file'],
+                                        function = summary_to_stats),
+                                name = 'create_raphe_stats')
+
             create_raphe_dsegtsv = Node(Function(input_names = ['ctab_file'],
                                               output_names = ['out_file'],
                                               function = ctab_to_dsegtsv),
@@ -454,8 +459,8 @@ def main(args):
                         (selectfiles, create_raphe_tacs, [('json_file', 'json_file')]),
                         (create_raphe_tacs, datasink, [('out_file', 'datasink.@raphe_tacs')]),
                         (segment_raphe, datasink, [('out_file', 'datasink.@raphe_segmentation_file')]),
-                        (segment_raphe,summary_to_stats, [('out_stats', 'summary_file')]),
-                        (summary_to_stats, datasink, [('out_file', 'datasink.@raphe_stats')]),
+                        (segment_raphe,create_raphe_stats, [('out_stats', 'summary_file')]),
+                        (create_raphe_stats, datasink, [('out_file', 'datasink.@raphe_stats')]),
                         (segment_raphe, datasink, [('out_stats', 'datasink.@raphe_stats')])
                     ])
 
