@@ -218,7 +218,7 @@ def gtm_to_dsegtsv(gtm_stats):
     # Return the output file name.
     return tsv_file
 
-def raphe_to_dsegtsv(out_stats):
+def limbic_to_dsegtsv(out_stats):
 
     import pandas as pd
     import numpy as np
@@ -240,7 +240,7 @@ def raphe_to_dsegtsv(out_stats):
     # Return the output file name.
     return tsv_file
 
-def raphe_to_stats(out_stats):
+def limbic_to_stats(out_stats):
     """
     This function reads a 'summary.stats' file, transforms the data, and saves it as a '.tsv' file.
 

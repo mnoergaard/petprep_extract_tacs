@@ -17,7 +17,7 @@ from nipype.interfaces.freesurfer import MRICoreg, ApplyVolTransform, MRIConvert
 from petprep_extract_tacs.interfaces.petsurfer import GTMSeg, GTMPVC
 from petprep_extract_tacs.interfaces.segment import SegmentBS, SegmentHA_T1, SegmentThalamicNuclei, MRISclimbicSeg
 from petprep_extract_tacs.interfaces.fs_model import SegStats
-from petprep_extract_tacs.utils.utils import ctab_to_dsegtsv, avgwf_to_tacs, summary_to_stats, gtm_to_tacs, gtm_stats_to_stats, gtm_to_dsegtsv, raphe_to_dsegtsv, raphe_to_stats
+from petprep_extract_tacs.utils.utils import ctab_to_dsegtsv, avgwf_to_tacs, summary_to_stats, gtm_to_tacs, gtm_stats_to_stats, gtm_to_dsegtsv, limbic_to_dsegtsv, limbic_to_stats
 
 __version__ = open(os.path.join(os.path.dirname(os.path.realpath(__file__)),
                                 'version')).read()
@@ -332,13 +332,40 @@ def main(args):
             
             create_raphe_stats = Node(Function(input_names = ['out_stats'],
                                         output_names = ['out_file'],
-                                        function = raphe_to_stats),
+                                        function = limbic_to_stats),
                                 name = 'create_raphe_stats')
 
             create_raphe_dsegtsv = Node(Function(input_names = ['out_stats'],
                                               output_names = ['out_file'],
-                                              function = raphe_to_dsegtsv),
+                                              function = limbic_to_dsegtsv),
                                         name = 'create_raphe_dsegtsv')
+            
+        if args.limbic is True:
+            segment_limbic = Node(MRISclimbicSeg(write_volumes = True,
+                                                out_file = 'desc-limbic_dseg.nii.gz'),
+                        name = 'segment_limbic')
+        
+            segstats_limbic = Node(SegStats(exclude_id = 0,
+                                        default_color_table = True,
+                                        avgwf_txt_file = 'desc-limbic_tacs.txt',
+                                        ctab_out_file = 'desc-limbic_dseg.ctab',
+                                        summary_file = 'desc-limbic_stats.txt'),
+                                name = 'segstats_limbic')
+            
+            create_limbic_tacs = Node(Function(input_names = ['avgwf_file', 'ctab_file', 'json_file'],
+                                            output_names = ['out_file'],
+                                            function = avgwf_to_tacs),
+                                    name = 'create_limbic_tacs')
+                        
+            create_limbic_stats = Node(Function(input_names = ['out_stats'],
+                                        output_names = ['out_file'],
+                                        function = limbic_to_stats),
+                                name = 'create_limbic_stats')
+
+            create_limbic_dsegtsv = Node(Function(input_names = ['out_stats'],
+                                              output_names = ['out_file'],
+                                              function = limbic_to_dsegtsv),
+                                        name = 'create_limbic_dsegtsv')
     
     workflow = Workflow(name='extract_tacs_pet_workflow', base_dir=args.bids_dir)
     workflow.config['execution']['remove_unnecessary_outputs'] = 'false'
@@ -463,6 +490,18 @@ def main(args):
                         (create_raphe_stats, datasink, [('out_file', 'datasink.@raphe_stats')]),
                         (segment_raphe, create_raphe_dsegtsv, [('out_stats', 'out_stats')]),
                         (create_raphe_dsegtsv, datasink, [('out_file', 'datasink.@raphe_dseg')])
+                        (selectfiles, segment_limbic, [('orig_file', 'in_file')]),
+                        (segment_limbic, segstats_limbic, [('out_file', 'segmentation_file')]),
+                        (move_pet_to_anat, segstats_limbic, [('transformed_file', 'in_file')]),
+                        (segstats_limbic, create_limbic_tacs, [('avgwf_txt_file', 'avgwf_file'),
+                                                        ('ctab_out_file', 'ctab_file')]),
+                        (selectfiles, create_limbic_tacs, [('json_file', 'json_file')]),
+                        (create_limbic_tacs, datasink, [('out_file', 'datasink.@limbic_tacs')]),
+                        (segment_limbic, datasink, [('out_file', 'datasink.@limbic_segmentation_file')]),
+                        (segment_limbic,create_limbic_stats, [('out_stats', 'out_stats')]),
+                        (create_limbic_stats, datasink, [('out_file', 'datasink.@limbic_stats')]),
+                        (segment_limbic, create_limbic_dsegtsv, [('out_stats', 'out_stats')]),
+                        (create_limbic_dsegtsv, datasink, [('out_file', 'datasink.@limbic_dseg')])
                     ])
 
     wf = workflow.run(plugin='MultiProc', plugin_args={'n_procs' : int(args.n_procs)})
