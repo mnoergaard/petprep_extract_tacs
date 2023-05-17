@@ -17,7 +17,7 @@ from nipype.interfaces.freesurfer import MRICoreg, ApplyVolTransform, MRIConvert
 from petprep_extract_tacs.interfaces.petsurfer import GTMSeg, GTMPVC
 from petprep_extract_tacs.interfaces.segment import SegmentBS, SegmentHA_T1, SegmentThalamicNuclei, MRISclimbicSeg
 from petprep_extract_tacs.interfaces.fs_model import SegStats
-from petprep_extract_tacs.utils.utils import ctab_to_dsegtsv, avgwf_to_tacs, summary_to_stats, gtm_to_tacs, gtm_stats_to_stats, gtm_to_dsegtsv
+from petprep_extract_tacs.utils.utils import ctab_to_dsegtsv, avgwf_to_tacs, summary_to_stats, gtm_to_tacs, gtm_stats_to_stats, gtm_to_dsegtsv, raphe_to_dsegtsv, raphe_to_stats
 
 __version__ = open(os.path.join(os.path.dirname(os.path.realpath(__file__)),
                                 'version')).read()
@@ -330,14 +330,14 @@ def main(args):
             
             create_raphe_tacs.inputs.ctab_file = pkg_resources.resource_filename('petprep_extract_tacs', 'utils/raphe+pons_cleaned.ctab')
             
-            create_raphe_stats = Node(Function(input_names = ['summary_file'],
+            create_raphe_stats = Node(Function(input_names = ['out_stats'],
                                         output_names = ['out_file'],
-                                        function = summary_to_stats),
+                                        function = raphe_to_stats),
                                 name = 'create_raphe_stats')
 
-            create_raphe_dsegtsv = Node(Function(input_names = ['ctab_file'],
+            create_raphe_dsegtsv = Node(Function(input_names = ['out_stats'],
                                               output_names = ['out_file'],
-                                              function = ctab_to_dsegtsv),
+                                              function = raphe_to_dsegtsv),
                                         name = 'create_raphe_dsegtsv')
     
     workflow = Workflow(name='extract_tacs_pet_workflow', base_dir=args.bids_dir)
@@ -459,8 +459,10 @@ def main(args):
                         (selectfiles, create_raphe_tacs, [('json_file', 'json_file')]),
                         (create_raphe_tacs, datasink, [('out_file', 'datasink.@raphe_tacs')]),
                         (segment_raphe, datasink, [('out_file', 'datasink.@raphe_segmentation_file')]),
-                        (segment_raphe,create_raphe_stats, [('out_stats', 'summary_file')]),
-                        (create_raphe_stats, datasink, [('out_file', 'datasink.@raphe_stats')])
+                        (segment_raphe,create_raphe_stats, [('out_stats', 'out_stats')]),
+                        (create_raphe_stats, datasink, [('out_file', 'datasink.@raphe_stats')]),
+                        (segment_raphe, create_raphe_dsegtsv, [('out_stats', 'out_stats')]),
+                        (create_raphe_dsegtsv, datasink, [('out_file', 'datasink.@raphe_dseg')])
                     ])
 
     wf = workflow.run(plugin='MultiProc', plugin_args={'n_procs' : int(args.n_procs)})

@@ -111,7 +111,7 @@ def summary_to_stats(summary_file):
     summary_df_output = pd.DataFrame([summary_df['volume_mm3'].to_list()], columns=summary_df['name'].to_list())
     
     # Create the output file name by replacing '.stats' with '.tsv' in the input file name.
-    tsv_file = summary_file.replace('.txt', '.tsv').replace('.stats', '.tsv')
+    tsv_file = summary_file.replace('.txt', '.tsv')
     
     # Write the new DataFrame to the output file.
    # We use a tab separator, and we don't write the index.
@@ -218,20 +218,20 @@ def gtm_to_dsegtsv(gtm_stats):
     # Return the output file name.
     return tsv_file
 
-def raphe_to_dsegtsv(gtm_stats):
+def raphe_to_dsegtsv(out_stats):
 
     import pandas as pd
     import numpy as np
     import json
     
-    gtm_df = pd.read_csv(gtm_stats, 
+    gtm_df = pd.read_csv(out_stats, 
                             header = None, 
                             delim_whitespace=True, 
-                            usecols=[1,2], 
+                            usecols=[1,4], 
                             names=['index','name'])
     
     # Create the output file name by replacing '.stats' with '.tsv' in the input file name.
-    tsv_file = gtm_stats.replace('gtm.stats.dat','desc-gtmseg_dseg.tsv')
+    tsv_file = out_stats.replace('.stats','.tsv')
     
     # Write the new DataFrame to the output file.
    # We use a tab separator, and we don't write the index.
@@ -240,3 +240,40 @@ def raphe_to_dsegtsv(gtm_stats):
     # Return the output file name.
     return tsv_file
 
+def raphe_to_stats(summary_file):
+    """
+    This function reads a 'summary.stats' file, transforms the data, and saves it as a '.tsv' file.
+
+    Parameters:
+    summary_file (str): The path to the input '.stats' file.
+
+    Returns:
+    tsv_file (str): The path to the output '.tsv' file.
+    """
+
+    import pandas as pd
+    
+    # Read the 'summary.stats' file into a DataFrame.
+    # We only take the 4th and 5th columns (0-indexed), which we name 'volume_mm3' and 'name'.
+    # Lines starting with '#' are ignored.
+    summary_df = pd.read_csv(summary_file, 
+                             comment='#',
+                             header = None, 
+                             delim_whitespace=True,
+                             usecols=[3,4],
+                             names=['volume_mm3', 'name'])
+    
+    # Create a new DataFrame where each row of 'summary_df' is a column.
+    # The column names in the new DataFrame are taken from the 'name' column of 'summary_df',
+    # and the values are taken from the 'volume_mm3' column of 'summary_df'.
+    summary_df_output = pd.DataFrame([summary_df['volume_mm3'].to_list()], columns=summary_df['name'].to_list())
+    
+    # Create the output file name by replacing '.stats' with '.tsv' in the input file name.
+    tsv_file = summary_file.replace('.stats', '_stats.tsv')
+    
+    # Write the new DataFrame to the output file.
+   # We use a tab separator, and we don't write the index.
+    summary_df_output.to_csv(tsv_file, sep='\t', index=False)
+    
+    # Return the output file name.
+    return tsv_file
