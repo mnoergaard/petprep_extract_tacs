@@ -489,7 +489,7 @@ def main(args):
                         (segment_raphe,create_raphe_stats, [('out_stats', 'out_stats')]),
                         (create_raphe_stats, datasink, [('out_file', 'datasink.@raphe_stats')]),
                         (segment_raphe, create_raphe_dsegtsv, [('out_stats', 'out_stats')]),
-                        (create_raphe_dsegtsv, datasink, [('out_file', 'datasink.@raphe_dseg')])
+                        (create_raphe_dsegtsv, datasink, [('out_file', 'datasink.@raphe_dseg')]),
                         (selectfiles, segment_limbic, [('orig_file', 'in_file')]),
                         (segment_limbic, segstats_limbic, [('out_file', 'segmentation_file')]),
                         (move_pet_to_anat, segstats_limbic, [('transformed_file', 'in_file')]),
