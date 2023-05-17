@@ -328,7 +328,7 @@ def main(args):
                                             function = avgwf_to_tacs),
                                     name = 'create_raphe_tacs')
             
-            create_raphe_tacs.inputs.ctab_file = pkg_resources.resource_filename('petprep_extract_tacs', 'utils/raphe+pons.ctab')
+            create_raphe_tacs.inputs.ctab_file = pkg_resources.resource_filename('petprep_extract_tacs', 'utils/raphe+pons_cleaned.ctab')
             
             create_raphe_dsegtsv = Node(Function(input_names = ['ctab_file'],
                                               output_names = ['out_file'],
