@@ -35,6 +35,7 @@ setup(
         "sqlalchemy==1.3.24",
         "wrapt==1.15.0",
         "niworkflows==1.7.9",
+        "ipython==8.13.2"
     ],
     extras_require={
         "dev": [
