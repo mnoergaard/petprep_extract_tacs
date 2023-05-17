@@ -450,6 +450,12 @@ def main(args):
                         (selectfiles, convert_wm_seg_file, [('wm_file', 'in_file')]),
                         (convert_wm_seg_file, datasink, [('out_file', 'datasink.@wm_segmentation_file')]),
                         (selectfiles, segment_raphe, [('orig_file', 'in_file')]),
+                        (segment_raphe, segstats_raphe, [('out_file', 'segmentation_file')]),
+                        (move_pet_to_anat, segstats_raphe, [('transformed_file', 'in_file')]),
+                        (segstats_raphe, create_raphe_tacs, [('avgwf_txt_file', 'avgwf_file')]),
+                        (segment_raphe, create_raphe_tacs, [('ctab', 'ctab_file')]),
+                        (selectfiles, create_raphe_tacs, [('json_file', 'json_file')]),
+                        (create_raphe_tacs, datasink, [('out_file', 'datasink.@raphe_tacs')]),
                         (segment_raphe, datasink, [('out_file', 'datasink.@raphe_segmentation_file')]),
                         (segment_raphe, datasink, [('out_stats', 'datasink.@raphe_stats')])
                     ])
