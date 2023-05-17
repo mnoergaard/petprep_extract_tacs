@@ -70,12 +70,12 @@ class SegmentBS(BaseInterface):
 
 class MRISclimbicSegInputSpec(CommandLineInputSpec):
     in_file = File(desc="T1-w image(s) to segment.", exists=True, argstr='--i %s')
-    out_file = File(desc="Segmentation output.", genfile=True, argstr='--o %s')
+    out_file = File(desc="Segmentation output.", argstr='--o %s')
     subjects = InputMultiObject(traits.Str, desc="Process a series of freesurfer recon-all subjects.", argstr='--s %s')
-    sd = File(desc="Set the subjects directory.", exists=True, argstr='--sd %s')
+    sd = Directory(desc="Set the subjects directory.", argstr='--sd %s')
     conform = traits.Bool(desc="Resample input to 1mm-iso.", argstr='--conform')
     etiv = traits.Bool(desc="Include eTIV in volume stats.", argstr='--etiv')
-    tal = File(desc="Alternative talairach xfm transform for estimating TIV.", exists=True, argstr='--tal %s')
+    tal = File(desc="Alternative talairach xfm transform for estimating TIV.", argstr='--tal %s')
     write_posteriors = traits.Bool(desc="Save the label posteriors.", argstr='--write_posteriors')
     write_volumes = traits.Bool(desc="Save label volume stats.", argstr='--write_volumes')
     write_qa_stats = traits.Bool(desc="Save QA stats.", argstr='--write_qa_stats')
@@ -84,7 +84,7 @@ class MRISclimbicSegInputSpec(CommandLineInputSpec):
     vox_count_volumes = traits.Bool(desc="Use discrete voxel count for label volumes.", argstr='--vox-count-volumes')
     model = File(desc="Alternative model weights to load.", exists=True, argstr='--model %s')
     ctab = File(desc="Alternative color lookup table to embed in segmentation.", exists=True, argstr='--ctab %s')
-    population_stats = File(desc="Alternative population volume stats for QA output.", exists=True, argstr='--population-stats %s')
+    population_stats = File(desc="Alternative population volume stats for QA output.", argstr='--population-stats %s')
     debug = traits.Bool(desc="Enable debug logging.", argstr='--debug')
     vmp = traits.Bool(desc="Enable printing of vmpeak at the end.", argstr='--vmp')
     threads = traits.Int(desc="Number of threads to use.", argstr='--threads %d')
@@ -95,8 +95,8 @@ class MRISclimbicSegInputSpec(CommandLineInputSpec):
     nchannels = traits.Int(desc="Number of channels", argstr='--nchannels %d')
 
 class MRISclimbicSegOutputSpec(TraitedSpec):
-    out_file = File(desc="Segmentation output.", exists=True)
-    out_stats = File(desc="Segmentation stats output.", exists=True)
+    out_file = File(desc="Segmentation output.")
+    out_stats = File(desc="Segmentation stats output.")
 
 class MRISclimbicSeg(CommandLine):
     _cmd = 'mri_sclimbic_seg'
@@ -135,7 +135,6 @@ class SegmentHA_T1(FSCommand):
         outputs['rh_hippoAmygLabels'] = os.path.join(subj_dir, 'rh.hippoAmygLabels-T1.v22.FSvoxelSpace.mgz')
         outputs['lh_hippoSfVolumes'] = os.path.join(subj_dir, 'lh.hippoSfVolumes-T1.v22.txt')
         outputs['lh_amygNucVolumes'] = os.path.join(subj_dir, 'lh.amygNucVolumes-T1.v22.txt')
-        outputs['rh_hippoAmygLabels'] = os.path.join(subj_dir, 'rh.hippoAmygLabels-T1.v22.FSvoxelSpace.mgz')
         outputs['rh_hippoSfVolumes'] = os.path.join(subj_dir, 'rh.hippoSfVolumes-T1.v22.txt')
         outputs['rh_amygNucVolumes'] = os.path.join(subj_dir, 'rh.amygNucVolumes-T1.v22.txt')
 
@@ -145,27 +144,50 @@ class SegmentHA_T1(FSCommand):
         if name == 'subjects_dir':
             return os.path.abspath(self.inputs.subject_id)
         return None
-    
-class SegmentThalamicNucleiInputSpec(FSTraitedSpec):
-    subject_id = traits.Str(mandatory=True, desc="Subject ID")
-    subjects_dir = Directory(exists=True, mandatory=True, desc="Path to FreeSurfer subjects directory")
-    additional_vol = traits.Str(desc="Additional volume to be used")
-    analysis_id = traits.Str(desc="Unique analysis ID")
-    bbregister_mode = traits.Str(desc="Registration mode for bbregister")
+
+class SegmentThalamicNucleiInputSpec(BaseInterfaceInputSpec):
+    subjects_dir = Directory(
+        desc="FreeSurfer subjects directory (bids_dir/derivatives/freesurfer)", exists=True, mandatory=True
+    )
+    subject_id = traits.Str(
+        desc="Subject ID (i.e. sub-XX)", mandatory=True
+    )
 
 class SegmentThalamicNucleiOutputSpec(TraitedSpec):
-    thalamicnuc = File(exists=True, desc="Thalamic nuclei segmentation")
-    thalamicnuc_volumes = File(exists=True, desc="Volume measurements of thalamic nuclei")
+    thalamic_labels_voxel = File(
+        desc="ThalamicNuclei.v13.T1.FSvoxelSpace.mgz"
+    )
+    thalamic_volumes_txt = File(
+        desc="Output file ThalamicNuclei.v13.T1.volumes.txt"
+    )
 
-class SegmentThalamicNuclei(FSCommand):
-    _cmd = 'segmentThalamicNuclei.sh'
+class SegmentThalamicNuclei(BaseInterface):
     input_spec = SegmentThalamicNucleiInputSpec
     output_spec = SegmentThalamicNucleiOutputSpec
 
-    def _list_outputs(self):
-        outputs = self.output_spec().get()
-        subj_dir = os.path.abspath(self.inputs.subjects_dir + '/' + self.inputs.subject_id + '/mri/')
+    def _run_interface(self, runtime):
+        subjects_dir = self.inputs.subjects_dir
+        subject_id = self.inputs.subject_id
 
-        outputs['thalamicnuc'] = os.path.join(subj_dir, 'ThalamicNuclei.v13.T1.FSvoxelSpace.mgz')
-        outputs['thalamicnuc_volumes'] = os.path.join(subj_dir, 'ThalamicNuclei.v13.T1.volumes.txt')
+        cmd = CommandLine(
+            command="segmentThalamicNuclei.sh",
+            args=subject_id,
+            environ={"SUBJECTS_DIR": subjects_dir},
+        )
+        runtime = cmd.run()
+
+        return runtime
+
+    def _list_outputs(self):
+        fs_path = os.path.join(
+            self.inputs.subjects_dir, self.inputs.subject_id, "mri"
+        )
+        outputs = self._outputs().get()
+        outputs["thalamic_labels_voxel"] = os.path.join(
+            fs_path, "ThalamicNuclei.v13.T1.FSvoxelSpace.mgz"
+        )
+        outputs["thalamic_volumes_txt"] = os.path.join(
+            fs_path, "ThalamicNuclei.v13.T1.volumes.txt"
+        )
         return outputs
+    
