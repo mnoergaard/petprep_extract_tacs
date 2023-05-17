@@ -226,6 +226,7 @@ def limbic_to_dsegtsv(out_stats):
     
     gtm_df = pd.read_csv(out_stats, 
                             header = None, 
+                            comment='#',
                             delim_whitespace=True, 
                             usecols=[1,4], 
                             names=['index','name'])
