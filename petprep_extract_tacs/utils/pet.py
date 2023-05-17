@@ -1,4 +1,4 @@
-def create_weighted_average_pet(pet_file, bids_dir):
+def create_weighted_average_pet(pet_file, json_file):
 
     import json
     from niworkflows.interfaces.bids import ReadSidecarJSON
@@ -21,12 +21,12 @@ def create_weighted_average_pet(pet_file, bids_dir):
     img = nib.load(pet_file)        
     data = img.get_fdata()
 
-    meta = ReadSidecarJSON(in_file = pet_file, 
-                           bids_dir = bids_dir, 
-                           bids_validate = False).run()
+    # Load the .json file
+    with open(json_file, 'r') as jf:
+        meta = json.load(jf)
 
-    frames_start = np.array(meta.outputs.out_dict['FrameTimesStart'])
-    frames_duration = np.array(meta.outputs.out_dict['FrameDuration'])
+    frames_start = np.array(meta['FrameTimesStart'])
+    frames_duration = np.array(meta['FrameDuration'])
 
     frames = range(data.shape[-1])
 
