@@ -385,6 +385,7 @@ def main(args):
     workflow.config['execution']['remove_unnecessary_outputs'] = 'false'
     workflow.connect([(infosource, selectfiles, [('subject_id', 'subject_id'),('session_id', 'session_id')]), 
                         (selectfiles, create_time_weighted_average, [('pet_file', 'pet_file')]),
+                        (selectfiles, create_time_weighted_average, [('json_file', 'json_file')]),
                         (selectfiles, coreg_pet_to_t1w, [('brainmask_file', 'reference_file')]),
                         (create_time_weighted_average, coreg_pet_to_t1w, [('out_file', 'source_file')]),
                         (coreg_pet_to_t1w, move_pet_to_anat, [('out_lta_file', 'lta_file')]),
