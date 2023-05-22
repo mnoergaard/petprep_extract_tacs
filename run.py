@@ -555,7 +555,7 @@ def add_sub(subject_id):
     return 'sub-' + subject_id
 
 if __name__ == '__main__': 
-    parser = argparse.ArgumentParser(description='BIDS App for PET deface workflow')
+    parser = argparse.ArgumentParser(description='BIDS App for PETPrep extract time activity curves (TACs) workflow')
     parser.add_argument('--bids_dir', required=True,  help='The directory with the input dataset '
                     'formatted according to the BIDS standard.')
     parser.add_argument('--output_dir', required=False, help='The directory where the output files '
