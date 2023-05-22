@@ -40,15 +40,6 @@ def main(args):
     if args.participant_label is None:
         args.participant_label = layout.get(suffix='pet', target='subject', return_type='id')
 
-    # create output derivatives directory
-    if not os.path.exists(args.output_dir):
-        os.makedirs(args.output_dir)
-    
-    # create output directory for this pipeline
-    pipeline_dir = os.path.join(args.output_dir, 'petprep_extract_tacs')
-    if not os.path.exists(pipeline_dir):
-        os.makedirs(pipeline_dir)
-
     infosource = Node(IdentityInterface(
                         fields = ['subject_id','session_id']),
                         name = "infosource")
@@ -94,6 +85,8 @@ def main(args):
         output_dir = os.path.join(args.bids_dir,'derivatives','petprep_extract_tacs')
     else:
         output_dir = args.output_dir
+    
+    os.makedirs(output_dir, exist_ok=True)
 
     # Define nodes for hmc workflow
     
@@ -148,11 +141,11 @@ def main(args):
                                name = 'convert_gtmseg_file')
     
     datasink = Node(DataSink(base_directory = args.bids_dir,
-                                container = os.path.join(args.bids_dir,'extract_tacs_pet_workflow')),
+                                container = os.path.join(args.bids_dir,'extract_tacs_pet_wf')),
                     name = 'datasink')
     
     # Define workflow
-    workflow = Workflow(name='extract_tacs_pet_workflow', base_dir=args.bids_dir)
+    workflow = Workflow(name='extract_tacs_pet_wf', base_dir=args.bids_dir)
     workflow.config['execution']['remove_unnecessary_outputs'] = 'false'
     workflow.connect([(infosource, selectfiles, [('subject_id', 'subject_id'),('session_id', 'session_id')]), 
                         (selectfiles, create_time_weighted_average, [('pet_file', 'pet_file')]),
@@ -542,13 +535,34 @@ def main(args):
 
     wf = workflow.run(plugin='MultiProc', plugin_args={'n_procs' : int(args.n_procs)})
 
-    # clean up and create derivatives directories
-    if args.output_dir is None:
-        output_dir = os.path.join(args.bids_dir,'derivatives','petprep_hmc')
-    else:
-        output_dir = args.output_dir
+    # loop through directories and store according to BIDS
+    reg_files = glob.glob(os.path.join(Path(args.bids_dir),'extract_tacs_pet_wf','datasink','*','from-pet_to-t1w_reg.lta'))
+    
+    for idx, x in enumerate(reg_files):
+        sub_id = re.findall('subject_id_(.*)/', reg_files[idx])[0]
         
-     # remove temp outputs
+        if sessions:
+            sess_id = re.findall('session_id_(.*)_subject_id', reg_files[idx])[0]
+            sub_out_dir = Path(os.path.join(output_dir, 'sub-' + sub_id, 'ses-' + sess_id))
+            file_prefix = f'sub-{sub_id}_ses-{sess_id}'
+        else:
+            sub_out_dir = Path(os.path.join(output_dir, 'sub-' + sub_id))
+            file_prefix = f'sub-{sub_id}'
+
+        os.makedirs(sub_out_dir, exist_ok=True)
+        
+        # copy all files and add prefix
+        if sessions:
+            orig_dir = os.path.join(Path(args.bids_dir),'extract_tacs_pet_wf','datasink', '_session_id_' + sess_id + '_subject_id_' + sub_id)
+        else:
+            orig_dir = os.path.join(Path(args.bids_dir),'extract_tacs_pet_wf','datasink', '_subject_id_' + sub_id)
+
+        for root, dirs, files in os.walk(orig_dir):
+            for file in files:
+                if not file.startswith('.'):
+                    shutil.copy(os.path.join(root, file), os.path.join(sub_out_dir, file_prefix + '_' + file))  
+
+    # remove temp outputs
     #shutil.rmtree(os.path.join(args.bids_dir, 'petprep_hmc_wf'))
 
 def add_sub(subject_id):
