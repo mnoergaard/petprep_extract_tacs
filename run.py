@@ -9,7 +9,7 @@ import pkg_resources
 from bids import BIDSLayout
 from nipype.interfaces.utility import IdentityInterface, Merge
 from nipype.pipeline import Workflow
-from nipype import Node, Function, DataSink, MapNode
+from nipype import Node, Function, DataSink
 from nipype.interfaces.io import SelectFiles
 from niworkflows.utils.misc import check_valid_fs_license
 from petprep_extract_tacs.utils.pet import create_weighted_average_pet
@@ -151,6 +151,46 @@ def main(args):
                                 container = os.path.join(args.bids_dir,'extract_tacs_pet_workflow')),
                     name = 'datasink')
     
+    # Define workflow
+    workflow = Workflow(name='extract_tacs_pet_workflow', base_dir=args.bids_dir)
+    workflow.config['execution']['remove_unnecessary_outputs'] = 'false'
+    workflow.connect([(infosource, selectfiles, [('subject_id', 'subject_id'),('session_id', 'session_id')]), 
+                        (selectfiles, create_time_weighted_average, [('pet_file', 'pet_file')]),
+                        (selectfiles, create_time_weighted_average, [('json_file', 'json_file')]),
+                        (selectfiles, coreg_pet_to_t1w, [('brainmask_file', 'reference_file')]),
+                        (create_time_weighted_average, coreg_pet_to_t1w, [('out_file', 'source_file')]),
+                        (coreg_pet_to_t1w, move_pet_to_anat, [('out_lta_file', 'lta_file')]),
+                        (selectfiles, move_pet_to_anat, [('brainmask_file', 'target_file')]),
+                        (selectfiles, move_pet_to_anat, [('pet_file', 'source_file')]),
+                        (move_pet_to_anat, datasink, [('transformed_file', 'datasink.@transformed_file')]),
+                        (coreg_pet_to_t1w, datasink, [('out_lta_file', 'datasink.@out_lta_file')]),
+                        (create_time_weighted_average, move_twa_to_anat, [('out_file', 'source_file')]),
+                        (selectfiles, move_twa_to_anat, [('brainmask_file', 'target_file')]),
+                        (coreg_pet_to_t1w, move_twa_to_anat, [('out_lta_file', 'lta_file')]),
+                        (move_twa_to_anat, datasink, [('transformed_file', 'datasink.@transformed_twa_file')]),
+                        (selectfiles, convert_brainmask, [('brainmask_file', 'in_file')]),
+                        (convert_brainmask, datasink, [('out_file', 'datasink.@brainmask_file')]),
+                        (convert_brainmask, plot_registration, [('out_file', 'fixed_image')]),
+                        (move_twa_to_anat, plot_registration, [('transformed_file', 'moving_image')]),
+                        (plot_registration, datasink, [('out_file', 'datasink.@plot_reg')]),
+                        (infosource, gtmseg, [(('subject_id', add_sub), 'subject_id')]),
+                        (selectfiles, gtmseg, [('fs_subject_dir', 'subjects_dir')]),
+                        (selectfiles, gtmpvc, [('pet_file', 'in_file')]),
+                        (gtmseg, gtmpvc, [('out_file', 'segmentation')]),
+                        (coreg_pet_to_t1w, gtmpvc, [('out_lta_file', 'reg_file')]),
+                        (gtmpvc, create_gtmseg_tacs, [('nopvc_file', 'in_file')]),
+                        (gtmpvc, create_gtmseg_tacs, [('gtm_stats', 'gtm_stats')]),
+                        (selectfiles, create_gtmseg_tacs, [('json_file', 'json_file')]),
+                        (create_gtmseg_tacs, datasink, [('out_file', 'datasink.@gtmseg_tacs')]),
+                        (gtmpvc, create_gtmseg_stats, [('gtm_stats', 'gtm_stats')]),
+                        (create_gtmseg_stats, datasink, [('out_file', 'datasink.@gtmseg_stats')]),
+                        (gtmseg, convert_gtmseg_file, [('out_file', 'in_file')]),
+                        (convert_gtmseg_file, datasink, [('out_file', 'datasink.@gtmseg_file')]),
+                        (gtmpvc, create_gtmseg_dsegtsv, [('gtm_stats', 'gtm_stats')]),
+                        (create_gtmseg_dsegtsv, datasink, [('out_file', 'datasink.@gtmseg_dsegtsv')])
+                        ])
+
+    
     if args.brainstem is True:
         segment_bs = Node(SegmentBS(),
                             name = 'segment_bs')
@@ -180,6 +220,22 @@ def main(args):
         convert_bs_seg_file = Node(MRIConvert(out_file = 'desc-brainstem_dseg.nii.gz'),
                                 name = 'convert_bs_seg_file')
         
+        workflow.connect([(infosource, segment_bs, [(('subject_id', add_sub), 'subject_id')]),
+                        (selectfiles, segment_bs, [('fs_subject_dir', 'subjects_dir')]),
+                        (segment_bs, segstats_bs, [('bs_labels_voxel', 'segmentation_file')]),
+                        (move_pet_to_anat, segstats_bs, [('transformed_file', 'in_file')]),
+                        (segstats_bs, create_bs_tacs, [('avgwf_txt_file', 'avgwf_file'),
+                                                        ('ctab_out_file', 'ctab_file')]),
+                        (selectfiles, create_bs_tacs, [('json_file', 'json_file')]),
+                        (segstats_bs, create_bs_stats, [('summary_file', 'summary_file')]),
+                        (segstats_bs, create_bs_dsegtsv, [('ctab_out_file', 'ctab_file')]),
+                        (segment_bs, convert_bs_seg_file, [('bs_labels_voxel', 'in_file')]),
+                        (create_bs_tacs, datasink, [('out_file', 'datasink')]),
+                        (create_bs_stats, datasink, [('out_file', 'datasink.@bs_stats')]),
+                        (create_bs_dsegtsv, datasink, [('out_file', 'datasink.@bs_dseg')]),
+                        (convert_bs_seg_file, datasink, [('out_file', 'datasink.@bs_segmentation_file')])
+                        ])
+        
     if args.thalamicNuclei is True:
         segment_th = Node(SegmentThalamicNuclei(),
                         name = 'segment_th')
@@ -208,6 +264,22 @@ def main(args):
         
         convert_th_seg_file = Node(MRIConvert(out_file = 'desc-thalamus_dseg.nii.gz'),
                                 name = 'convert_th_seg_file')
+        
+        workflow.connect([(infosource, segment_th, [(('subject_id', add_sub), 'subject_id')]),
+                        (selectfiles, segment_th, [('fs_subject_dir', 'subjects_dir')]),
+                        (segment_th, segstats_th, [('thalamic_labels_voxel', 'segmentation_file')]),
+                        (move_pet_to_anat, segstats_th, [('transformed_file', 'in_file')]),
+                        (segstats_th, create_th_tacs, [('avgwf_txt_file', 'avgwf_file'),
+                                                        ('ctab_out_file', 'ctab_file')]),
+                        (selectfiles, create_th_tacs, [('json_file', 'json_file')]),
+                        (segstats_th, create_th_stats, [('summary_file', 'summary_file')]),
+                        (segstats_th, create_th_dsegtsv, [('ctab_out_file', 'ctab_file')]),
+                        (segment_th, convert_th_seg_file, [('thalamic_labels_voxel', 'in_file')]),
+                        (create_th_tacs, datasink, [('out_file', 'datasink.@th_tacs')]),
+                        (create_th_stats, datasink, [('out_file', 'datasink.@th_stats')]),
+                        (create_th_dsegtsv, datasink, [('out_file', 'datasink.@th_dseg')]),
+                        (convert_th_seg_file, datasink, [('out_file', 'datasink.@th_segmentation_file')])
+                        ])
     
     if args.hippocampusAmygdala is True:
         segment_ha = Node(SegmentHA_T1(),
@@ -293,164 +365,7 @@ def main(args):
                                           function = ctab_to_dsegtsv),
                                     name = 'create_ha_dsegtsv')
         
-    if args.wm is True:        
-        segstats_wm = Node(SegStats(exclude_id = 0,
-                                    default_color_table = True,
-                                    avgwf_txt_file = 'desc-whiteMatter_tacs.txt',
-                                    ctab_out_file = 'desc-whiteMatter_dseg.ctab',
-                                    summary_file = 'desc-whiteMatter_stats.txt'),
-                            name = 'segstats_wm')
-        
-        create_wm_tacs = Node(Function(input_names = ['avgwf_file', 'ctab_file', 'json_file'],
-                                        output_names = ['out_file'],
-                                        function = avgwf_to_tacs),
-                                name = 'create_wm_tacs')
-        
-        create_wm_stats = Node(Function(input_names = ['summary_file'],
-                                        output_names = ['out_file'],
-                                        function = summary_to_stats),
-                                name = 'create_wm_stats')
-        
-        create_wm_dsegtsv = Node(Function(input_names = ['ctab_file'],
-                                          output_names = ['out_file'],
-                                          function = ctab_to_dsegtsv),
-                                    name = 'create_wm_dsegtsv')
-        
-        convert_wm_seg_file = Node(MRIConvert(out_file = 'desc-whiteMatter_dseg.nii.gz'),
-                                name = 'convert_wm_seg_file')
-        
-        if args.raphe is True:
-            segment_raphe = Node(MRISclimbicSeg(keep_ac = True,
-                                                percentile = 99.9,
-                                                vmp = True,
-                                                write_volumes = True,
-                                                out_file = 'desc-raphe_dseg.nii.gz'),
-                        name = 'segment_raphe')
-            segment_raphe.inputs.model = pkg_resources.resource_filename('petprep_extract_tacs', 'utils/raphe+pons.n21.d114.h5')
-            segment_raphe.inputs.ctab = pkg_resources.resource_filename('petprep_extract_tacs', 'utils/raphe+pons.ctab')
-        
-            segstats_raphe = Node(SegStats(exclude_id = 0,
-                                        avgwf_txt_file = 'desc-raphe_tacs.txt',
-                                        ctab_out_file = 'desc-raphe_dseg.ctab',
-                                        summary_file = 'desc-raphe_stats.txt'),
-                                name = 'segstats_raphe')
-            
-            segstats_raphe.inputs.color_table_file = pkg_resources.resource_filename('petprep_extract_tacs', 'utils/raphe+pons_cleaned.ctab')
-            
-            create_raphe_tacs = Node(Function(input_names = ['avgwf_file', 'ctab_file', 'json_file'],
-                                            output_names = ['out_file'],
-                                            function = avgwf_to_tacs),
-                                    name = 'create_raphe_tacs')
-            
-            create_raphe_tacs.inputs.ctab_file = pkg_resources.resource_filename('petprep_extract_tacs', 'utils/raphe+pons_cleaned.ctab')
-            
-            create_raphe_stats = Node(Function(input_names = ['out_stats'],
-                                        output_names = ['out_file'],
-                                        function = limbic_to_stats),
-                                name = 'create_raphe_stats')
-
-            create_raphe_dsegtsv = Node(Function(input_names = ['out_stats'],
-                                              output_names = ['out_file'],
-                                              function = limbic_to_dsegtsv),
-                                        name = 'create_raphe_dsegtsv')
-            
-        if args.limbic is True:
-            segment_limbic = Node(MRISclimbicSeg(write_volumes = True,
-                                                out_file = 'desc-limbic_dseg.nii.gz'),
-                        name = 'segment_limbic')
-            segment_limbic.inputs.ctab = pkg_resources.resource_filename('petprep_extract_tacs', 'utils/sclimbic.ctab')
-        
-            segstats_limbic = Node(SegStats(exclude_id = 0,
-                                        avgwf_txt_file = 'desc-limbic_tacs.txt',
-                                        ctab_out_file = 'desc-limbic_dseg.ctab',
-                                        summary_file = 'desc-limbic_stats.txt'),
-                                name = 'segstats_limbic')
-            
-            segstats_limbic.inputs.color_table_file = pkg_resources.resource_filename('petprep_extract_tacs', 'utils/sclimbic_cleaned.ctab')
-            
-            create_limbic_tacs = Node(Function(input_names = ['avgwf_file', 'ctab_file', 'json_file'],
-                                            output_names = ['out_file'],
-                                            function = avgwf_to_tacs),
-                                    name = 'create_limbic_tacs')
-            
-            create_limbic_tacs.inputs.ctab_file = pkg_resources.resource_filename('petprep_extract_tacs', 'utils/sclimbic_cleaned.ctab')
-
-                        
-            create_limbic_stats = Node(Function(input_names = ['out_stats'],
-                                        output_names = ['out_file'],
-                                        function = limbic_to_stats),
-                                name = 'create_limbic_stats')
-
-            create_limbic_dsegtsv = Node(Function(input_names = ['out_stats'],
-                                              output_names = ['out_file'],
-                                              function = limbic_to_dsegtsv),
-                                        name = 'create_limbic_dsegtsv')
-    
-    workflow = Workflow(name='extract_tacs_pet_workflow', base_dir=args.bids_dir)
-    workflow.config['execution']['remove_unnecessary_outputs'] = 'false'
-    workflow.connect([(infosource, selectfiles, [('subject_id', 'subject_id'),('session_id', 'session_id')]), 
-                        (selectfiles, create_time_weighted_average, [('pet_file', 'pet_file')]),
-                        (selectfiles, create_time_weighted_average, [('json_file', 'json_file')]),
-                        (selectfiles, coreg_pet_to_t1w, [('brainmask_file', 'reference_file')]),
-                        (create_time_weighted_average, coreg_pet_to_t1w, [('out_file', 'source_file')]),
-                        (coreg_pet_to_t1w, move_pet_to_anat, [('out_lta_file', 'lta_file')]),
-                        (selectfiles, move_pet_to_anat, [('brainmask_file', 'target_file')]),
-                        (selectfiles, move_pet_to_anat, [('pet_file', 'source_file')]),
-                        (move_pet_to_anat, datasink, [('transformed_file', 'datasink.@transformed_file')]),
-                        (coreg_pet_to_t1w, datasink, [('out_lta_file', 'datasink.@out_lta_file')]),
-                        (create_time_weighted_average, move_twa_to_anat, [('out_file', 'source_file')]),
-                        (selectfiles, move_twa_to_anat, [('brainmask_file', 'target_file')]),
-                        (coreg_pet_to_t1w, move_twa_to_anat, [('out_lta_file', 'lta_file')]),
-                        (move_twa_to_anat, datasink, [('transformed_file', 'datasink.@transformed_twa_file')]),
-                        (selectfiles, convert_brainmask, [('brainmask_file', 'in_file')]),
-                        (convert_brainmask, datasink, [('out_file', 'datasink.@brainmask_file')]),
-                        (convert_brainmask, plot_registration, [('out_file', 'fixed_image')]),
-                        (move_twa_to_anat, plot_registration, [('transformed_file', 'moving_image')]),
-                        (plot_registration, datasink, [('out_file', 'datasink.@plot_reg')]),
-                        (infosource, gtmseg, [(('subject_id', add_sub), 'subject_id')]),
-                        (selectfiles, gtmseg, [('fs_subject_dir', 'subjects_dir')]),
-                        (selectfiles, gtmpvc, [('pet_file', 'in_file')]),
-                        (gtmseg, gtmpvc, [('out_file', 'segmentation')]),
-                        (coreg_pet_to_t1w, gtmpvc, [('out_lta_file', 'reg_file')]),
-                        (gtmpvc, create_gtmseg_tacs, [('nopvc_file', 'in_file')]),
-                        (gtmpvc, create_gtmseg_tacs, [('gtm_stats', 'gtm_stats')]),
-                        (selectfiles, create_gtmseg_tacs, [('json_file', 'json_file')]),
-                        (create_gtmseg_tacs, datasink, [('out_file', 'datasink.@gtmseg_tacs')]),
-                        (gtmpvc, create_gtmseg_stats, [('gtm_stats', 'gtm_stats')]),
-                        (create_gtmseg_stats, datasink, [('out_file', 'datasink.@gtmseg_stats')]),
-                        (gtmseg, convert_gtmseg_file, [('out_file', 'in_file')]),
-                        (convert_gtmseg_file, datasink, [('out_file', 'datasink.@gtmseg_file')]),
-                        (gtmpvc, create_gtmseg_dsegtsv, [('gtm_stats', 'gtm_stats')]),
-                        (create_gtmseg_dsegtsv, datasink, [('out_file', 'datasink.@gtmseg_dsegtsv')]),
-                        (infosource, segment_bs, [(('subject_id', add_sub), 'subject_id')]),
-                        (selectfiles, segment_bs, [('fs_subject_dir', 'subjects_dir')]),
-                        (segment_bs, segstats_bs, [('bs_labels_voxel', 'segmentation_file')]),
-                        (move_pet_to_anat, segstats_bs, [('transformed_file', 'in_file')]),
-                        (segstats_bs, create_bs_tacs, [('avgwf_txt_file', 'avgwf_file'),
-                                                        ('ctab_out_file', 'ctab_file')]),
-                        (selectfiles, create_bs_tacs, [('json_file', 'json_file')]),
-                        (segstats_bs, create_bs_stats, [('summary_file', 'summary_file')]),
-                        (segstats_bs, create_bs_dsegtsv, [('ctab_out_file', 'ctab_file')]),
-                        (segment_bs, convert_bs_seg_file, [('bs_labels_voxel', 'in_file')]),
-                        (create_bs_tacs, datasink, [('out_file', 'datasink')]),
-                        (create_bs_stats, datasink, [('out_file', 'datasink.@bs_stats')]),
-                        (create_bs_dsegtsv, datasink, [('out_file', 'datasink.@bs_dseg')]),
-                        (convert_bs_seg_file, datasink, [('out_file', 'datasink.@bs_segmentation_file')]),
-                        (infosource, segment_th, [(('subject_id', add_sub), 'subject_id')]),
-                        (selectfiles, segment_th, [('fs_subject_dir', 'subjects_dir')]),
-                        (segment_th, segstats_th, [('thalamic_labels_voxel', 'segmentation_file')]),
-                        (move_pet_to_anat, segstats_th, [('transformed_file', 'in_file')]),
-                        (segstats_th, create_th_tacs, [('avgwf_txt_file', 'avgwf_file'),
-                                                        ('ctab_out_file', 'ctab_file')]),
-                        (selectfiles, create_th_tacs, [('json_file', 'json_file')]),
-                        (segstats_th, create_th_stats, [('summary_file', 'summary_file')]),
-                        (segstats_th, create_th_dsegtsv, [('ctab_out_file', 'ctab_file')]),
-                        (segment_th, convert_th_seg_file, [('thalamic_labels_voxel', 'in_file')]),
-                        (create_th_tacs, datasink, [('out_file', 'datasink.@th_tacs')]),
-                        (create_th_stats, datasink, [('out_file', 'datasink.@th_stats')]),
-                        (create_th_dsegtsv, datasink, [('out_file', 'datasink.@th_dseg')]),
-                        (convert_th_seg_file, datasink, [('out_file', 'datasink.@th_segmentation_file')]),
-                        (infosource, segment_ha, [(('subject_id', add_sub), 'subject_id')]),
+        workflow.connect([(infosource, segment_ha, [(('subject_id', add_sub), 'subject_id')]),
                         (selectfiles, segment_ha, [('fs_subject_dir', 'subjects_dir')]),
                         (segment_ha, segstats_ha_lh, [('lh_hippoAmygLabels', 'segmentation_file')]),
                         (move_pet_to_anat, segstats_ha_lh, [('transformed_file', 'in_file')]),
@@ -489,8 +404,36 @@ def main(args):
                         (segstats_ha, create_ha_dsegtsv, [('ctab_out_file', 'ctab_file')]),
                         (create_ha_tacs, datasink, [('out_file', 'datasink.@ha_tacs')]),
                         (create_ha_stats, datasink, [('out_file', 'datasink.@ha_stats')]),
-                        (create_ha_dsegtsv, datasink, [('out_file', 'datasink.@ha_dseg')]),
-                        (selectfiles, segstats_wm, [('wm_file', 'segmentation_file')]),
+                        (create_ha_dsegtsv, datasink, [('out_file', 'datasink.@ha_dseg')])
+                        ])
+        
+    if args.wm is True:        
+        segstats_wm = Node(SegStats(exclude_id = 0,
+                                    default_color_table = True,
+                                    avgwf_txt_file = 'desc-whiteMatter_tacs.txt',
+                                    ctab_out_file = 'desc-whiteMatter_dseg.ctab',
+                                    summary_file = 'desc-whiteMatter_stats.txt'),
+                            name = 'segstats_wm')
+        
+        create_wm_tacs = Node(Function(input_names = ['avgwf_file', 'ctab_file', 'json_file'],
+                                        output_names = ['out_file'],
+                                        function = avgwf_to_tacs),
+                                name = 'create_wm_tacs')
+        
+        create_wm_stats = Node(Function(input_names = ['summary_file'],
+                                        output_names = ['out_file'],
+                                        function = summary_to_stats),
+                                name = 'create_wm_stats')
+        
+        create_wm_dsegtsv = Node(Function(input_names = ['ctab_file'],
+                                          output_names = ['out_file'],
+                                          function = ctab_to_dsegtsv),
+                                    name = 'create_wm_dsegtsv')
+        
+        convert_wm_seg_file = Node(MRIConvert(out_file = 'desc-whiteMatter_dseg.nii.gz'),
+                                name = 'convert_wm_seg_file')
+        
+        workflow.connect([(selectfiles, segstats_wm, [('wm_file', 'segmentation_file')]),
                         (move_pet_to_anat, segstats_wm, [('transformed_file', 'in_file')]),
                         (segstats_wm, create_wm_tacs, [('avgwf_txt_file', 'avgwf_file'),
                                                         ('ctab_out_file', 'ctab_file')]),
@@ -501,8 +444,45 @@ def main(args):
                         (create_wm_stats, datasink, [('out_file', 'datasink.@wm_stats')]),
                         (create_wm_dsegtsv, datasink, [('out_file', 'datasink.@wm_dseg')]),
                         (selectfiles, convert_wm_seg_file, [('wm_file', 'in_file')]),
-                        (convert_wm_seg_file, datasink, [('out_file', 'datasink.@wm_segmentation_file')]),
-                        (selectfiles, segment_raphe, [('orig_file', 'in_file')]),
+                        (convert_wm_seg_file, datasink, [('out_file', 'datasink.@wm_segmentation_file')])
+                        ])
+        
+        if args.raphe is True:
+            segment_raphe = Node(MRISclimbicSeg(keep_ac = True,
+                                                percentile = 99.9,
+                                                vmp = True,
+                                                write_volumes = True,
+                                                out_file = 'desc-raphe_dseg.nii.gz'),
+                        name = 'segment_raphe')
+            segment_raphe.inputs.model = pkg_resources.resource_filename('petprep_extract_tacs', 'utils/raphe+pons.n21.d114.h5')
+            segment_raphe.inputs.ctab = pkg_resources.resource_filename('petprep_extract_tacs', 'utils/raphe+pons.ctab')
+        
+            segstats_raphe = Node(SegStats(exclude_id = 0,
+                                        avgwf_txt_file = 'desc-raphe_tacs.txt',
+                                        ctab_out_file = 'desc-raphe_dseg.ctab',
+                                        summary_file = 'desc-raphe_stats.txt'),
+                                name = 'segstats_raphe')
+            
+            segstats_raphe.inputs.color_table_file = pkg_resources.resource_filename('petprep_extract_tacs', 'utils/raphe+pons_cleaned.ctab')
+            
+            create_raphe_tacs = Node(Function(input_names = ['avgwf_file', 'ctab_file', 'json_file'],
+                                            output_names = ['out_file'],
+                                            function = avgwf_to_tacs),
+                                    name = 'create_raphe_tacs')
+            
+            create_raphe_tacs.inputs.ctab_file = pkg_resources.resource_filename('petprep_extract_tacs', 'utils/raphe+pons_cleaned.ctab')
+            
+            create_raphe_stats = Node(Function(input_names = ['out_stats'],
+                                        output_names = ['out_file'],
+                                        function = limbic_to_stats),
+                                name = 'create_raphe_stats')
+
+            create_raphe_dsegtsv = Node(Function(input_names = ['out_stats'],
+                                              output_names = ['out_file'],
+                                              function = limbic_to_dsegtsv),
+                                        name = 'create_raphe_dsegtsv')
+            
+            workflow.connect([(selectfiles, segment_raphe, [('orig_file', 'in_file')]),
                         (segment_raphe, segstats_raphe, [('out_file', 'segmentation_file')]),
                         (move_pet_to_anat, segstats_raphe, [('transformed_file', 'in_file')]),
                         (segstats_raphe, create_raphe_tacs, [('avgwf_txt_file', 'avgwf_file')]),
@@ -512,8 +492,42 @@ def main(args):
                         (segment_raphe,create_raphe_stats, [('out_stats', 'out_stats')]),
                         (create_raphe_stats, datasink, [('out_file', 'datasink.@raphe_stats')]),
                         (segment_raphe, create_raphe_dsegtsv, [('out_stats', 'out_stats')]),
-                        (create_raphe_dsegtsv, datasink, [('out_file', 'datasink.@raphe_dseg')]),
-                        (selectfiles, segment_limbic, [('orig_file', 'in_file')]),
+                        (create_raphe_dsegtsv, datasink, [('out_file', 'datasink.@raphe_dseg')])
+                        ])
+            
+        if args.limbic is True:
+            segment_limbic = Node(MRISclimbicSeg(write_volumes = True,
+                                                out_file = 'desc-limbic_dseg.nii.gz'),
+                        name = 'segment_limbic')
+            segment_limbic.inputs.ctab = pkg_resources.resource_filename('petprep_extract_tacs', 'utils/sclimbic.ctab')
+        
+            segstats_limbic = Node(SegStats(exclude_id = 0,
+                                        avgwf_txt_file = 'desc-limbic_tacs.txt',
+                                        ctab_out_file = 'desc-limbic_dseg.ctab',
+                                        summary_file = 'desc-limbic_stats.txt'),
+                                name = 'segstats_limbic')
+            
+            segstats_limbic.inputs.color_table_file = pkg_resources.resource_filename('petprep_extract_tacs', 'utils/sclimbic_cleaned.ctab')
+            
+            create_limbic_tacs = Node(Function(input_names = ['avgwf_file', 'ctab_file', 'json_file'],
+                                            output_names = ['out_file'],
+                                            function = avgwf_to_tacs),
+                                    name = 'create_limbic_tacs')
+            
+            create_limbic_tacs.inputs.ctab_file = pkg_resources.resource_filename('petprep_extract_tacs', 'utils/sclimbic_cleaned.ctab')
+
+                        
+            create_limbic_stats = Node(Function(input_names = ['out_stats'],
+                                        output_names = ['out_file'],
+                                        function = limbic_to_stats),
+                                name = 'create_limbic_stats')
+
+            create_limbic_dsegtsv = Node(Function(input_names = ['out_stats'],
+                                              output_names = ['out_file'],
+                                              function = limbic_to_dsegtsv),
+                                        name = 'create_limbic_dsegtsv')
+    
+            workflow.connect([(selectfiles, segment_limbic, [('orig_file', 'in_file')]),
                         (segment_limbic, segstats_limbic, [('out_file', 'segmentation_file')]),
                         (move_pet_to_anat, segstats_limbic, [('transformed_file', 'in_file')]),
                         (segstats_limbic, create_limbic_tacs, [('avgwf_txt_file', 'avgwf_file')]),
@@ -524,7 +538,7 @@ def main(args):
                         (create_limbic_stats, datasink, [('out_file', 'datasink.@limbic_stats')]),
                         (segment_limbic, create_limbic_dsegtsv, [('out_stats', 'out_stats')]),
                         (create_limbic_dsegtsv, datasink, [('out_file', 'datasink.@limbic_dseg')])
-                    ])
+                        ])
 
     wf = workflow.run(plugin='MultiProc', plugin_args={'n_procs' : int(args.n_procs)})
 
