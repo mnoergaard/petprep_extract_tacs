@@ -86,6 +86,8 @@ def main(args):
     else:
         output_dir = args.output_dir
 
+    os.makedirs(output_dir, exist_ok=True)
+
     # Define nodes for hmc workflow
     
     coreg_pet_to_t1w = Node(MRICoreg(out_lta_file = 'from-pet_to-t1w_reg.lta'),
@@ -536,12 +538,6 @@ def main(args):
                         ])
 
     wf = workflow.run(plugin='MultiProc', plugin_args={'n_procs' : int(args.n_procs)})
-
-    # clean up and create derivatives directories
-    if args.output_dir is None:
-        output_dir = os.path.join(args.bids_dir,'derivatives','petprep_extract_tacs')
-    else:
-        output_dir = args.output_dir
         
  # loop through directories and store according to BIDS
     reg_files = glob.glob(os.path.join(Path(args.bids_dir),'extract_tacs_pet_wf','datasink','*','from-pet_to-t1w_reg.lta'))
