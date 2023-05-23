@@ -544,7 +544,7 @@ def main(args):
 
     # clean up and create derivatives directories
     if args.output_dir is None:
-        output_dir = os.path.join(args.bids_dir,'derivatives','petprep_hmc')
+        output_dir = os.path.join(args.bids_dir,'derivatives','petprep_extract_tacs')
     else:
         output_dir = args.output_dir
         
