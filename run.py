@@ -40,15 +40,6 @@ def main(args):
     if args.participant_label is None:
         args.participant_label = layout.get(suffix='pet', target='subject', return_type='id')
 
-    # create output derivatives directory
-    if not os.path.exists(args.output_dir):
-        os.makedirs(args.output_dir)
-    
-    # create output directory for this pipeline
-    pipeline_dir = os.path.join(args.output_dir, 'petprep_extract_tacs')
-    if not os.path.exists(pipeline_dir):
-        os.makedirs(pipeline_dir)
-
     infosource = Node(IdentityInterface(
                         fields = ['subject_id','session_id']),
                         name = "infosource")
@@ -94,6 +85,8 @@ def main(args):
         output_dir = os.path.join(args.bids_dir,'derivatives','petprep_extract_tacs')
     else:
         output_dir = args.output_dir
+    
+    os.makedirs(output_dir, exist_ok=True)
 
     # Define nodes for hmc workflow
     
@@ -119,40 +112,12 @@ def main(args):
                              function = plot_reg),
                         name = 'plot_reg')
     
-    gtmseg = Node(GTMSeg(out_file = 'space-T1w_desc-gtmseg_dseg.nii.gz',
-                         xcerseg = True),
-                  name = 'gtmseg')
-    
-    gtmpvc = Node(GTMPVC(default_seg_merge = True,
-                         auto_mask = (1,0.1),
-                         no_pvc = True,
-                         pvc_dir = 'nopvc'),
-                  name = 'gtmpvc')
-    
-    create_gtmseg_tacs = Node(Function(input_names = ['in_file', 'json_file', 'gtm_stats'],
-                                        output_names = ['out_file'],
-                                        function = gtm_to_tacs),
-                              name = 'create_gtmseg_tacs')
-    
-    create_gtmseg_stats = Node(Function(input_names = ['gtm_stats'],
-                                         output_names = ['out_file'],
-                                         function = gtm_stats_to_stats),
-                               name = 'create_gtmseg_stats')
-    
-    create_gtmseg_dsegtsv = Node(Function(input_names = ['gtm_stats'],
-                                             output_names = ['out_file'],
-                                             function = gtm_to_dsegtsv),
-                                    name = 'create_gtmseg_dsegtsv')
-    
-    convert_gtmseg_file = Node(MRIConvert(out_file = 'desc-gtmseg_dseg.nii.gz'),
-                               name = 'convert_gtmseg_file')
-    
     datasink = Node(DataSink(base_directory = args.bids_dir,
-                                container = os.path.join(args.bids_dir,'extract_tacs_pet_workflow')),
+                                container = os.path.join(args.bids_dir,'extract_tacs_pet_wf')),
                     name = 'datasink')
     
     # Define workflow
-    workflow = Workflow(name='extract_tacs_pet_workflow', base_dir=args.bids_dir)
+    workflow = Workflow(name='extract_tacs_pet_wf', base_dir=args.bids_dir)
     workflow.config['execution']['remove_unnecessary_outputs'] = 'false'
     workflow.connect([(infosource, selectfiles, [('subject_id', 'subject_id'),('session_id', 'session_id')]), 
                         (selectfiles, create_time_weighted_average, [('pet_file', 'pet_file')]),
@@ -172,8 +137,40 @@ def main(args):
                         (convert_brainmask, datasink, [('out_file', 'datasink.@brainmask_file')]),
                         (convert_brainmask, plot_registration, [('out_file', 'fixed_image')]),
                         (move_twa_to_anat, plot_registration, [('transformed_file', 'moving_image')]),
-                        (plot_registration, datasink, [('out_file', 'datasink.@plot_reg')]),
-                        (infosource, gtmseg, [(('subject_id', add_sub), 'subject_id')]),
+                        (plot_registration, datasink, [('out_file', 'datasink.@plot_reg')])
+                        ])
+    
+    if args.gtm is True:
+
+        gtmseg = Node(GTMSeg(out_file = 'space-T1w_desc-gtmseg_dseg.nii.gz',
+                         xcerseg = True),
+                  name = 'gtmseg')
+    
+        gtmpvc = Node(GTMPVC(default_seg_merge = True,
+                            auto_mask = (1,0.1),
+                            no_pvc = True,
+                            pvc_dir = 'nopvc'),
+                    name = 'gtmpvc')
+        
+        create_gtmseg_tacs = Node(Function(input_names = ['in_file', 'json_file', 'gtm_stats'],
+                                            output_names = ['out_file'],
+                                            function = gtm_to_tacs),
+                                name = 'create_gtmseg_tacs')
+        
+        create_gtmseg_stats = Node(Function(input_names = ['gtm_stats'],
+                                            output_names = ['out_file'],
+                                            function = gtm_stats_to_stats),
+                                name = 'create_gtmseg_stats')
+        
+        create_gtmseg_dsegtsv = Node(Function(input_names = ['gtm_stats'],
+                                                output_names = ['out_file'],
+                                                function = gtm_to_dsegtsv),
+                                        name = 'create_gtmseg_dsegtsv')
+        
+        convert_gtmseg_file = Node(MRIConvert(out_file = 'desc-gtmseg_dseg.nii.gz'),
+                                name = 'convert_gtmseg_file')
+        
+        workflow.connect([(infosource, gtmseg, [(('subject_id', add_sub), 'subject_id')]),
                         (selectfiles, gtmseg, [('fs_subject_dir', 'subjects_dir')]),
                         (selectfiles, gtmpvc, [('pet_file', 'in_file')]),
                         (gtmseg, gtmpvc, [('out_file', 'segmentation')]),
@@ -555,7 +552,7 @@ def add_sub(subject_id):
     return 'sub-' + subject_id
 
 if __name__ == '__main__': 
-    parser = argparse.ArgumentParser(description='BIDS App for PET deface workflow')
+    parser = argparse.ArgumentParser(description='BIDS App for PETPrep extract time activity curves (TACs) workflow')
     parser.add_argument('--bids_dir', required=True,  help='The directory with the input dataset '
                     'formatted according to the BIDS standard.')
     parser.add_argument('--output_dir', required=False, help='The directory where the output files '
@@ -573,6 +570,7 @@ if __name__ == '__main__':
                    'participants can be specified with a space separated list.',
                    nargs="+", default=None)
     parser.add_argument('--n_procs', help='Number of processors to use when running the workflow', default=2)
+    parser.add_argument('--gtm', help='Extract time activity curves from the geometric transfer matrix segmentation (gtmseg)', action='store_true')
     parser.add_argument('--brainstem', help='Extract time activity curves from the brainstem', action='store_true')
     parser.add_argument('--thalamicNuclei', help='Extract time activity curves from the thalamic nuclei', action='store_true')
     parser.add_argument('--hippocampusAmygdala', help='Extract time activity curves from the hippocampus and amygdala', action='store_true')
