@@ -565,6 +565,9 @@ def main(args):
             for file in files:
                 if not file.startswith('.'):
                     shutil.copy(os.path.join(root, file), os.path.join(sub_out_dir, file_prefix + '_' + file))  
+    
+    # remove temp outputs
+    shutil.rmtree(os.path.join(args.bids_dir, 'extract_tacs_pet_wf'))
 
 def add_sub(subject_id):
     return 'sub-' + subject_id
