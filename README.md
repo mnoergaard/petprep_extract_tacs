@@ -49,7 +49,7 @@ This argument specifies the label(s) of the participant(s) that should be analyz
 
 This argument sets the number of processors to use when running the workflow. The default is 2.
 
-### `--brainstem`, `--thalamicNuclei`, `--hippocampusAmygdala`, `--wm`, `--raphe`, `--limbic`
+### `--gtm`, `--brainstem`, `--thalamicNuclei`, `--hippocampusAmygdala`, `--wm`, `--raphe`, `--limbic`
 
 These options, when specified, instruct the workflow to extract time activity curves from the corresponding brain regions.
 
