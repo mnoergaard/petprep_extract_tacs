@@ -443,8 +443,8 @@ def main(args):
                         (selectfiles, convert_wm_seg_file, [('wm_file', 'in_file')]),
                         (convert_wm_seg_file, datasink, [('out_file', 'datasink.@wm_segmentation_file')])
                         ])
-        
-        if args.raphe is True:
+    
+    if args.raphe is True:
             segment_raphe = Node(MRISclimbicSeg(keep_ac = True,
                                                 percentile = 99.9,
                                                 vmp = True,
@@ -490,9 +490,9 @@ def main(args):
                         (create_raphe_stats, datasink, [('out_file', 'datasink.@raphe_stats')]),
                         (segment_raphe, create_raphe_dsegtsv, [('out_stats', 'out_stats')]),
                         (create_raphe_dsegtsv, datasink, [('out_file', 'datasink.@raphe_dseg')])
-                        ])
-            
-        if args.limbic is True:
+                        ])    
+              
+    if args.limbic is True:
             segment_limbic = Node(MRISclimbicSeg(write_volumes = True,
                                                 out_file = 'desc-limbic_dseg.nii.gz'),
                         name = 'segment_limbic')
