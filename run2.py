@@ -51,13 +51,72 @@ def main(args):
 
     os.makedirs(output_dir, exist_ok=True)
 
-    # Run workflow
+    # Run ANAT workflow
+    anat_main = init_anat_wf()
+    anat_main.run(plugin='MultiProc', plugin_args={'n_procs': int(args.n_procs)})
+
+    # Run PET workflow
     main = init_petprep_extract_tacs_wf()
     main.run(plugin='MultiProc', plugin_args={'n_procs': int(args.n_procs)})
 
     # Remove temp outputs
     shutil.rmtree(os.path.join(args.bids_dir, 'petprep_extract_tacs_wf'))
 
+def init_anat_wf():
+    from bids import BIDSLayout
+
+    layout = BIDSLayout(args.bids_dir, validate=False)
+
+    anat_wf = Workflow(name='anat_wf', base_dir=args.bids_dir)
+
+    # Define the subjects to iterate over
+    subject_list = layout.get(return_type='id', target='subject', suffix='pet')
+
+    # Set up the main workflow to iterate over subjects
+    for subject_id in subject_list:
+        # For each subject, create a subject-specific workflow
+        subject_wf = init_single_subject_anat_wf(subject_id)
+        anat_wf.add_nodes([subject_wf])
+
+    return anat_wf
+
+def init_single_subject_anat_wf(subject_id):
+    from bids import BIDSLayout
+
+    layout = BIDSLayout(args.bids_dir, validate=False)
+
+    # Create a new workflow for this specific subject
+    subject_wf = Workflow(name=f'subject_{subject_id}_wf', base_dir=args.bids_dir)
+
+    templates = {'fs_subject_dir': 'derivatives/freesurfer'}
+
+    selectfiles = Node(SelectFiles(templates,
+                                   base_directory=args.bids_dir),
+    
+                       name="select_files")
+    
+    datasink = Node(DataSink(base_directory = args.bids_dir,
+                                container = os.path.join(args.bids_dir,'anat_wf')),
+                    name = 'datasink')
+    
+    if args.gtm is True:
+        gtmseg = Node(GTMSeg(subject_id = f'sub-{subject_id}', 
+                            out_file = 'space-T1w_desc-gtmseg_dseg.nii.gz',
+                            xcerseg = True),
+                    name = 'gtmseg')
+        
+        subject_wf.connect([(selectfiles, gtmseg, [('fs_subject_dir', 'subjects_dir')]),
+                            (gtmseg, datasink, [('out_file', 'datasink.@gtmseg_file')])
+                            ])
+
+    if args.brainstem is True:
+        segment_bs = Node(SegmentBS(subject_id = f'sub-{subject_id}'),
+                                name = 'segment_bs')
+        
+        subject_wf.connect([(selectfiles, segment_bs, [('fs_subject_dir', 'subjects_dir')])
+                            ])
+    
+    return subject_wf
 
 def init_petprep_extract_tacs_wf():
     from bids import BIDSLayout
@@ -85,7 +144,7 @@ def init_single_subject_wf(subject_id):
     layout = BIDSLayout(args.bids_dir, validate=False)
 
     # Create a new workflow for this specific subject
-    subject_wf = Workflow(name=f'subject_{subject_id}_wf', base_dir='.')
+    subject_wf = Workflow(name=f'subject_{subject_id}_wf', base_dir=args.bids_dir)
     subject_wf.config['execution']['remove_unnecessary_outputs'] = 'false'
 
     subject_data = collect_data(layout,
@@ -108,6 +167,8 @@ def init_single_subject_wf(subject_id):
     templates = {'pet_file': 's*/pet/*{pet_file}.[n]*' if not sessions else 's*/s*/pet/*{pet_file}.[n]*',
                  'json_file': 's*/pet/*{pet_file}.json' if not sessions else 's*/s*/pet/*{pet_file}.json',
                  'brainmask_file': f'derivatives/freesurfer/sub-{subject_id}/mri/brainmask.mgz',
+                 'gtm_file': f'derivatives/freesurfer/sub-{subject_id}/mri/gtmseg.mgz',
+                 'bs_labels_voxel': f'derivatives/freesurfer/sub-{subject_id}/mri/brainstemSsLabels.v13.FSvoxelSpace.mgz',
                  'fs_subject_dir': 'derivatives/freesurfer'}
 
     selectfiles = Node(SelectFiles(templates,
@@ -164,11 +225,6 @@ def init_single_subject_wf(subject_id):
                         ])
     
     if args.gtm is True:
-
-            gtmseg = Node(GTMSeg(out_file = 'space-T1w_desc-gtmseg_dseg.nii.gz',
-                            xcerseg = True,
-                            subject_id = f'sub-{subject_id}'),
-                    name = 'gtmseg')
         
             gtmpvc = Node(GTMPVC(default_seg_merge = True,
                                 auto_mask = (1,0.1),
@@ -195,9 +251,8 @@ def init_single_subject_wf(subject_id):
             convert_gtmseg_file = Node(MRIConvert(out_file = 'desc-gtmseg_dseg.nii.gz'),
                                     name = 'convert_gtmseg_file')
             
-            subject_wf.connect([(selectfiles, gtmseg, [('fs_subject_dir', 'subjects_dir')]),
-                            (selectfiles, gtmpvc, [('pet_file', 'in_file')]),
-                            (gtmseg, gtmpvc, [('out_file', 'segmentation')]),
+            subject_wf.connect([(selectfiles, gtmpvc, [('pet_file', 'in_file')]),
+                            (selectfiles, gtmpvc, [('gtm_file', 'segmentation')]),
                             (coreg_pet_to_t1w, gtmpvc, [('out_lta_file', 'reg_file')]),
                             (gtmpvc, create_gtmseg_tacs, [('nopvc_file', 'in_file')]),
                             (gtmpvc, create_gtmseg_tacs, [('gtm_stats', 'gtm_stats')]),
@@ -205,12 +260,55 @@ def init_single_subject_wf(subject_id):
                             (create_gtmseg_tacs, datasink, [('out_file', 'datasink.@gtmseg_tacs')]),
                             (gtmpvc, create_gtmseg_stats, [('gtm_stats', 'gtm_stats')]),
                             (create_gtmseg_stats, datasink, [('out_file', 'datasink.@gtmseg_stats')]),
-                            (gtmseg, convert_gtmseg_file, [('out_file', 'in_file')]),
+                            (selectfiles, convert_gtmseg_file, [('gtm_file', 'in_file')]),
                             (convert_gtmseg_file, datasink, [('out_file', 'datasink.@gtmseg_file')]),
                             (gtmpvc, create_gtmseg_dsegtsv, [('gtm_stats', 'gtm_stats')]),
                             (create_gtmseg_dsegtsv, datasink, [('out_file', 'datasink.@gtmseg_dsegtsv')])
                             ])
-
+            
+    if args.brainstem is True:
+            segment_bs = Node(SegmentBS(subject_id = f'sub-{subject_id}'),
+                                name = 'segment_bs')
+            
+            segstats_bs = Node(SegStats(exclude_id = 0,
+                                        default_color_table = True,
+                                        avgwf_txt_file = 'desc-brainstem_tacs.txt',
+                                        ctab_out_file = 'desc-brainstem_dseg.ctab',
+                                        summary_file = 'desc-brainstem_stats.txt'),
+                                name = 'segstats_bs')
+            
+            create_bs_tacs = Node(Function(input_names = ['avgwf_file', 'ctab_file', 'json_file'],
+                                            output_names = ['out_file'],
+                                            function = avgwf_to_tacs),
+                                    name = 'create_bs_tacs')
+            
+            create_bs_stats = Node(Function(input_names = ['summary_file'],
+                                            output_names = ['out_file'],
+                                            function = summary_to_stats),
+                                    name = 'create_bs_stats')
+            
+            create_bs_dsegtsv = Node(Function(input_names = ['ctab_file'],
+                                            output_names = ['out_file'],
+                                            function = ctab_to_dsegtsv),
+                                        name = 'create_bs_dsegtsv')
+            
+            convert_bs_seg_file = Node(MRIConvert(out_file = 'desc-brainstem_dseg.nii.gz'),
+                                    name = 'convert_bs_seg_file')
+            
+            subject_wf.connect([(selectfiles, segstats_bs, [('bs_labels_voxel', 'segmentation_file')]),
+                            (move_pet_to_anat, segstats_bs, [('transformed_file', 'in_file')]),
+                            (segstats_bs, create_bs_tacs, [('avgwf_txt_file', 'avgwf_file'),
+                                                            ('ctab_out_file', 'ctab_file')]),
+                            (selectfiles, create_bs_tacs, [('json_file', 'json_file')]),
+                            (segstats_bs, create_bs_stats, [('summary_file', 'summary_file')]),
+                            (segstats_bs, create_bs_dsegtsv, [('ctab_out_file', 'ctab_file')]),
+                            (selectfiles, convert_bs_seg_file, [('bs_labels_voxel', 'in_file')]),
+                            (create_bs_tacs, datasink, [('out_file', 'datasink')]),
+                            (create_bs_stats, datasink, [('out_file', 'datasink.@bs_stats')]),
+                            (create_bs_dsegtsv, datasink, [('out_file', 'datasink.@bs_dseg')]),
+                            (convert_bs_seg_file, datasink, [('out_file', 'datasink.@bs_segmentation_file')])
+                            ])
+            
     return subject_wf
 
 def add_sub(subject_id):
