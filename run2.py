@@ -162,6 +162,55 @@ def init_single_subject_wf(subject_id):
                         (move_twa_to_anat, plot_registration, [('transformed_file', 'moving_image')]),
                         (plot_registration, datasink, [('out_file', 'datasink.@plot_reg')])
                         ])
+    
+    if args.gtm is True:
+
+            gtmseg = Node(GTMSeg(out_file = 'space-T1w_desc-gtmseg_dseg.nii.gz',
+                            xcerseg = True,
+                            subject_id = f'sub-{subject_id}'),
+                    name = 'gtmseg')
+        
+            gtmpvc = Node(GTMPVC(default_seg_merge = True,
+                                auto_mask = (1,0.1),
+                                no_pvc = True,
+                                pvc_dir = 'nopvc',
+                                no_rescale = True),
+                        name = 'gtmpvc')
+            
+            create_gtmseg_tacs = Node(Function(input_names = ['in_file', 'json_file', 'gtm_stats'],
+                                                output_names = ['out_file'],
+                                                function = gtm_to_tacs),
+                                    name = 'create_gtmseg_tacs')
+            
+            create_gtmseg_stats = Node(Function(input_names = ['gtm_stats'],
+                                                output_names = ['out_file'],
+                                                function = gtm_stats_to_stats),
+                                    name = 'create_gtmseg_stats')
+            
+            create_gtmseg_dsegtsv = Node(Function(input_names = ['gtm_stats'],
+                                                    output_names = ['out_file'],
+                                                    function = gtm_to_dsegtsv),
+                                            name = 'create_gtmseg_dsegtsv')
+            
+            convert_gtmseg_file = Node(MRIConvert(out_file = 'desc-gtmseg_dseg.nii.gz'),
+                                    name = 'convert_gtmseg_file')
+            
+            subject_wf.connect([(selectfiles, gtmseg, [('fs_subject_dir', 'subjects_dir')]),
+                            (selectfiles, gtmpvc, [('pet_file', 'in_file')]),
+                            (gtmseg, gtmpvc, [('out_file', 'segmentation')]),
+                            (coreg_pet_to_t1w, gtmpvc, [('out_lta_file', 'reg_file')]),
+                            (gtmpvc, create_gtmseg_tacs, [('nopvc_file', 'in_file')]),
+                            (gtmpvc, create_gtmseg_tacs, [('gtm_stats', 'gtm_stats')]),
+                            (selectfiles, create_gtmseg_tacs, [('json_file', 'json_file')]),
+                            (create_gtmseg_tacs, datasink, [('out_file', 'datasink.@gtmseg_tacs')]),
+                            (gtmpvc, create_gtmseg_stats, [('gtm_stats', 'gtm_stats')]),
+                            (create_gtmseg_stats, datasink, [('out_file', 'datasink.@gtmseg_stats')]),
+                            (gtmseg, convert_gtmseg_file, [('out_file', 'in_file')]),
+                            (convert_gtmseg_file, datasink, [('out_file', 'datasink.@gtmseg_file')]),
+                            (gtmpvc, create_gtmseg_dsegtsv, [('gtm_stats', 'gtm_stats')]),
+                            (create_gtmseg_dsegtsv, datasink, [('out_file', 'datasink.@gtmseg_dsegtsv')])
+                            ])
+
     return subject_wf
 
 def add_sub(subject_id):
