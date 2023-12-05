@@ -53,7 +53,8 @@ def main(args):
 
     # Run ANAT workflow
     anat_main = init_anat_wf()
-    anat_main.run(plugin='MultiProc', plugin_args={'n_procs': int(args.n_procs)})
+    if anat_main._get_all_nodes():
+        anat_main.run(plugin='MultiProc', plugin_args={'n_procs': int(args.n_procs)})
 
     # Run PET workflow
     main = init_petprep_extract_tacs_wf()
@@ -122,6 +123,13 @@ def init_single_subject_anat_wf(subject_id):
             
         subject_wf.connect([(selectfiles, segment_th, [('fs_subject_dir', 'subjects_dir')])
                             ])
+        
+    if args.hippocampusAmygdala is True:
+        segment_ha = Node(SegmentHA_T1(subject_id = f'sub-{subject_id}'),
+                            name = 'segment_ha')
+            
+        subject_wf.connect([(selectfiles, segment_ha, [('fs_subject_dir', 'subjects_dir')])
+                            ])
     
     return subject_wf
 
@@ -174,10 +182,9 @@ def init_single_subject_wf(subject_id):
     templates = {'pet_file': 's*/pet/*{pet_file}.[n]*' if not sessions else 's*/s*/pet/*{pet_file}.[n]*',
                  'json_file': 's*/pet/*{pet_file}.json' if not sessions else 's*/s*/pet/*{pet_file}.json',
                  'brainmask_file': f'derivatives/freesurfer/sub-{subject_id}/mri/brainmask.mgz',
-                 'gtm_file': f'derivatives/freesurfer/sub-{subject_id}/mri/gtmseg.mgz',
-                 'bs_labels_voxel': f'derivatives/freesurfer/sub-{subject_id}/mri/brainstemSsLabels.v13.FSvoxelSpace.mgz',
-                 'thalamic_labels_voxel': f'derivatives/freesurfer/sub-{subject_id}/mri/ThalamicNuclei.v13.T1.FSvoxelSpace.mgz',
-                 'fs_subject_dir': 'derivatives/freesurfer'}
+                 'wm_file': f'derivatives/freesurfer/sub-{subject_id}/mri/wmparc.mgz',
+                 'fs_subject_dir': 'derivatives/freesurfer'
+                 }
 
     selectfiles = Node(SelectFiles(templates,
                                    base_directory=args.bids_dir),
@@ -224,7 +231,7 @@ def init_single_subject_wf(subject_id):
                         (create_time_weighted_average, move_twa_to_anat, [('out_file', 'source_file')]),
                         (selectfiles, move_twa_to_anat, [('brainmask_file', 'target_file')]),
                         (coreg_pet_to_t1w, move_twa_to_anat, [('out_lta_file', 'lta_file')]),
-                        (move_twa_to_anat, datasink, [('transformed_file', 'datasink.@transformed_twa_file')]),
+                        #(move_twa_to_anat, datasink, [('transformed_file', 'datasink.@transformed_twa_file')]),
                         (selectfiles, convert_brainmask, [('brainmask_file', 'in_file')]),
                         (convert_brainmask, datasink, [('out_file', 'datasink.@brainmask_file')]),
                         (convert_brainmask, plot_registration, [('out_file', 'fixed_image')]),
@@ -233,6 +240,8 @@ def init_single_subject_wf(subject_id):
                         ])
     
     if args.gtm is True:
+            
+            templates.update({'gtm_file': f'derivatives/freesurfer/sub-{subject_id}/mri/gtmseg.mgz'})
         
             gtmpvc = Node(GTMPVC(default_seg_merge = True,
                                 auto_mask = (1,0.1),
@@ -275,6 +284,9 @@ def init_single_subject_wf(subject_id):
                             ])
             
     if args.brainstem is True:
+            
+            templates.update({'bs_labels_voxel': f'derivatives/freesurfer/sub-{subject_id}/mri/brainstemSsLabels.v13.FSvoxelSpace.mgz'})
+
             segment_bs = Node(SegmentBS(subject_id = f'sub-{subject_id}'),
                                 name = 'segment_bs')
             
@@ -317,7 +329,10 @@ def init_single_subject_wf(subject_id):
                             (convert_bs_seg_file, datasink, [('out_file', 'datasink.@bs_segmentation_file')])
                             ])
             
-    if args.thalamicNuclei is True:            
+    if args.thalamicNuclei is True:       
+
+            templates.update({'thalamic_labels_voxel': f'derivatives/freesurfer/sub-{subject_id}/mri/ThalamicNuclei.v13.T1.FSvoxelSpace.mgz'})
+     
             segstats_th = Node(SegStats(exclude_id = 0,
                                         default_color_table = True,
                                         avgwf_txt_file = 'desc-thalamus_tacs.txt',
@@ -355,6 +370,171 @@ def init_single_subject_wf(subject_id):
                             (create_th_stats, datasink, [('out_file', 'datasink.@th_stats')]),
                             (create_th_dsegtsv, datasink, [('out_file', 'datasink.@th_dseg')]),
                             (convert_th_seg_file, datasink, [('out_file', 'datasink.@th_segmentation_file')])
+                            ])
+            
+    if args.hippocampusAmygdala is True:   
+            
+            templates.update({'lh_hippoAmygLabels': f'derivatives/freesurfer/sub-{subject_id}/mri/lh.hippoAmygLabels-T1.v22.FSvoxelSpace.mgz',
+                 'rh_hippoAmygLabels': f'derivatives/freesurfer/sub-{subject_id}/mri/rh.hippoAmygLabels-T1.v22.FSvoxelSpace.mgz'})
+    
+            segstats_ha_lh = Node(SegStats(exclude_id = 0,
+                                        default_color_table = True,
+                                        avgwf_txt_file = 'hemi-L_desc-hippocampusAmygdala_tacs.txt',
+                                        ctab_out_file = 'hemi-L_desc-hippocampusAmygdala_dseg.ctab',
+                                        summary_file = 'hemi-L_desc-hippocampusAmygdala_stats.txt'),
+                                name = 'segstats_ha_lh')
+            
+            create_ha_tacs_lh = Node(Function(input_names = ['avgwf_file', 'ctab_file', 'json_file'],
+                                            output_names = ['out_file'],
+                                            function = avgwf_to_tacs),
+                                    name = 'create_ha_tacs_lh')
+            
+            create_ha_stats_lh = Node(Function(input_names = ['summary_file'],
+                                            output_names = ['out_file'],
+                                            function = summary_to_stats),
+                                    name = 'create_ha_stats_lh')
+            
+            create_ha_dsegtsv_lh = Node(Function(input_names = ['ctab_file'],
+                                            output_names = ['out_file'],
+                                            function = ctab_to_dsegtsv),
+                                        name = 'create_ha_dsegtsv_lh')
+            
+            convert_ha_seg_file_lh = Node(MRIConvert(out_file = 'hemi-L_desc-hippocampusAmygdala_dseg.nii.gz'),
+                                    name = 'convert_ha_seg_file_lh')
+            
+            
+            segstats_ha_rh = Node(SegStats(exclude_id = 0,
+                                        default_color_table = True,
+                                        avgwf_txt_file = 'hemi-R_desc-hippocampusAmygdala_tacs.txt',
+                                        ctab_out_file = 'hemi-R_desc-hippocampusAmygdala_dseg.ctab',
+                                        summary_file = 'hemi-R_desc-hippocampusAmygdala_stats.txt'),
+                                name = 'segstats_ha_rh')
+            
+            create_ha_tacs_rh = Node(Function(input_names = ['avgwf_file', 'ctab_file', 'json_file'],
+                                            output_names = ['out_file'],
+                                            function = avgwf_to_tacs),
+                                    name = 'create_ha_tacs_rh')
+            
+            create_ha_stats_rh = Node(Function(input_names = ['summary_file'],
+                                            output_names = ['out_file'],
+                                            function = summary_to_stats),
+                                    name = 'create_ha_stats_rh')
+            
+            create_ha_dsegtsv_rh = Node(Function(input_names = ['ctab_file'],
+                                            output_names = ['out_file'],
+                                            function = ctab_to_dsegtsv),
+                                        name = 'create_ha_dsegtsv_rh')
+            
+            convert_ha_seg_file_rh = Node(MRIConvert(out_file = 'hemi-R_desc-hippocampusAmygdala_dseg.nii.gz'),
+                                    name = 'convert_ha_seg_file_rh')
+            
+            merge_seg_files = Node(Merge(2), 
+                                name='merge')
+
+            combine_ha_lr_dseg = Node(Concatenate(concatenated_file = 'desc-hippocampusAmygdala_dseg.nii.gz',
+                                                combine = True),
+                                    name = 'combine_ha_lr_dseg')
+            
+            segstats_ha = Node(SegStats(exclude_id = 0,
+                                        default_color_table = True,
+                                        avgwf_txt_file = 'desc-hippocampusAmygdala_tacs.txt',
+                                        ctab_out_file = 'desc-hippocampusAmygdala_dseg.ctab',
+                                        summary_file = 'desc-hippocampusAmygdala_stats.txt'),
+                                name = 'segstats_ha')
+            
+            create_ha_tacs = Node(Function(input_names = ['avgwf_file', 'ctab_file', 'json_file'],
+                                            output_names = ['out_file'],
+                                            function = avgwf_to_tacs),
+                                    name = 'create_ha_tacs')
+            
+            create_ha_stats = Node(Function(input_names = ['summary_file'],
+                                            output_names = ['out_file'],
+                                            function = summary_to_stats),
+                                    name = 'create_ha_stats')
+            
+            create_ha_dsegtsv = Node(Function(input_names = ['ctab_file'],
+                                            output_names = ['out_file'],
+                                            function = ctab_to_dsegtsv),
+                                        name = 'create_ha_dsegtsv')
+            
+            subject_wf.connect([(selectfiles, segstats_ha_lh, [('lh_hippoAmygLabels', 'segmentation_file')]),
+                            (move_pet_to_anat, segstats_ha_lh, [('transformed_file', 'in_file')]),
+                            (segstats_ha_lh, create_ha_tacs_lh, [('avgwf_txt_file', 'avgwf_file'),
+                                                            ('ctab_out_file', 'ctab_file')]),
+                            (selectfiles, create_ha_tacs_lh, [('json_file', 'json_file')]),
+                            (segstats_ha_lh, create_ha_stats_lh, [('summary_file', 'summary_file')]),
+                            (segstats_ha_lh, create_ha_dsegtsv_lh, [('ctab_out_file', 'ctab_file')]),
+                            (selectfiles, convert_ha_seg_file_lh, [('lh_hippoAmygLabels', 'in_file')]),
+                            (create_ha_tacs_lh, datasink, [('out_file', 'datasink.@ha_tacs_lh')]),
+                            (create_ha_stats_lh, datasink, [('out_file', 'datasink.@ha_stats_lh')]),
+                            (create_ha_dsegtsv_lh, datasink, [('out_file', 'datasink.@ha_dseg_lh')]),
+                            (convert_ha_seg_file_lh, datasink, [('out_file', 'datasink.@ha_segmentation_file_lh')]),
+                            (selectfiles, segstats_ha_rh, [('rh_hippoAmygLabels', 'segmentation_file')]),
+                            (move_pet_to_anat, segstats_ha_rh, [('transformed_file', 'in_file')]),
+                            (segstats_ha_rh, create_ha_tacs_rh, [('avgwf_txt_file', 'avgwf_file'),
+                                                            ('ctab_out_file', 'ctab_file')]),
+                            (selectfiles, create_ha_tacs_rh, [('json_file', 'json_file')]),
+                            (segstats_ha_rh, create_ha_stats_rh, [('summary_file', 'summary_file')]),
+                            (segstats_ha_rh, create_ha_dsegtsv_rh, [('ctab_out_file', 'ctab_file')]),
+                            (selectfiles, convert_ha_seg_file_rh, [('rh_hippoAmygLabels', 'in_file')]),
+                            (create_ha_tacs_rh, datasink, [('out_file', 'datasink.@ha_tacs_rh')]),
+                            (create_ha_stats_rh, datasink, [('out_file', 'datasink.@ha_stats_rh')]),
+                            (create_ha_dsegtsv_rh, datasink, [('out_file', 'datasink.@ha_dseg_rh')]),
+                            (convert_ha_seg_file_rh, datasink, [('out_file', 'datasink.@ha_segmentation_file_rh')]),
+                            (selectfiles, merge_seg_files, [('lh_hippoAmygLabels', 'in1')]),
+                            (selectfiles, merge_seg_files, [('rh_hippoAmygLabels', 'in2')]),
+                            (merge_seg_files, combine_ha_lr_dseg, [('out', 'in_files')]),
+                            (combine_ha_lr_dseg, datasink, [('concatenated_file', 'datasink.@ha_segmentation_file')]),
+                            (combine_ha_lr_dseg, segstats_ha, [('concatenated_file', 'segmentation_file')]),
+                            (move_pet_to_anat, segstats_ha, [('transformed_file', 'in_file')]),
+                            (segstats_ha, create_ha_tacs, [('avgwf_txt_file', 'avgwf_file'),
+                                                            ('ctab_out_file', 'ctab_file')]),
+                            (selectfiles, create_ha_tacs, [('json_file', 'json_file')]),
+                            (segstats_ha, create_ha_stats, [('summary_file', 'summary_file')]),
+                            (segstats_ha, create_ha_dsegtsv, [('ctab_out_file', 'ctab_file')]),
+                            (create_ha_tacs, datasink, [('out_file', 'datasink.@ha_tacs')]),
+                            (create_ha_stats, datasink, [('out_file', 'datasink.@ha_stats')]),
+                            (create_ha_dsegtsv, datasink, [('out_file', 'datasink.@ha_dseg')])
+                            ])
+            
+    if args.wm is True:        
+            segstats_wm = Node(SegStats(exclude_id = 0,
+                                        default_color_table = True,
+                                        avgwf_txt_file = 'desc-whiteMatter_tacs.txt',
+                                        ctab_out_file = 'desc-whiteMatter_dseg.ctab',
+                                        summary_file = 'desc-whiteMatter_stats.txt'),
+                                name = 'segstats_wm')
+            
+            create_wm_tacs = Node(Function(input_names = ['avgwf_file', 'ctab_file', 'json_file'],
+                                            output_names = ['out_file'],
+                                            function = avgwf_to_tacs),
+                                    name = 'create_wm_tacs')
+            
+            create_wm_stats = Node(Function(input_names = ['summary_file'],
+                                            output_names = ['out_file'],
+                                            function = summary_to_stats),
+                                    name = 'create_wm_stats')
+            
+            create_wm_dsegtsv = Node(Function(input_names = ['ctab_file'],
+                                            output_names = ['out_file'],
+                                            function = ctab_to_dsegtsv),
+                                        name = 'create_wm_dsegtsv')
+            
+            convert_wm_seg_file = Node(MRIConvert(out_file = 'desc-whiteMatter_dseg.nii.gz'),
+                                    name = 'convert_wm_seg_file')
+            
+            subject_wf.connect([(selectfiles, segstats_wm, [('wm_file', 'segmentation_file')]),
+                            (move_pet_to_anat, segstats_wm, [('transformed_file', 'in_file')]),
+                            (segstats_wm, create_wm_tacs, [('avgwf_txt_file', 'avgwf_file'),
+                                                            ('ctab_out_file', 'ctab_file')]),
+                            (selectfiles, create_wm_tacs, [('json_file', 'json_file')]),
+                            (segstats_wm, create_wm_stats, [('summary_file', 'summary_file')]),
+                            (segstats_wm, create_wm_dsegtsv, [('ctab_out_file', 'ctab_file')]),
+                            (create_wm_tacs, datasink, [('out_file', 'datasink.@wm_tacs')]),
+                            (create_wm_stats, datasink, [('out_file', 'datasink.@wm_stats')]),
+                            (create_wm_dsegtsv, datasink, [('out_file', 'datasink.@wm_dseg')]),
+                            (selectfiles, convert_wm_seg_file, [('wm_file', 'in_file')]),
+                            (convert_wm_seg_file, datasink, [('out_file', 'datasink.@wm_segmentation_file')])
                             ])
             
     return subject_wf
