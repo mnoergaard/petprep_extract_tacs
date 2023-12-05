@@ -115,6 +115,13 @@ def init_single_subject_anat_wf(subject_id):
         
         subject_wf.connect([(selectfiles, segment_bs, [('fs_subject_dir', 'subjects_dir')])
                             ])
+        
+    if args.thalamicNuclei is True:
+        segment_th = Node(SegmentThalamicNuclei(subject_id = f'sub-{subject_id}'),
+                            name = 'segment_th')
+            
+        subject_wf.connect([(selectfiles, segment_th, [('fs_subject_dir', 'subjects_dir')])
+                            ])
     
     return subject_wf
 
@@ -169,6 +176,7 @@ def init_single_subject_wf(subject_id):
                  'brainmask_file': f'derivatives/freesurfer/sub-{subject_id}/mri/brainmask.mgz',
                  'gtm_file': f'derivatives/freesurfer/sub-{subject_id}/mri/gtmseg.mgz',
                  'bs_labels_voxel': f'derivatives/freesurfer/sub-{subject_id}/mri/brainstemSsLabels.v13.FSvoxelSpace.mgz',
+                 'thalamic_labels_voxel': f'derivatives/freesurfer/sub-{subject_id}/mri/ThalamicNuclei.v13.T1.FSvoxelSpace.mgz',
                  'fs_subject_dir': 'derivatives/freesurfer'}
 
     selectfiles = Node(SelectFiles(templates,
@@ -211,7 +219,7 @@ def init_single_subject_wf(subject_id):
                         (coreg_pet_to_t1w, move_pet_to_anat, [('out_lta_file', 'lta_file')]),
                         (selectfiles, move_pet_to_anat, [('brainmask_file', 'target_file')]),
                         (selectfiles, move_pet_to_anat, [('pet_file', 'source_file')]),
-                        (move_pet_to_anat, datasink, [('transformed_file', 'datasink.@transformed_file')]),
+                        #(move_pet_to_anat, datasink, [('transformed_file', 'datasink.@transformed_file')]),
                         (coreg_pet_to_t1w, datasink, [('out_lta_file', 'datasink.@out_lta_file')]),
                         (create_time_weighted_average, move_twa_to_anat, [('out_file', 'source_file')]),
                         (selectfiles, move_twa_to_anat, [('brainmask_file', 'target_file')]),
@@ -307,6 +315,46 @@ def init_single_subject_wf(subject_id):
                             (create_bs_stats, datasink, [('out_file', 'datasink.@bs_stats')]),
                             (create_bs_dsegtsv, datasink, [('out_file', 'datasink.@bs_dseg')]),
                             (convert_bs_seg_file, datasink, [('out_file', 'datasink.@bs_segmentation_file')])
+                            ])
+            
+    if args.thalamicNuclei is True:            
+            segstats_th = Node(SegStats(exclude_id = 0,
+                                        default_color_table = True,
+                                        avgwf_txt_file = 'desc-thalamus_tacs.txt',
+                                        ctab_out_file = 'desc-thalamus_dseg.ctab',
+                                        summary_file = 'desc-thalamus_stats.txt'),
+                                name = 'segstats_th')
+            
+            create_th_tacs = Node(Function(input_names = ['avgwf_file', 'ctab_file', 'json_file'],
+                                            output_names = ['out_file'],
+                                            function = avgwf_to_tacs),
+                                    name = 'create_th_tacs')
+            
+            create_th_stats = Node(Function(input_names = ['summary_file'],
+                                            output_names = ['out_file'],
+                                            function = summary_to_stats),
+                                    name = 'create_th_stats')
+            
+            create_th_dsegtsv = Node(Function(input_names = ['ctab_file'],
+                                            output_names = ['out_file'],
+                                            function = ctab_to_dsegtsv),
+                                        name = 'create_th_dsegtsv')
+            
+            convert_th_seg_file = Node(MRIConvert(out_file = 'desc-thalamus_dseg.nii.gz'),
+                                    name = 'convert_th_seg_file')
+            
+            subject_wf.connect([(selectfiles, segstats_th, [('thalamic_labels_voxel', 'segmentation_file')]),
+                            (move_pet_to_anat, segstats_th, [('transformed_file', 'in_file')]),
+                            (segstats_th, create_th_tacs, [('avgwf_txt_file', 'avgwf_file'),
+                                                            ('ctab_out_file', 'ctab_file')]),
+                            (selectfiles, create_th_tacs, [('json_file', 'json_file')]),
+                            (segstats_th, create_th_stats, [('summary_file', 'summary_file')]),
+                            (segstats_th, create_th_dsegtsv, [('ctab_out_file', 'ctab_file')]),
+                            (selectfiles, convert_th_seg_file, [('thalamic_labels_voxel', 'in_file')]),
+                            (create_th_tacs, datasink, [('out_file', 'datasink.@th_tacs')]),
+                            (create_th_stats, datasink, [('out_file', 'datasink.@th_stats')]),
+                            (create_th_dsegtsv, datasink, [('out_file', 'datasink.@th_dseg')]),
+                            (convert_th_seg_file, datasink, [('out_file', 'datasink.@th_segmentation_file')])
                             ])
             
     return subject_wf
