@@ -13,7 +13,7 @@ from nipype import Node, Function, DataSink
 from nipype.interfaces.io import SelectFiles
 from niworkflows.utils.misc import check_valid_fs_license
 from petprep_extract_tacs.utils.pet import create_weighted_average_pet
-from nipype.interfaces.freesurfer import MRICoreg, ApplyVolTransform, MRIConvert, Concatenate
+from nipype.interfaces.freesurfer import MRICoreg, ApplyVolTransform, MRIConvert, Concatenate, SampleToSurface
 from petprep_extract_tacs.interfaces.petsurfer import GTMSeg, GTMPVC
 from petprep_extract_tacs.interfaces.segment import SegmentBS, SegmentHA_T1, SegmentThalamicNuclei, MRISclimbicSeg
 from petprep_extract_tacs.interfaces.fs_model import SegStats
@@ -274,6 +274,32 @@ def init_single_subject_wf(subject_id):
                         (move_twa_to_anat, plot_registration, [('transformed_file', 'moving_image')]),
                         (plot_registration, datasink, [('out_file', 'datasink.@plot_reg')])
                         ])
+    
+    if args.surface is True:
+        vol2surf_lh = Node(SampleToSurface(hemi = 'lh',
+                                    args = '--projfrac 0.5',
+                                    cortex_mask = True,
+                                    target_subject = 'fsaverage',
+                                    out_file = 'space-fsaverage_hemi-lh_pet.nii.gz'
+                                    ),
+                        name = 'vol2surf_lh')
+         
+        vol2surf_rh = Node(SampleToSurface(hemi = 'rh',
+                                    args = '--projfrac 0.5',
+                                    cortex_mask = True,
+                                    target_subject = 'fsaverage',
+                                    out_file = 'space-fsaverage_hemi-rh_pet.nii.gz'
+                                    ),
+                        name = 'vol2surf_rh')
+         
+        subject_wf.connect([(selectfiles, vol2surf_lh, [('pet_file', 'source_file')]),
+                            (coreg_pet_to_t1w, vol2surf_lh, [('out_lta_file', 'reg_file')]),
+                            (vol2surf_lh, datasink, [('out_file', 'datasink.@lh_pet')]),
+                            (selectfiles, vol2surf_rh, [('pet_file', 'source_file')]),
+                            (coreg_pet_to_t1w, vol2surf_rh, [('out_lta_file', 'reg_file')]),
+                            (vol2surf_rh, datasink, [('out_file', 'datasink.@rh_pet')])
+                            ])
+
     
     if args.gtm is True:
             
@@ -698,6 +724,7 @@ if __name__ == '__main__':
     parser.add_argument('--wm', help='Extract time activity curves from the white matter', action='store_true')
     parser.add_argument('--raphe', help='Extract time activity curves from the raphe nuclei', action='store_true')
     parser.add_argument('--limbic', help='Extract time activity curves from the limbic system', action='store_true')
+    parser.add_argument('--surface', help='Extract surface-based time activity curves in fsaverage', action='store_true')
     parser.add_argument('--petprep_hmc', help='Use outputs from petprep_hmc as input to workflow', action='store_true')
     parser.add_argument('--skip_bids_validator', help='Whether or not to perform BIDS dataset validation',
                    action='store_true')
