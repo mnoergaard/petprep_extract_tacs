@@ -17,7 +17,7 @@ from nipype.interfaces.freesurfer import MRICoreg, ApplyVolTransform, MRIConvert
 from petprep_extract_tacs.interfaces.petsurfer import GTMSeg, GTMPVC
 from petprep_extract_tacs.interfaces.segment import SegmentBS, SegmentHA_T1, SegmentThalamicNuclei, MRISclimbicSeg
 from petprep_extract_tacs.interfaces.fs_model import SegStats
-from petprep_extract_tacs.utils.utils import ctab_to_dsegtsv, avgwf_to_tacs, summary_to_stats, gtm_to_tacs, gtm_stats_to_stats, gtm_to_dsegtsv, limbic_to_dsegtsv, limbic_to_stats, plot_reg
+from petprep_extract_tacs.utils.utils import ctab_to_dsegtsv, avgwf_to_tacs, summary_to_stats, gtm_to_tacs, gtm_stats_to_stats, gtm_to_dsegtsv, limbic_to_dsegtsv, limbic_to_stats, plot_reg, get_opt_fwhm
 
 from petprep_extract_tacs.bids import collect_data
 
@@ -348,10 +348,12 @@ def init_single_subject_wf(subject_id):
                                 no_rescale = True),
                         name = 'gtmpvc')
             
-            create_gtmseg_tacs = Node(Function(input_names = ['in_file', 'json_file', 'gtm_stats'],
+            create_gtmseg_tacs = Node(Function(input_names = ['in_file', 'json_file', 'gtm_stats', 'pvc_dir'],
                                                 output_names = ['out_file'],
                                                 function = gtm_to_tacs),
                                     name = 'create_gtmseg_tacs')
+            
+            create_gtmseg_tacs.inputs.pvc_dir = gtmpvc.inputs.pvc_dir
             
             create_gtmseg_stats = Node(Function(input_names = ['gtm_stats'],
                                                 output_names = ['out_file'],
@@ -380,6 +382,55 @@ def init_single_subject_wf(subject_id):
                             (gtmpvc, create_gtmseg_dsegtsv, [('gtm_stats', 'gtm_stats')]),
                             (create_gtmseg_dsegtsv, datasink, [('out_file', 'datasink.@gtmseg_dsegtsv')])
                             ])
+            
+    if args.agtm is True and args.psf is not None:
+                
+                templates.update({'gtm_file': f'derivatives/freesurfer/sub-{subject_id}/mri/gtmseg.mgz'})
+                
+                agtmpvc_init = Node(GTMPVC(auto_mask = (1,0.1),
+                                        num_threads = 1,
+                                        opt_seg_merge = True,
+                                        optimization_schema = '3D_MB',
+                                        psf = args.psf,
+                                        opt_tol = (4, 10e-6, .02),
+                                        opt_brain = True,
+                                        pvc_dir = 'agtm',
+                                        no_rescale = True),
+                                name = 'agtmpvc_init')
+                
+                agtmpvc = Node(GTMPVC(default_seg_merge = True,
+                                        auto_mask = (1,0.1),
+                                        pvc_dir = 'agtm',
+                                        no_rescale = True),
+                                name = 'agtmpvc')
+                
+                opt_fwhm = Node(Function(input_names=['opt_params'],
+                                        output_names=['fwhm_x', 'fwhm_y', 'fwhm_z'],
+                                        function=get_opt_fwhm),
+                                name="opt_fwhm")
+                
+                create_agtmseg_tacs = Node(Function(input_names = ['in_file', 'json_file', 'gtm_stats', 'pvc_dir'],
+                                                        output_names = ['out_file'],
+                                                        function = gtm_to_tacs),
+                                            name = 'create_agtmseg_tacs')
+                
+                create_agtmseg_tacs.inputs.pvc_dir = agtmpvc.inputs.pvc_dir
+                    
+                subject_wf.connect([(create_time_weighted_average, agtmpvc_init, [('out_file', 'in_file')]),
+                                    (selectfiles, agtmpvc_init, [('gtm_file', 'segmentation')]),
+                                    (coreg_pet_to_t1w, agtmpvc_init, [('out_lta_file', 'reg_file')]),
+                                    (agtmpvc_init, opt_fwhm, [('opt_params', 'opt_params')]),
+                                    (opt_fwhm, agtmpvc, [('fwhm_x', 'psf_col'),
+                                                            ('fwhm_y', 'psf_row'),
+                                                            ('fwhm_z', 'psf_slice')]),
+                                    (selectfiles, agtmpvc, [('pet_file', 'in_file')]),
+                                    (selectfiles, agtmpvc, [('gtm_file', 'segmentation')]),
+                                    (coreg_pet_to_t1w, agtmpvc, [('out_lta_file', 'reg_file')]),
+                                    (agtmpvc, create_agtmseg_tacs, [('gtm_file', 'in_file')]),
+                                    (agtmpvc, create_agtmseg_tacs, [('gtm_stats', 'gtm_stats')]),
+                                    (selectfiles, create_agtmseg_tacs, [('json_file', 'json_file')]),
+                                    (create_agtmseg_tacs, datasink, [('out_file', 'datasink.@agtmseg_tacs')])
+                                    ])
             
     if args.brainstem is True:
             
@@ -764,6 +815,8 @@ if __name__ == '__main__':
     parser.add_argument('--surface_smooth', help='Smooth surface-based time activity curves in fsaverage', type=int)
     parser.add_argument('--volume', help='Extract volume-based time activity curves in mni305', action='store_true')
     parser.add_argument('--volume_smooth', help='Smooth volume-based time activity curves in mni305', type=int)
+    parser.add_argument('--agtm', help='Extract time activity curves from the adaptive gtm PVC', action='store_true')
+    parser.add_argument('--psf', help='Initial guess of point spread function of PET scanner for agtm', type=float)
     parser.add_argument('--petprep_hmc', help='Use outputs from petprep_hmc as input to workflow', action='store_true')
     parser.add_argument('--skip_bids_validator', help='Whether or not to perform BIDS dataset validation',
                    action='store_true')
