@@ -5,6 +5,30 @@ Spyder Editor
 This is a temporary script file.
 """
 
+def get_opt_fwhm(opt_params):
+    """
+    Function to extract the frame number after mc_start_time (default=120) seconds of mid frames of dynamic PET data to be used with motion correction
+
+    Parameters
+    ----------
+    json_file : json file containing the frame length and duration of the dynamic PET data
+
+    Returns
+    -------
+    min_frame : minimum frame to use for the motion correction (first frame after 2 min)
+    """
+
+    with open(opt_params, 'r') as file:
+        contents = file.read()
+
+    # Extracting the FWHM values for x, y, and z from the file
+    fwhm_values = contents.split()
+
+    # Assigning the values to fwhm_x, fwhm_y, and fwhm_z
+    fwhm_x, fwhm_y, fwhm_z = map(float, fwhm_values)
+
+    return fwhm_x, fwhm_y, fwhm_z
+
 def ctab_to_dsegtsv(ctab_file):
     """
     This function reads a .ctab file into a pandas DataFrame, keeping only the first two columns.
@@ -147,7 +171,7 @@ def gtm_stats_to_stats(gtm_stats):
     # Return the output file name.
     return tsv_file
 
-def gtm_to_tacs(in_file, json_file, gtm_stats):
+def gtm_to_tacs(in_file, json_file, gtm_stats, pvc_dir):
     """
     This function reads a .ctab file and a .json file into pandas DataFrames. It also reads a .gtm file and extracts the 'FrameTimesStart' and 'FrameDuration' lists, 
     which are converted into numpy arrays and inserted as the first and second columns, respectively, to the gtm DataFrame. The modified gtm DataFrame is then written to a .tsv file with column names based on the .ctab file.
@@ -189,8 +213,11 @@ def gtm_to_tacs(in_file, json_file, gtm_stats):
     in_file_df.insert(1, 'frame_end', np.array(data['FrameTimesStart']) + np.array(data['FrameDuration']))
 
      # Create the output .tsv file name
-    tsv_file = in_file.replace('nopvc.nii.gz','desc-gtmseg_tacs.tsv')
-
+    if pvc_dir == 'nopvc':
+        tsv_file = in_file.replace('nopvc.nii.gz','desc-gtmseg_tacs.tsv')
+    elif pvc_dir == 'agtm':
+        tsv_file = in_file.replace('gtm.nii.gz','pvc-agtm_desc-gtmseg_tacs.tsv')
+    
     # Write the DataFrame to the .tsv file (without the index)
     in_file_df.to_csv(tsv_file, sep='\t', index=False)
     
