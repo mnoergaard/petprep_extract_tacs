@@ -1,0 +1,693 @@
+{
+    "groups": [
+        {
+            "name": "Group_00001",
+            "procs": [
+                0,
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                7,
+                8,
+                9
+            ],
+            "total": 10
+        },
+        {
+            "name": "Group_00002",
+            "procs": [
+                10,
+                11,
+                12,
+                13,
+                14,
+                15,
+                16,
+                17,
+                18,
+                19
+            ],
+            "total": 10
+        },
+        {
+            "name": "Group_00003",
+            "procs": [
+                20,
+                21,
+                22,
+                23,
+                24,
+                25,
+                26,
+                27,
+                28,
+                29
+            ],
+            "total": 10
+        },
+        {
+            "name": "Group_00004",
+            "procs": [
+                30,
+                31,
+                32,
+                33,
+                34,
+                35,
+                36,
+                37,
+                38,
+                39
+            ],
+            "total": 10
+        }
+    ],
+    "links": [
+        {
+            "source": 0,
+            "target": 1,
+            "value": 1
+        },
+        {
+            "source": 0,
+            "target": 3,
+            "value": 1
+        },
+        {
+            "source": 1,
+            "target": 3,
+            "value": 1
+        },
+        {
+            "source": 0,
+            "target": 4,
+            "value": 1
+        },
+        {
+            "source": 3,
+            "target": 4,
+            "value": 1
+        },
+        {
+            "source": 3,
+            "target": 9,
+            "value": 1
+        },
+        {
+            "source": 2,
+            "target": 9,
+            "value": 1
+        },
+        {
+            "source": 7,
+            "target": 9,
+            "value": 1
+        },
+        {
+            "source": 6,
+            "target": 9,
+            "value": 1
+        },
+        {
+            "source": 8,
+            "target": 9,
+            "value": 1
+        },
+        {
+            "source": 0,
+            "target": 5,
+            "value": 1
+        },
+        {
+            "source": 1,
+            "target": 5,
+            "value": 1
+        },
+        {
+            "source": 3,
+            "target": 5,
+            "value": 1
+        },
+        {
+            "source": 0,
+            "target": 2,
+            "value": 1
+        },
+        {
+            "source": 5,
+            "target": 7,
+            "value": 1
+        },
+        {
+            "source": 2,
+            "target": 7,
+            "value": 1
+        },
+        {
+            "source": 0,
+            "target": 6,
+            "value": 1
+        },
+        {
+            "source": 3,
+            "target": 6,
+            "value": 1
+        },
+        {
+            "source": 6,
+            "target": 8,
+            "value": 1
+        },
+        {
+            "source": 10,
+            "target": 11,
+            "value": 1
+        },
+        {
+            "source": 10,
+            "target": 13,
+            "value": 1
+        },
+        {
+            "source": 11,
+            "target": 13,
+            "value": 1
+        },
+        {
+            "source": 10,
+            "target": 14,
+            "value": 1
+        },
+        {
+            "source": 13,
+            "target": 14,
+            "value": 1
+        },
+        {
+            "source": 13,
+            "target": 19,
+            "value": 1
+        },
+        {
+            "source": 12,
+            "target": 19,
+            "value": 1
+        },
+        {
+            "source": 17,
+            "target": 19,
+            "value": 1
+        },
+        {
+            "source": 16,
+            "target": 19,
+            "value": 1
+        },
+        {
+            "source": 18,
+            "target": 19,
+            "value": 1
+        },
+        {
+            "source": 10,
+            "target": 15,
+            "value": 1
+        },
+        {
+            "source": 11,
+            "target": 15,
+            "value": 1
+        },
+        {
+            "source": 13,
+            "target": 15,
+            "value": 1
+        },
+        {
+            "source": 10,
+            "target": 12,
+            "value": 1
+        },
+        {
+            "source": 15,
+            "target": 17,
+            "value": 1
+        },
+        {
+            "source": 12,
+            "target": 17,
+            "value": 1
+        },
+        {
+            "source": 10,
+            "target": 16,
+            "value": 1
+        },
+        {
+            "source": 13,
+            "target": 16,
+            "value": 1
+        },
+        {
+            "source": 16,
+            "target": 18,
+            "value": 1
+        },
+        {
+            "source": 20,
+            "target": 21,
+            "value": 1
+        },
+        {
+            "source": 23,
+            "target": 26,
+            "value": 1
+        },
+        {
+            "source": 20,
+            "target": 26,
+            "value": 1
+        },
+        {
+            "source": 23,
+            "target": 24,
+            "value": 1
+        },
+        {
+            "source": 20,
+            "target": 24,
+            "value": 1
+        },
+        {
+            "source": 20,
+            "target": 22,
+            "value": 1
+        },
+        {
+            "source": 26,
+            "target": 29,
+            "value": 1
+        },
+        {
+            "source": 22,
+            "target": 29,
+            "value": 1
+        },
+        {
+            "source": 28,
+            "target": 29,
+            "value": 1
+        },
+        {
+            "source": 23,
+            "target": 29,
+            "value": 1
+        },
+        {
+            "source": 27,
+            "target": 29,
+            "value": 1
+        },
+        {
+            "source": 26,
+            "target": 28,
+            "value": 1
+        },
+        {
+            "source": 21,
+            "target": 23,
+            "value": 1
+        },
+        {
+            "source": 20,
+            "target": 23,
+            "value": 1
+        },
+        {
+            "source": 22,
+            "target": 27,
+            "value": 1
+        },
+        {
+            "source": 25,
+            "target": 27,
+            "value": 1
+        },
+        {
+            "source": 21,
+            "target": 25,
+            "value": 1
+        },
+        {
+            "source": 23,
+            "target": 25,
+            "value": 1
+        },
+        {
+            "source": 20,
+            "target": 25,
+            "value": 1
+        },
+        {
+            "source": 30,
+            "target": 31,
+            "value": 1
+        },
+        {
+            "source": 33,
+            "target": 36,
+            "value": 1
+        },
+        {
+            "source": 30,
+            "target": 36,
+            "value": 1
+        },
+        {
+            "source": 33,
+            "target": 34,
+            "value": 1
+        },
+        {
+            "source": 30,
+            "target": 34,
+            "value": 1
+        },
+        {
+            "source": 30,
+            "target": 32,
+            "value": 1
+        },
+        {
+            "source": 36,
+            "target": 39,
+            "value": 1
+        },
+        {
+            "source": 32,
+            "target": 39,
+            "value": 1
+        },
+        {
+            "source": 38,
+            "target": 39,
+            "value": 1
+        },
+        {
+            "source": 33,
+            "target": 39,
+            "value": 1
+        },
+        {
+            "source": 37,
+            "target": 39,
+            "value": 1
+        },
+        {
+            "source": 36,
+            "target": 38,
+            "value": 1
+        },
+        {
+            "source": 31,
+            "target": 33,
+            "value": 1
+        },
+        {
+            "source": 30,
+            "target": 33,
+            "value": 1
+        },
+        {
+            "source": 32,
+            "target": 37,
+            "value": 1
+        },
+        {
+            "source": 35,
+            "target": 37,
+            "value": 1
+        },
+        {
+            "source": 31,
+            "target": 35,
+            "value": 1
+        },
+        {
+            "source": 33,
+            "target": 35,
+            "value": 1
+        },
+        {
+            "source": 30,
+            "target": 35,
+            "value": 1
+        }
+    ],
+    "maxN": 10,
+    "nodes": [
+        {
+            "group": 1,
+            "name": "0_select_files",
+            "report": "/Users/martinnorgaard/Dropbox/Mac/Documents/GitHub/petprep_extract_tacs/data/petprep_extract_tacs_wf/subject_02_wf/_pet_file_sub-02_ses-baseline_pet/select_files/_report/report.rst",
+            "result": "/Users/martinnorgaard/Dropbox/Mac/Documents/GitHub/petprep_extract_tacs/data/petprep_extract_tacs_wf/subject_02_wf/_pet_file_sub-02_ses-baseline_pet/select_files/result_select_files.pklz"
+        },
+        {
+            "group": 1,
+            "name": "1_create_weighted_average_pet",
+            "report": "/Users/martinnorgaard/Dropbox/Mac/Documents/GitHub/petprep_extract_tacs/data/petprep_extract_tacs_wf/subject_02_wf/_pet_file_sub-02_ses-baseline_pet/create_weighted_average_pet/_report/report.rst",
+            "result": "/Users/martinnorgaard/Dropbox/Mac/Documents/GitHub/petprep_extract_tacs/data/petprep_extract_tacs_wf/subject_02_wf/_pet_file_sub-02_ses-baseline_pet/create_weighted_average_pet/result_create_weighted_average_pet.pklz"
+        },
+        {
+            "group": 1,
+            "name": "2_convert_brainmask",
+            "report": "/Users/martinnorgaard/Dropbox/Mac/Documents/GitHub/petprep_extract_tacs/data/petprep_extract_tacs_wf/subject_02_wf/_pet_file_sub-02_ses-baseline_pet/convert_brainmask/_report/report.rst",
+            "result": "/Users/martinnorgaard/Dropbox/Mac/Documents/GitHub/petprep_extract_tacs/data/petprep_extract_tacs_wf/subject_02_wf/_pet_file_sub-02_ses-baseline_pet/convert_brainmask/result_convert_brainmask.pklz"
+        },
+        {
+            "group": 1,
+            "name": "3_coreg_pet_to_t1w",
+            "report": "/Users/martinnorgaard/Dropbox/Mac/Documents/GitHub/petprep_extract_tacs/data/petprep_extract_tacs_wf/subject_02_wf/_pet_file_sub-02_ses-baseline_pet/coreg_pet_to_t1w/_report/report.rst",
+            "result": "/Users/martinnorgaard/Dropbox/Mac/Documents/GitHub/petprep_extract_tacs/data/petprep_extract_tacs_wf/subject_02_wf/_pet_file_sub-02_ses-baseline_pet/coreg_pet_to_t1w/result_coreg_pet_to_t1w.pklz"
+        },
+        {
+            "group": 1,
+            "name": "4_move_pet_to_anat",
+            "report": "/Users/martinnorgaard/Dropbox/Mac/Documents/GitHub/petprep_extract_tacs/data/petprep_extract_tacs_wf/subject_02_wf/_pet_file_sub-02_ses-baseline_pet/move_pet_to_anat/_report/report.rst",
+            "result": "/Users/martinnorgaard/Dropbox/Mac/Documents/GitHub/petprep_extract_tacs/data/petprep_extract_tacs_wf/subject_02_wf/_pet_file_sub-02_ses-baseline_pet/move_pet_to_anat/result_move_pet_to_anat.pklz"
+        },
+        {
+            "group": 1,
+            "name": "5_move_twa_to_anat",
+            "report": "/Users/martinnorgaard/Dropbox/Mac/Documents/GitHub/petprep_extract_tacs/data/petprep_extract_tacs_wf/subject_02_wf/_pet_file_sub-02_ses-baseline_pet/move_twa_to_anat/_report/report.rst",
+            "result": "/Users/martinnorgaard/Dropbox/Mac/Documents/GitHub/petprep_extract_tacs/data/petprep_extract_tacs_wf/subject_02_wf/_pet_file_sub-02_ses-baseline_pet/move_twa_to_anat/result_move_twa_to_anat.pklz"
+        },
+        {
+            "group": 1,
+            "name": "6_vol2vol",
+            "report": "/Users/martinnorgaard/Dropbox/Mac/Documents/GitHub/petprep_extract_tacs/data/petprep_extract_tacs_wf/subject_02_wf/_pet_file_sub-02_ses-baseline_pet/vol2vol/_report/report.rst",
+            "result": "/Users/martinnorgaard/Dropbox/Mac/Documents/GitHub/petprep_extract_tacs/data/petprep_extract_tacs_wf/subject_02_wf/_pet_file_sub-02_ses-baseline_pet/vol2vol/result_vol2vol.pklz"
+        },
+        {
+            "group": 1,
+            "name": "7_plot_reg",
+            "report": "/Users/martinnorgaard/Dropbox/Mac/Documents/GitHub/petprep_extract_tacs/data/petprep_extract_tacs_wf/subject_02_wf/_pet_file_sub-02_ses-baseline_pet/plot_reg/_report/report.rst",
+            "result": "/Users/martinnorgaard/Dropbox/Mac/Documents/GitHub/petprep_extract_tacs/data/petprep_extract_tacs_wf/subject_02_wf/_pet_file_sub-02_ses-baseline_pet/plot_reg/result_plot_reg.pklz"
+        },
+        {
+            "group": 1,
+            "name": "8_smooth_vol",
+            "report": "/Users/martinnorgaard/Dropbox/Mac/Documents/GitHub/petprep_extract_tacs/data/petprep_extract_tacs_wf/subject_02_wf/_pet_file_sub-02_ses-baseline_pet/smooth_vol/_report/report.rst",
+            "result": "/Users/martinnorgaard/Dropbox/Mac/Documents/GitHub/petprep_extract_tacs/data/petprep_extract_tacs_wf/subject_02_wf/_pet_file_sub-02_ses-baseline_pet/smooth_vol/result_smooth_vol.pklz"
+        },
+        {
+            "group": 1,
+            "name": "9_datasink",
+            "report": "/Users/martinnorgaard/Dropbox/Mac/Documents/GitHub/petprep_extract_tacs/data/petprep_extract_tacs_wf/subject_02_wf/_pet_file_sub-02_ses-baseline_pet/datasink/_report/report.rst",
+            "result": "/Users/martinnorgaard/Dropbox/Mac/Documents/GitHub/petprep_extract_tacs/data/petprep_extract_tacs_wf/subject_02_wf/_pet_file_sub-02_ses-baseline_pet/datasink/result_datasink.pklz"
+        },
+        {
+            "group": 2,
+            "name": "10_select_files",
+            "report": "/Users/martinnorgaard/Dropbox/Mac/Documents/GitHub/petprep_extract_tacs/data/petprep_extract_tacs_wf/subject_02_wf/_pet_file_sub-02_ses-blocked_pet/select_files/_report/report.rst",
+            "result": "/Users/martinnorgaard/Dropbox/Mac/Documents/GitHub/petprep_extract_tacs/data/petprep_extract_tacs_wf/subject_02_wf/_pet_file_sub-02_ses-blocked_pet/select_files/result_select_files.pklz"
+        },
+        {
+            "group": 2,
+            "name": "11_create_weighted_average_pet",
+            "report": "/Users/martinnorgaard/Dropbox/Mac/Documents/GitHub/petprep_extract_tacs/data/petprep_extract_tacs_wf/subject_02_wf/_pet_file_sub-02_ses-blocked_pet/create_weighted_average_pet/_report/report.rst",
+            "result": "/Users/martinnorgaard/Dropbox/Mac/Documents/GitHub/petprep_extract_tacs/data/petprep_extract_tacs_wf/subject_02_wf/_pet_file_sub-02_ses-blocked_pet/create_weighted_average_pet/result_create_weighted_average_pet.pklz"
+        },
+        {
+            "group": 2,
+            "name": "12_convert_brainmask",
+            "report": "/Users/martinnorgaard/Dropbox/Mac/Documents/GitHub/petprep_extract_tacs/data/petprep_extract_tacs_wf/subject_02_wf/_pet_file_sub-02_ses-blocked_pet/convert_brainmask/_report/report.rst",
+            "result": "/Users/martinnorgaard/Dropbox/Mac/Documents/GitHub/petprep_extract_tacs/data/petprep_extract_tacs_wf/subject_02_wf/_pet_file_sub-02_ses-blocked_pet/convert_brainmask/result_convert_brainmask.pklz"
+        },
+        {
+            "group": 2,
+            "name": "13_coreg_pet_to_t1w",
+            "report": "/Users/martinnorgaard/Dropbox/Mac/Documents/GitHub/petprep_extract_tacs/data/petprep_extract_tacs_wf/subject_02_wf/_pet_file_sub-02_ses-blocked_pet/coreg_pet_to_t1w/_report/report.rst",
+            "result": "/Users/martinnorgaard/Dropbox/Mac/Documents/GitHub/petprep_extract_tacs/data/petprep_extract_tacs_wf/subject_02_wf/_pet_file_sub-02_ses-blocked_pet/coreg_pet_to_t1w/result_coreg_pet_to_t1w.pklz"
+        },
+        {
+            "group": 2,
+            "name": "14_move_pet_to_anat",
+            "report": "/Users/martinnorgaard/Dropbox/Mac/Documents/GitHub/petprep_extract_tacs/data/petprep_extract_tacs_wf/subject_02_wf/_pet_file_sub-02_ses-blocked_pet/move_pet_to_anat/_report/report.rst",
+            "result": "/Users/martinnorgaard/Dropbox/Mac/Documents/GitHub/petprep_extract_tacs/data/petprep_extract_tacs_wf/subject_02_wf/_pet_file_sub-02_ses-blocked_pet/move_pet_to_anat/result_move_pet_to_anat.pklz"
+        },
+        {
+            "group": 2,
+            "name": "15_move_twa_to_anat",
+            "report": "/Users/martinnorgaard/Dropbox/Mac/Documents/GitHub/petprep_extract_tacs/data/petprep_extract_tacs_wf/subject_02_wf/_pet_file_sub-02_ses-blocked_pet/move_twa_to_anat/_report/report.rst",
+            "result": "/Users/martinnorgaard/Dropbox/Mac/Documents/GitHub/petprep_extract_tacs/data/petprep_extract_tacs_wf/subject_02_wf/_pet_file_sub-02_ses-blocked_pet/move_twa_to_anat/result_move_twa_to_anat.pklz"
+        },
+        {
+            "group": 2,
+            "name": "16_vol2vol",
+            "report": "/Users/martinnorgaard/Dropbox/Mac/Documents/GitHub/petprep_extract_tacs/data/petprep_extract_tacs_wf/subject_02_wf/_pet_file_sub-02_ses-blocked_pet/vol2vol/_report/report.rst",
+            "result": "/Users/martinnorgaard/Dropbox/Mac/Documents/GitHub/petprep_extract_tacs/data/petprep_extract_tacs_wf/subject_02_wf/_pet_file_sub-02_ses-blocked_pet/vol2vol/result_vol2vol.pklz"
+        },
+        {
+            "group": 2,
+            "name": "17_plot_reg",
+            "report": "/Users/martinnorgaard/Dropbox/Mac/Documents/GitHub/petprep_extract_tacs/data/petprep_extract_tacs_wf/subject_02_wf/_pet_file_sub-02_ses-blocked_pet/plot_reg/_report/report.rst",
+            "result": "/Users/martinnorgaard/Dropbox/Mac/Documents/GitHub/petprep_extract_tacs/data/petprep_extract_tacs_wf/subject_02_wf/_pet_file_sub-02_ses-blocked_pet/plot_reg/result_plot_reg.pklz"
+        },
+        {
+            "group": 2,
+            "name": "18_smooth_vol",
+            "report": "/Users/martinnorgaard/Dropbox/Mac/Documents/GitHub/petprep_extract_tacs/data/petprep_extract_tacs_wf/subject_02_wf/_pet_file_sub-02_ses-blocked_pet/smooth_vol/_report/report.rst",
+            "result": "/Users/martinnorgaard/Dropbox/Mac/Documents/GitHub/petprep_extract_tacs/data/petprep_extract_tacs_wf/subject_02_wf/_pet_file_sub-02_ses-blocked_pet/smooth_vol/result_smooth_vol.pklz"
+        },
+        {
+            "group": 2,
+            "name": "19_datasink",
+            "report": "/Users/martinnorgaard/Dropbox/Mac/Documents/GitHub/petprep_extract_tacs/data/petprep_extract_tacs_wf/subject_02_wf/_pet_file_sub-02_ses-blocked_pet/datasink/_report/report.rst",
+            "result": "/Users/martinnorgaard/Dropbox/Mac/Documents/GitHub/petprep_extract_tacs/data/petprep_extract_tacs_wf/subject_02_wf/_pet_file_sub-02_ses-blocked_pet/datasink/result_datasink.pklz"
+        },
+        {
+            "group": 3,
+            "name": "20_select_files",
+            "report": "/Users/martinnorgaard/Dropbox/Mac/Documents/GitHub/petprep_extract_tacs/data/petprep_extract_tacs_wf/subject_01_wf/_pet_file_sub-01_ses-baseline_pet/select_files/_report/report.rst",
+            "result": "/Users/martinnorgaard/Dropbox/Mac/Documents/GitHub/petprep_extract_tacs/data/petprep_extract_tacs_wf/subject_01_wf/_pet_file_sub-01_ses-baseline_pet/select_files/result_select_files.pklz"
+        },
+        {
+            "group": 3,
+            "name": "21_create_weighted_average_pet",
+            "report": "/Users/martinnorgaard/Dropbox/Mac/Documents/GitHub/petprep_extract_tacs/data/petprep_extract_tacs_wf/subject_01_wf/_pet_file_sub-01_ses-baseline_pet/create_weighted_average_pet/_report/report.rst",
+            "result": "/Users/martinnorgaard/Dropbox/Mac/Documents/GitHub/petprep_extract_tacs/data/petprep_extract_tacs_wf/subject_01_wf/_pet_file_sub-01_ses-baseline_pet/create_weighted_average_pet/result_create_weighted_average_pet.pklz"
+        },
+        {
+            "group": 3,
+            "name": "22_convert_brainmask",
+            "report": "/Users/martinnorgaard/Dropbox/Mac/Documents/GitHub/petprep_extract_tacs/data/petprep_extract_tacs_wf/subject_01_wf/_pet_file_sub-01_ses-baseline_pet/convert_brainmask/_report/report.rst",
+            "result": "/Users/martinnorgaard/Dropbox/Mac/Documents/GitHub/petprep_extract_tacs/data/petprep_extract_tacs_wf/subject_01_wf/_pet_file_sub-01_ses-baseline_pet/convert_brainmask/result_convert_brainmask.pklz"
+        },
+        {
+            "group": 3,
+            "name": "23_coreg_pet_to_t1w",
+            "report": "/Users/martinnorgaard/Dropbox/Mac/Documents/GitHub/petprep_extract_tacs/data/petprep_extract_tacs_wf/subject_01_wf/_pet_file_sub-01_ses-baseline_pet/coreg_pet_to_t1w/_report/report.rst",
+            "result": "/Users/martinnorgaard/Dropbox/Mac/Documents/GitHub/petprep_extract_tacs/data/petprep_extract_tacs_wf/subject_01_wf/_pet_file_sub-01_ses-baseline_pet/coreg_pet_to_t1w/result_coreg_pet_to_t1w.pklz"
+        },
+        {
+            "group": 3,
+            "name": "24_move_pet_to_anat",
+            "report": "/Users/martinnorgaard/Dropbox/Mac/Documents/GitHub/petprep_extract_tacs/data/petprep_extract_tacs_wf/subject_01_wf/_pet_file_sub-01_ses-baseline_pet/move_pet_to_anat/_report/report.rst",
+            "result": "/Users/martinnorgaard/Dropbox/Mac/Documents/GitHub/petprep_extract_tacs/data/petprep_extract_tacs_wf/subject_01_wf/_pet_file_sub-01_ses-baseline_pet/move_pet_to_anat/result_move_pet_to_anat.pklz"
+        },
+        {
+            "group": 3,
+            "name": "25_move_twa_to_anat",
+            "report": "/Users/martinnorgaard/Dropbox/Mac/Documents/GitHub/petprep_extract_tacs/data/petprep_extract_tacs_wf/subject_01_wf/_pet_file_sub-01_ses-baseline_pet/move_twa_to_anat/_report/report.rst",
+            "result": "/Users/martinnorgaard/Dropbox/Mac/Documents/GitHub/petprep_extract_tacs/data/petprep_extract_tacs_wf/subject_01_wf/_pet_file_sub-01_ses-baseline_pet/move_twa_to_anat/result_move_twa_to_anat.pklz"
+        },
+        {
+            "group": 3,
+            "name": "26_vol2vol",
+            "report": "/Users/martinnorgaard/Dropbox/Mac/Documents/GitHub/petprep_extract_tacs/data/petprep_extract_tacs_wf/subject_01_wf/_pet_file_sub-01_ses-baseline_pet/vol2vol/_report/report.rst",
+            "result": "/Users/martinnorgaard/Dropbox/Mac/Documents/GitHub/petprep_extract_tacs/data/petprep_extract_tacs_wf/subject_01_wf/_pet_file_sub-01_ses-baseline_pet/vol2vol/result_vol2vol.pklz"
+        },
+        {
+            "group": 3,
+            "name": "27_plot_reg",
+            "report": "/Users/martinnorgaard/Dropbox/Mac/Documents/GitHub/petprep_extract_tacs/data/petprep_extract_tacs_wf/subject_01_wf/_pet_file_sub-01_ses-baseline_pet/plot_reg/_report/report.rst",
+            "result": "/Users/martinnorgaard/Dropbox/Mac/Documents/GitHub/petprep_extract_tacs/data/petprep_extract_tacs_wf/subject_01_wf/_pet_file_sub-01_ses-baseline_pet/plot_reg/result_plot_reg.pklz"
+        },
+        {
+            "group": 3,
+            "name": "28_smooth_vol",
+            "report": "/Users/martinnorgaard/Dropbox/Mac/Documents/GitHub/petprep_extract_tacs/data/petprep_extract_tacs_wf/subject_01_wf/_pet_file_sub-01_ses-baseline_pet/smooth_vol/_report/report.rst",
+            "result": "/Users/martinnorgaard/Dropbox/Mac/Documents/GitHub/petprep_extract_tacs/data/petprep_extract_tacs_wf/subject_01_wf/_pet_file_sub-01_ses-baseline_pet/smooth_vol/result_smooth_vol.pklz"
+        },
+        {
+            "group": 3,
+            "name": "29_datasink",
+            "report": "/Users/martinnorgaard/Dropbox/Mac/Documents/GitHub/petprep_extract_tacs/data/petprep_extract_tacs_wf/subject_01_wf/_pet_file_sub-01_ses-baseline_pet/datasink/_report/report.rst",
+            "result": "/Users/martinnorgaard/Dropbox/Mac/Documents/GitHub/petprep_extract_tacs/data/petprep_extract_tacs_wf/subject_01_wf/_pet_file_sub-01_ses-baseline_pet/datasink/result_datasink.pklz"
+        },
+        {
+            "group": 4,
+            "name": "30_select_files",
+            "report": "/Users/martinnorgaard/Dropbox/Mac/Documents/GitHub/petprep_extract_tacs/data/petprep_extract_tacs_wf/subject_01_wf/_pet_file_sub-01_ses-blocked_pet/select_files/_report/report.rst",
+            "result": "/Users/martinnorgaard/Dropbox/Mac/Documents/GitHub/petprep_extract_tacs/data/petprep_extract_tacs_wf/subject_01_wf/_pet_file_sub-01_ses-blocked_pet/select_files/result_select_files.pklz"
+        },
+        {
+            "group": 4,
+            "name": "31_create_weighted_average_pet",
+            "report": "/Users/martinnorgaard/Dropbox/Mac/Documents/GitHub/petprep_extract_tacs/data/petprep_extract_tacs_wf/subject_01_wf/_pet_file_sub-01_ses-blocked_pet/create_weighted_average_pet/_report/report.rst",
+            "result": "/Users/martinnorgaard/Dropbox/Mac/Documents/GitHub/petprep_extract_tacs/data/petprep_extract_tacs_wf/subject_01_wf/_pet_file_sub-01_ses-blocked_pet/create_weighted_average_pet/result_create_weighted_average_pet.pklz"
+        },
+        {
+            "group": 4,
+            "name": "32_convert_brainmask",
+            "report": "/Users/martinnorgaard/Dropbox/Mac/Documents/GitHub/petprep_extract_tacs/data/petprep_extract_tacs_wf/subject_01_wf/_pet_file_sub-01_ses-blocked_pet/convert_brainmask/_report/report.rst",
+            "result": "/Users/martinnorgaard/Dropbox/Mac/Documents/GitHub/petprep_extract_tacs/data/petprep_extract_tacs_wf/subject_01_wf/_pet_file_sub-01_ses-blocked_pet/convert_brainmask/result_convert_brainmask.pklz"
+        },
+        {
+            "group": 4,
+            "name": "33_coreg_pet_to_t1w",
+            "report": "/Users/martinnorgaard/Dropbox/Mac/Documents/GitHub/petprep_extract_tacs/data/petprep_extract_tacs_wf/subject_01_wf/_pet_file_sub-01_ses-blocked_pet/coreg_pet_to_t1w/_report/report.rst",
+            "result": "/Users/martinnorgaard/Dropbox/Mac/Documents/GitHub/petprep_extract_tacs/data/petprep_extract_tacs_wf/subject_01_wf/_pet_file_sub-01_ses-blocked_pet/coreg_pet_to_t1w/result_coreg_pet_to_t1w.pklz"
+        },
+        {
+            "group": 4,
+            "name": "34_move_pet_to_anat",
+            "report": "/Users/martinnorgaard/Dropbox/Mac/Documents/GitHub/petprep_extract_tacs/data/petprep_extract_tacs_wf/subject_01_wf/_pet_file_sub-01_ses-blocked_pet/move_pet_to_anat/_report/report.rst",
+            "result": "/Users/martinnorgaard/Dropbox/Mac/Documents/GitHub/petprep_extract_tacs/data/petprep_extract_tacs_wf/subject_01_wf/_pet_file_sub-01_ses-blocked_pet/move_pet_to_anat/result_move_pet_to_anat.pklz"
+        },
+        {
+            "group": 4,
+            "name": "35_move_twa_to_anat",
+            "report": "/Users/martinnorgaard/Dropbox/Mac/Documents/GitHub/petprep_extract_tacs/data/petprep_extract_tacs_wf/subject_01_wf/_pet_file_sub-01_ses-blocked_pet/move_twa_to_anat/_report/report.rst",
+            "result": "/Users/martinnorgaard/Dropbox/Mac/Documents/GitHub/petprep_extract_tacs/data/petprep_extract_tacs_wf/subject_01_wf/_pet_file_sub-01_ses-blocked_pet/move_twa_to_anat/result_move_twa_to_anat.pklz"
+        },
+        {
+            "group": 4,
+            "name": "36_vol2vol",
+            "report": "/Users/martinnorgaard/Dropbox/Mac/Documents/GitHub/petprep_extract_tacs/data/petprep_extract_tacs_wf/subject_01_wf/_pet_file_sub-01_ses-blocked_pet/vol2vol/_report/report.rst",
+            "result": "/Users/martinnorgaard/Dropbox/Mac/Documents/GitHub/petprep_extract_tacs/data/petprep_extract_tacs_wf/subject_01_wf/_pet_file_sub-01_ses-blocked_pet/vol2vol/result_vol2vol.pklz"
+        },
+        {
+            "group": 4,
+            "name": "37_plot_reg",
+            "report": "/Users/martinnorgaard/Dropbox/Mac/Documents/GitHub/petprep_extract_tacs/data/petprep_extract_tacs_wf/subject_01_wf/_pet_file_sub-01_ses-blocked_pet/plot_reg/_report/report.rst",
+            "result": "/Users/martinnorgaard/Dropbox/Mac/Documents/GitHub/petprep_extract_tacs/data/petprep_extract_tacs_wf/subject_01_wf/_pet_file_sub-01_ses-blocked_pet/plot_reg/result_plot_reg.pklz"
+        },
+        {
+            "group": 4,
+            "name": "38_smooth_vol",
+            "report": "/Users/martinnorgaard/Dropbox/Mac/Documents/GitHub/petprep_extract_tacs/data/petprep_extract_tacs_wf/subject_01_wf/_pet_file_sub-01_ses-blocked_pet/smooth_vol/_report/report.rst",
+            "result": "/Users/martinnorgaard/Dropbox/Mac/Documents/GitHub/petprep_extract_tacs/data/petprep_extract_tacs_wf/subject_01_wf/_pet_file_sub-01_ses-blocked_pet/smooth_vol/result_smooth_vol.pklz"
+        },
+        {
+            "group": 4,
+            "name": "39_datasink",
+            "report": "/Users/martinnorgaard/Dropbox/Mac/Documents/GitHub/petprep_extract_tacs/data/petprep_extract_tacs_wf/subject_01_wf/_pet_file_sub-01_ses-blocked_pet/datasink/_report/report.rst",
+            "result": "/Users/martinnorgaard/Dropbox/Mac/Documents/GitHub/petprep_extract_tacs/data/petprep_extract_tacs_wf/subject_01_wf/_pet_file_sub-01_ses-blocked_pet/datasink/result_datasink.pklz"
+        }
+    ]
+}

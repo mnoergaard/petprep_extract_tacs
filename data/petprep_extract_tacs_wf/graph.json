@@ -1,0 +1,354 @@
+[
+    {
+        "group": 1,
+        "imports": [],
+        "name": "00_select_files",
+        "size": 1
+    },
+    {
+        "group": 1,
+        "imports": [
+            "00_select_files"
+        ],
+        "name": "01_create_weighted_average_pet",
+        "size": 1
+    },
+    {
+        "group": 1,
+        "imports": [
+            "00_select_files"
+        ],
+        "name": "02_convert_brainmask",
+        "size": 1
+    },
+    {
+        "group": 1,
+        "imports": [
+            "00_select_files",
+            "01_create_weighted_average_pet"
+        ],
+        "name": "03_coreg_pet_to_t1w",
+        "size": 1
+    },
+    {
+        "group": 1,
+        "imports": [
+            "00_select_files",
+            "03_coreg_pet_to_t1w"
+        ],
+        "name": "04_move_pet_to_anat",
+        "size": 1
+    },
+    {
+        "group": 1,
+        "imports": [
+            "00_select_files",
+            "01_create_weighted_average_pet",
+            "03_coreg_pet_to_t1w"
+        ],
+        "name": "05_move_twa_to_anat",
+        "size": 1
+    },
+    {
+        "group": 1,
+        "imports": [
+            "00_select_files",
+            "03_coreg_pet_to_t1w"
+        ],
+        "name": "06_vol2vol",
+        "size": 1
+    },
+    {
+        "group": 1,
+        "imports": [
+            "05_move_twa_to_anat",
+            "02_convert_brainmask"
+        ],
+        "name": "07_plot_reg",
+        "size": 1
+    },
+    {
+        "group": 1,
+        "imports": [
+            "06_vol2vol"
+        ],
+        "name": "08_smooth_vol",
+        "size": 1
+    },
+    {
+        "group": 1,
+        "imports": [
+            "03_coreg_pet_to_t1w",
+            "02_convert_brainmask",
+            "07_plot_reg",
+            "06_vol2vol",
+            "08_smooth_vol"
+        ],
+        "name": "09_datasink",
+        "size": 1
+    },
+    {
+        "group": 2,
+        "imports": [],
+        "name": "10_select_files",
+        "size": 1
+    },
+    {
+        "group": 2,
+        "imports": [
+            "10_select_files"
+        ],
+        "name": "11_create_weighted_average_pet",
+        "size": 1
+    },
+    {
+        "group": 2,
+        "imports": [
+            "10_select_files"
+        ],
+        "name": "12_convert_brainmask",
+        "size": 1
+    },
+    {
+        "group": 2,
+        "imports": [
+            "10_select_files",
+            "11_create_weighted_average_pet"
+        ],
+        "name": "13_coreg_pet_to_t1w",
+        "size": 1
+    },
+    {
+        "group": 2,
+        "imports": [
+            "10_select_files",
+            "13_coreg_pet_to_t1w"
+        ],
+        "name": "14_move_pet_to_anat",
+        "size": 1
+    },
+    {
+        "group": 2,
+        "imports": [
+            "10_select_files",
+            "11_create_weighted_average_pet",
+            "13_coreg_pet_to_t1w"
+        ],
+        "name": "15_move_twa_to_anat",
+        "size": 1
+    },
+    {
+        "group": 2,
+        "imports": [
+            "10_select_files",
+            "13_coreg_pet_to_t1w"
+        ],
+        "name": "16_vol2vol",
+        "size": 1
+    },
+    {
+        "group": 2,
+        "imports": [
+            "15_move_twa_to_anat",
+            "12_convert_brainmask"
+        ],
+        "name": "17_plot_reg",
+        "size": 1
+    },
+    {
+        "group": 2,
+        "imports": [
+            "16_vol2vol"
+        ],
+        "name": "18_smooth_vol",
+        "size": 1
+    },
+    {
+        "group": 2,
+        "imports": [
+            "13_coreg_pet_to_t1w",
+            "12_convert_brainmask",
+            "17_plot_reg",
+            "16_vol2vol",
+            "18_smooth_vol"
+        ],
+        "name": "19_datasink",
+        "size": 1
+    },
+    {
+        "group": 3,
+        "imports": [],
+        "name": "20_select_files",
+        "size": 1
+    },
+    {
+        "group": 3,
+        "imports": [
+            "20_select_files"
+        ],
+        "name": "21_create_weighted_average_pet",
+        "size": 1
+    },
+    {
+        "group": 3,
+        "imports": [
+            "20_select_files"
+        ],
+        "name": "22_convert_brainmask",
+        "size": 1
+    },
+    {
+        "group": 3,
+        "imports": [
+            "21_create_weighted_average_pet",
+            "20_select_files"
+        ],
+        "name": "23_coreg_pet_to_t1w",
+        "size": 1
+    },
+    {
+        "group": 3,
+        "imports": [
+            "23_coreg_pet_to_t1w",
+            "20_select_files"
+        ],
+        "name": "24_move_pet_to_anat",
+        "size": 1
+    },
+    {
+        "group": 3,
+        "imports": [
+            "21_create_weighted_average_pet",
+            "23_coreg_pet_to_t1w",
+            "20_select_files"
+        ],
+        "name": "25_move_twa_to_anat",
+        "size": 1
+    },
+    {
+        "group": 3,
+        "imports": [
+            "23_coreg_pet_to_t1w",
+            "20_select_files"
+        ],
+        "name": "26_vol2vol",
+        "size": 1
+    },
+    {
+        "group": 3,
+        "imports": [
+            "22_convert_brainmask",
+            "25_move_twa_to_anat"
+        ],
+        "name": "27_plot_reg",
+        "size": 1
+    },
+    {
+        "group": 3,
+        "imports": [
+            "26_vol2vol"
+        ],
+        "name": "28_smooth_vol",
+        "size": 1
+    },
+    {
+        "group": 3,
+        "imports": [
+            "26_vol2vol",
+            "22_convert_brainmask",
+            "28_smooth_vol",
+            "23_coreg_pet_to_t1w",
+            "27_plot_reg"
+        ],
+        "name": "29_datasink",
+        "size": 1
+    },
+    {
+        "group": 4,
+        "imports": [],
+        "name": "30_select_files",
+        "size": 1
+    },
+    {
+        "group": 4,
+        "imports": [
+            "30_select_files"
+        ],
+        "name": "31_create_weighted_average_pet",
+        "size": 1
+    },
+    {
+        "group": 4,
+        "imports": [
+            "30_select_files"
+        ],
+        "name": "32_convert_brainmask",
+        "size": 1
+    },
+    {
+        "group": 4,
+        "imports": [
+            "31_create_weighted_average_pet",
+            "30_select_files"
+        ],
+        "name": "33_coreg_pet_to_t1w",
+        "size": 1
+    },
+    {
+        "group": 4,
+        "imports": [
+            "33_coreg_pet_to_t1w",
+            "30_select_files"
+        ],
+        "name": "34_move_pet_to_anat",
+        "size": 1
+    },
+    {
+        "group": 4,
+        "imports": [
+            "31_create_weighted_average_pet",
+            "33_coreg_pet_to_t1w",
+            "30_select_files"
+        ],
+        "name": "35_move_twa_to_anat",
+        "size": 1
+    },
+    {
+        "group": 4,
+        "imports": [
+            "33_coreg_pet_to_t1w",
+            "30_select_files"
+        ],
+        "name": "36_vol2vol",
+        "size": 1
+    },
+    {
+        "group": 4,
+        "imports": [
+            "32_convert_brainmask",
+            "35_move_twa_to_anat"
+        ],
+        "name": "37_plot_reg",
+        "size": 1
+    },
+    {
+        "group": 4,
+        "imports": [
+            "36_vol2vol"
+        ],
+        "name": "38_smooth_vol",
+        "size": 1
+    },
+    {
+        "group": 4,
+        "imports": [
+            "36_vol2vol",
+            "32_convert_brainmask",
+            "38_smooth_vol",
+            "33_coreg_pet_to_t1w",
+            "37_plot_reg"
+        ],
+        "name": "39_datasink",
+        "size": 1
+    }
+]

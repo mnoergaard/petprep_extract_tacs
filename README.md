@@ -64,3 +64,4 @@ This argument, when specified, will skip the BIDS dataset validation step.
 ### `-v`, `--version`
 
 This argument displays the current version of the PETPrep extract time activity curves BIDS-App.
+# tmp_files

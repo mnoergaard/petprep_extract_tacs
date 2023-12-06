@@ -1,0 +1,22 @@
+[
+    [
+        "base_directory",
+        "/Users/martinnorgaard/Documents/GitHub/petprep_extract_tacs/data"
+    ],
+    [
+        "force_lists",
+        false
+    ],
+    [
+        "pet_file",
+        "sub-01_ses-blocked_pet"
+    ],
+    [
+        "raise_on_empty",
+        true
+    ],
+    [
+        "sort_filelist",
+        true
+    ]
+]
