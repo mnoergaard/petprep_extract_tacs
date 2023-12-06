@@ -337,7 +337,7 @@ def init_single_subject_wf(subject_id):
                                 ])
 
     
-    if args.gtm is True:
+    if args.gtm is True or args.agtm is True:
             
             templates.update({'gtm_file': f'derivatives/freesurfer/sub-{subject_id}/mri/gtmseg.mgz'})
         
