@@ -60,8 +60,40 @@ def main(args):
     main = init_petprep_extract_tacs_wf()
     main.run(plugin='MultiProc', plugin_args={'n_procs': int(args.n_procs)})
 
+
+    # Loop through directories and store according to PET-BIDS specification
+    reg_files = glob.glob(os.path.join(Path(args.bids_dir),'petprep_extract_tacs_wf','datasink','*','from-pet_to-t1w_reg.lta'))
+
+    for idx, x in enumerate(reg_files):
+        match_sub_id = re.search(r'sub-([A-Za-z0-9]+)_', reg_files[idx])
+        sub_id = match_sub_id.group(1)
+        
+        match_ses_id = re.search(r'ses-([A-Za-z0-9]+)_', reg_files[idx])
+
+        if match_ses_id:
+            ses_id = match_ses_id.group(1)
+        else:
+            ses_id = None
+
+        match_file_prefix = re.search(r'_pet_file_(.*?)_pet', reg_files[idx])
+        file_prefix = match_file_prefix.group(1)
+
+        if ses_id is not None:
+            sub_out_dir = Path(os.path.join(output_dir, 'sub-' + sub_id, 'ses-' + ses_id))
+        else:
+            sub_out_dir = Path(os.path.join(output_dir, 'sub-' + sub_id))
+
+        os.makedirs(sub_out_dir, exist_ok=True)
+
+        # copy all files and add prefix
+        for root, dirs, files in os.walk(os.path.dirname(reg_files[idx])):
+            for file in files:
+                if not file.startswith('.'):
+                    shutil.copy(os.path.join(root, file), os.path.join(sub_out_dir, file_prefix + '_' + file))  
+
     # Remove temp outputs
     shutil.rmtree(os.path.join(args.bids_dir, 'petprep_extract_tacs_wf'))
+    shutil.rmtree(os.path.join(args.bids_dir, 'anat_wf'))
 
 def init_anat_wf():
     from bids import BIDSLayout
@@ -215,7 +247,7 @@ def init_single_subject_wf(subject_id):
                         name = 'plot_reg')
     
     datasink = Node(DataSink(base_directory = args.bids_dir,
-                                container = os.path.join(args.bids_dir,'extract_tacs_pet_wf')),
+                                container = os.path.join(args.bids_dir,'petprep_extract_tacs_wf')),
                     name = 'datasink')
 
     subject_wf.connect([(inputs, selectfiles, [('pet_file', 'pet_file')]),
