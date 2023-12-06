@@ -390,7 +390,7 @@ def init_single_subject_wf(subject_id):
                 agtmpvc_init = Node(GTMPVC(auto_mask = (1,0.1),
                                         num_threads = 1,
                                         opt_seg_merge = True,
-                                        optimization_schema = '3D_MB',
+                                        optimization_schema = '1D',
                                         psf = args.psf,
                                         opt_tol = (4, 10e-6, .02),
                                         opt_brain = True,
@@ -405,7 +405,7 @@ def init_single_subject_wf(subject_id):
                                 name = 'agtmpvc')
                 
                 opt_fwhm = Node(Function(input_names=['opt_params'],
-                                        output_names=['fwhm_x', 'fwhm_y', 'fwhm_z'],
+                                        output_names=['fwhm_x', 'fwhm_y', 'fwhm_z', 'tsv_file'],
                                         function=get_opt_fwhm),
                                 name="opt_fwhm")
                 
@@ -429,7 +429,8 @@ def init_single_subject_wf(subject_id):
                                     (agtmpvc, create_agtmseg_tacs, [('gtm_file', 'in_file')]),
                                     (agtmpvc, create_agtmseg_tacs, [('gtm_stats', 'gtm_stats')]),
                                     (selectfiles, create_agtmseg_tacs, [('json_file', 'json_file')]),
-                                    (create_agtmseg_tacs, datasink, [('out_file', 'datasink.@agtmseg_tacs')])
+                                    (create_agtmseg_tacs, datasink, [('out_file', 'datasink.@agtmseg_tacs')]),
+                                    (opt_fwhm, datasink, [('tsv_file', 'datasink.@opt_fwhm')])
                                     ])
             
     if args.brainstem is True:
