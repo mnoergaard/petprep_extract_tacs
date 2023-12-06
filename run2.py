@@ -574,7 +574,6 @@ def init_single_subject_wf(subject_id):
                             ])
             
     if args.raphe is True:
-                
                 segment_raphe = Node(MRISclimbicSeg(keep_ac = True,
                                             percentile = 99.9,
                                             vmp = True,
@@ -621,6 +620,51 @@ def init_single_subject_wf(subject_id):
                             (create_raphe_stats, datasink, [('out_file', 'datasink.@raphe_stats')]),
                             (segment_raphe, create_raphe_dsegtsv, [('out_stats', 'out_stats')]),
                             (create_raphe_dsegtsv, datasink, [('out_file', 'datasink.@raphe_dseg')])
+                            ])
+                
+    if args.limbic is True:
+                segment_limbic = Node(MRISclimbicSeg(write_volumes = True,
+                                                    out_file = 'desc-limbic_dseg.nii.gz'),
+                            name = 'segment_limbic')
+                segment_limbic.inputs.ctab = pkg_resources.resource_filename('petprep_extract_tacs', 'utils/sclimbic.ctab')
+            
+                segstats_limbic = Node(SegStats(exclude_id = 0,
+                                            avgwf_txt_file = 'desc-limbic_tacs.txt',
+                                            ctab_out_file = 'desc-limbic_dseg.ctab',
+                                            summary_file = 'desc-limbic_stats.txt'),
+                                    name = 'segstats_limbic')
+                
+                segstats_limbic.inputs.color_table_file = pkg_resources.resource_filename('petprep_extract_tacs', 'utils/sclimbic_cleaned.ctab')
+                
+                create_limbic_tacs = Node(Function(input_names = ['avgwf_file', 'ctab_file', 'json_file'],
+                                                output_names = ['out_file'],
+                                                function = avgwf_to_tacs),
+                                        name = 'create_limbic_tacs')
+                
+                create_limbic_tacs.inputs.ctab_file = pkg_resources.resource_filename('petprep_extract_tacs', 'utils/sclimbic_cleaned.ctab')
+
+                            
+                create_limbic_stats = Node(Function(input_names = ['out_stats'],
+                                            output_names = ['out_file'],
+                                            function = limbic_to_stats),
+                                    name = 'create_limbic_stats')
+
+                create_limbic_dsegtsv = Node(Function(input_names = ['out_stats'],
+                                                output_names = ['out_file'],
+                                                function = limbic_to_dsegtsv),
+                                            name = 'create_limbic_dsegtsv')
+        
+                subject_wf.connect([(selectfiles, segment_limbic, [('orig_file', 'in_file')]),
+                            (segment_limbic, segstats_limbic, [('out_file', 'segmentation_file')]),
+                            (move_pet_to_anat, segstats_limbic, [('transformed_file', 'in_file')]),
+                            (segstats_limbic, create_limbic_tacs, [('avgwf_txt_file', 'avgwf_file')]),
+                            (selectfiles, create_limbic_tacs, [('json_file', 'json_file')]),
+                            (create_limbic_tacs, datasink, [('out_file', 'datasink.@limbic_tacs')]),
+                            (segment_limbic, datasink, [('out_file', 'datasink.@limbic_segmentation_file')]),
+                            (segment_limbic,create_limbic_stats, [('out_stats', 'out_stats')]),
+                            (create_limbic_stats, datasink, [('out_file', 'datasink.@limbic_stats')]),
+                            (segment_limbic, create_limbic_dsegtsv, [('out_stats', 'out_stats')]),
+                            (create_limbic_dsegtsv, datasink, [('out_file', 'datasink.@limbic_dseg')])
                             ])
             
     return subject_wf
