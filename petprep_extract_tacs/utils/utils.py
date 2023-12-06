@@ -6,17 +6,10 @@ This is a temporary script file.
 """
 
 def get_opt_fwhm(opt_params):
-    """
-    Function to extract the frame number after mc_start_time (default=120) seconds of mid frames of dynamic PET data to be used with motion correction
+    import os
+    import pandas as pd
 
-    Parameters
-    ----------
-    json_file : json file containing the frame length and duration of the dynamic PET data
-
-    Returns
-    -------
-    min_frame : minimum frame to use for the motion correction (first frame after 2 min)
-    """
+    new_pth = os.getcwd()
 
     with open(opt_params, 'r') as file:
         contents = file.read()
@@ -27,7 +20,13 @@ def get_opt_fwhm(opt_params):
     # Assigning the values to fwhm_x, fwhm_y, and fwhm_z
     fwhm_x, fwhm_y, fwhm_z = map(float, fwhm_values)
 
-    return fwhm_x, fwhm_y, fwhm_z
+    fwhm = pd.DataFrame({'fwhm_x': fwhm_x, 'fwhm_y': fwhm_y, 'fwhm_z': fwhm_z})
+
+    fwhm.to_csv(os.path.join(new_pth, 'pvc-agtm_desc-fwhm_stats.tsv'), sep='\t')
+
+    tsv_file = os.path.join(new_pth, 'pvc-agtm_desc-fwhm_stats.tsv')
+
+    return fwhm_x, fwhm_y, fwhm_z, tsv_file
 
 def ctab_to_dsegtsv(ctab_file):
     """

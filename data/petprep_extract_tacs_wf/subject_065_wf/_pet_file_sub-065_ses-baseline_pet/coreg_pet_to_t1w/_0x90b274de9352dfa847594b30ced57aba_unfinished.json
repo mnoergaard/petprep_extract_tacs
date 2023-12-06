@@ -1,0 +1,28 @@
+[
+    [
+        "out_lta_file",
+        "from-pet_to-t1w_reg.lta"
+    ],
+    [
+        "reference_file",
+        [
+            "/Users/martinnorgaard/Documents/GitHub/petprep_extract_tacs/data/derivatives/freesurfer/sub-065/mri/brainmask.mgz",
+            "82c0f659509deef840e7fd38c0ce2703"
+        ]
+    ],
+    [
+        "source_file",
+        [
+            "/Users/martinnorgaard/Dropbox/Mac/Documents/GitHub/petprep_extract_tacs/data/petprep_extract_tacs_wf/subject_065_wf/_pet_file_sub-065_ses-baseline_pet/create_weighted_average_pet/sub-065_ses-baseline_desc-wavg_pet.nii.gz",
+            "7d9a72fd94dfd918722c74a7786c9910"
+        ]
+    ],
+    [
+        "subject_id",
+        "sub-065"
+    ],
+    [
+        "subjects_dir",
+        "/Users/martinnorgaard/Documents/GitHub/petprep_extract_tacs/data/derivatives/freesurfer"
+    ]
+]
