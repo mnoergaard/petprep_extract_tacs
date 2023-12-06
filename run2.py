@@ -102,6 +102,7 @@ def init_anat_wf():
     layout = BIDSLayout(args.bids_dir, validate=False)
 
     anat_wf = Workflow(name='anat_wf', base_dir=args.bids_dir)
+    anat_wf.config['execution']['remove_unnecessary_outputs'] = 'false'
 
     # Define the subjects to iterate over
     subject_list = layout.get(return_type='id', target='subject', suffix='pet')
@@ -121,6 +122,7 @@ def init_single_subject_anat_wf(subject_id):
 
     # Create a new workflow for this specific subject
     subject_wf = Workflow(name=f'subject_{subject_id}_wf', base_dir=args.bids_dir)
+    subject_wf.config['execution']['remove_unnecessary_outputs'] = 'false'
 
     templates = {'fs_subject_dir': 'derivatives/freesurfer'}
 
@@ -162,22 +164,6 @@ def init_single_subject_anat_wf(subject_id):
                             name = 'segment_ha')
             
         subject_wf.connect([(selectfiles, segment_ha, [('fs_subject_dir', 'subjects_dir')])
-                            ])
-        
-    if args.raphe is True:
-        segment_raphe = Node(MRISclimbicSeg(subjects = f'sub-{subject_id}',
-                                            keep_ac = True,
-                                            percentile = 99.9,
-                                            vmp = True,
-                                            write_volumes = True,
-                                            out_file = 'space-T1w_desc-raphe_dseg.nii.gz'),
-                            name = 'segment_raphe')
-        
-        segment_raphe.inputs.model = pkg_resources.resource_filename('petprep_extract_tacs', 'utils/raphe+pons.n21.d114.h5')
-        segment_raphe.inputs.ctab = pkg_resources.resource_filename('petprep_extract_tacs', 'utils/raphe+pons.ctab')
-        
-        subject_wf.connect([(selectfiles, segment_raphe, [('fs_subject_dir', 'sd')]),
-                            (segment_raphe, datasink, [('out_file', 'datasink.@raphe_file')])
                             ])
     
     return subject_wf
@@ -232,6 +218,7 @@ def init_single_subject_wf(subject_id):
                  'json_file': 's*/pet/*{pet_file}.json' if not sessions else 's*/s*/pet/*{pet_file}.json',
                  'brainmask_file': f'derivatives/freesurfer/sub-{subject_id}/mri/brainmask.mgz',
                  'wm_file': f'derivatives/freesurfer/sub-{subject_id}/mri/wmparc.mgz',
+                 'orig_file': f'derivatives/freesurfer/sub-{subject_id}/mri/orig.mgz',
                  'fs_subject_dir': 'derivatives/freesurfer'
                  }
 
@@ -588,8 +575,15 @@ def init_single_subject_wf(subject_id):
             
     if args.raphe is True:
                 
-                templates.update({'raphe_out_file': f'anat_wf/subject_{subject_id}_wf/mri/brainstemSsLabels.v13.FSvoxelSpace.mgz'},
-                                 {'raphe_out_stats': f'anat_wf/subject_{subject_id}_wf/mri/brainstemSsLabels.v13.FSvoxelSpace.mgz'})
+                segment_raphe = Node(MRISclimbicSeg(keep_ac = True,
+                                            percentile = 99.9,
+                                            vmp = True,
+                                            write_volumes = True,
+                                            out_file = 'desc-raphe_dseg.nii.gz'),
+                            name = 'segment_raphe')
+        
+                segment_raphe.inputs.model = pkg_resources.resource_filename('petprep_extract_tacs', 'utils/raphe+pons.n21.d114.h5')
+                segment_raphe.inputs.ctab = pkg_resources.resource_filename('petprep_extract_tacs', 'utils/raphe+pons.ctab')
 
                 segstats_raphe = Node(SegStats(exclude_id = 0,
                                             avgwf_txt_file = 'desc-raphe_tacs.txt',
@@ -616,15 +610,16 @@ def init_single_subject_wf(subject_id):
                                                 function = limbic_to_dsegtsv),
                                             name = 'create_raphe_dsegtsv')
                 
-                subject_wf.connect([(segment_raphe, segstats_raphe, [('raphe_out_file', 'segmentation_file')]),
+                subject_wf.connect([(selectfiles, segment_raphe, [('orig_file', 'in_file')]),
+                            (segment_raphe, segstats_raphe, [('out_file', 'segmentation_file')]),
                             (move_pet_to_anat, segstats_raphe, [('transformed_file', 'in_file')]),
                             (segstats_raphe, create_raphe_tacs, [('avgwf_txt_file', 'avgwf_file')]),
                             (selectfiles, create_raphe_tacs, [('json_file', 'json_file')]),
                             (create_raphe_tacs, datasink, [('out_file', 'datasink.@raphe_tacs')]),
-                            (segment_raphe, datasink, [('raphe_out_file', 'datasink.@raphe_segmentation_file')]),
-                            (segment_raphe,create_raphe_stats, [('raphe_out_stats', 'out_stats')]),
+                            (segment_raphe, datasink, [('out_file', 'datasink.@raphe_segmentation_file')]),
+                            (segment_raphe,create_raphe_stats, [('out_stats', 'out_stats')]),
                             (create_raphe_stats, datasink, [('out_file', 'datasink.@raphe_stats')]),
-                            (segment_raphe, create_raphe_dsegtsv, [('raphe_out_stats', 'out_stats')]),
+                            (segment_raphe, create_raphe_dsegtsv, [('out_stats', 'out_stats')]),
                             (create_raphe_dsegtsv, datasink, [('out_file', 'datasink.@raphe_dseg')])
                             ])
             
