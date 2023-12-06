@@ -20,9 +20,9 @@ def get_opt_fwhm(opt_params):
     # Assigning the values to fwhm_x, fwhm_y, and fwhm_z
     fwhm_x, fwhm_y, fwhm_z = map(float, fwhm_values)
 
-    fwhm = pd.DataFrame({'fwhm_x': fwhm_x, 'fwhm_y': fwhm_y, 'fwhm_z': fwhm_z})
+    fwhm = pd.DataFrame({'fwhm_x': [fwhm_x], 'fwhm_y': [fwhm_y], 'fwhm_z': [fwhm_z]})
 
-    fwhm.to_csv(os.path.join(new_pth, 'pvc-agtm_desc-fwhm_stats.tsv'), sep='\t')
+    fwhm.to_csv(os.path.join(new_pth, 'pvc-agtm_desc-fwhm_stats.tsv'), sep='\t', index=False)
 
     tsv_file = os.path.join(new_pth, 'pvc-agtm_desc-fwhm_stats.tsv')
 
