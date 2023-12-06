@@ -93,7 +93,8 @@ def main(args):
 
     # Remove temp outputs
     shutil.rmtree(os.path.join(args.bids_dir, 'petprep_extract_tacs_wf'))
-    shutil.rmtree(os.path.join(args.bids_dir, 'anat_wf'))
+    if os.path.exists(os.path.join(args.bids_dir, 'anat_wf')):
+        shutil.rmtree(os.path.join(args.bids_dir, 'anat_wf'))
 
 def init_anat_wf():
     from bids import BIDSLayout
