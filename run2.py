@@ -163,6 +163,22 @@ def init_single_subject_anat_wf(subject_id):
             
         subject_wf.connect([(selectfiles, segment_ha, [('fs_subject_dir', 'subjects_dir')])
                             ])
+        
+    if args.raphe is True:
+        segment_raphe = Node(MRISclimbicSeg(subjects = f'sub-{subject_id}',
+                                            keep_ac = True,
+                                            percentile = 99.9,
+                                            vmp = True,
+                                            write_volumes = True,
+                                            out_file = 'space-T1w_desc-raphe_dseg.nii.gz'),
+                            name = 'segment_raphe')
+        
+        segment_raphe.inputs.model = pkg_resources.resource_filename('petprep_extract_tacs', 'utils/raphe+pons.n21.d114.h5')
+        segment_raphe.inputs.ctab = pkg_resources.resource_filename('petprep_extract_tacs', 'utils/raphe+pons.ctab')
+        
+        subject_wf.connect([(selectfiles, segment_raphe, [('fs_subject_dir', 'sd')]),
+                            (segment_raphe, datasink, [('out_file', 'datasink.@raphe_file')])
+                            ])
     
     return subject_wf
 
@@ -568,6 +584,48 @@ def init_single_subject_wf(subject_id):
                             (create_wm_dsegtsv, datasink, [('out_file', 'datasink.@wm_dseg')]),
                             (selectfiles, convert_wm_seg_file, [('wm_file', 'in_file')]),
                             (convert_wm_seg_file, datasink, [('out_file', 'datasink.@wm_segmentation_file')])
+                            ])
+            
+    if args.raphe is True:
+                
+                templates.update({'raphe_out_file': f'anat_wf/subject_{subject_id}_wf/mri/brainstemSsLabels.v13.FSvoxelSpace.mgz'},
+                                 {'raphe_out_stats': f'anat_wf/subject_{subject_id}_wf/mri/brainstemSsLabels.v13.FSvoxelSpace.mgz'})
+
+                segstats_raphe = Node(SegStats(exclude_id = 0,
+                                            avgwf_txt_file = 'desc-raphe_tacs.txt',
+                                            ctab_out_file = 'desc-raphe_dseg.ctab',
+                                            summary_file = 'desc-raphe_stats.txt'),
+                                    name = 'segstats_raphe')
+                
+                segstats_raphe.inputs.color_table_file = pkg_resources.resource_filename('petprep_extract_tacs', 'utils/raphe+pons_cleaned.ctab')
+                
+                create_raphe_tacs = Node(Function(input_names = ['avgwf_file', 'ctab_file', 'json_file'],
+                                                output_names = ['out_file'],
+                                                function = avgwf_to_tacs),
+                                        name = 'create_raphe_tacs')
+                
+                create_raphe_tacs.inputs.ctab_file = pkg_resources.resource_filename('petprep_extract_tacs', 'utils/raphe+pons_cleaned.ctab')
+                
+                create_raphe_stats = Node(Function(input_names = ['out_stats'],
+                                            output_names = ['out_file'],
+                                            function = limbic_to_stats),
+                                    name = 'create_raphe_stats')
+
+                create_raphe_dsegtsv = Node(Function(input_names = ['out_stats'],
+                                                output_names = ['out_file'],
+                                                function = limbic_to_dsegtsv),
+                                            name = 'create_raphe_dsegtsv')
+                
+                subject_wf.connect([(segment_raphe, segstats_raphe, [('raphe_out_file', 'segmentation_file')]),
+                            (move_pet_to_anat, segstats_raphe, [('transformed_file', 'in_file')]),
+                            (segstats_raphe, create_raphe_tacs, [('avgwf_txt_file', 'avgwf_file')]),
+                            (selectfiles, create_raphe_tacs, [('json_file', 'json_file')]),
+                            (create_raphe_tacs, datasink, [('out_file', 'datasink.@raphe_tacs')]),
+                            (segment_raphe, datasink, [('raphe_out_file', 'datasink.@raphe_segmentation_file')]),
+                            (segment_raphe,create_raphe_stats, [('raphe_out_stats', 'out_stats')]),
+                            (create_raphe_stats, datasink, [('out_file', 'datasink.@raphe_stats')]),
+                            (segment_raphe, create_raphe_dsegtsv, [('raphe_out_stats', 'out_stats')]),
+                            (create_raphe_dsegtsv, datasink, [('out_file', 'datasink.@raphe_dseg')])
                             ])
             
     return subject_wf
