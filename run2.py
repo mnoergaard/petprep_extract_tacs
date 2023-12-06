@@ -314,7 +314,27 @@ def init_single_subject_wf(subject_id):
                             (coreg_pet_to_t1w, vol2surf_rh, [('out_lta_file', 'reg_file')]),
                             (vol2surf_rh, datasink, [('out_file', 'datasink.@rh_pet')])
                             ])
-             
+        
+    if args.volume is True:
+        vol2vol = Node(ApplyVolTransform(transformed_file = 'space-mni305_pet.nii.gz',
+                                          tal = True,
+                                          tal_resolution = 2),
+                            name = 'vol2vol')
+         
+        subject_wf.connect([(selectfiles, vol2vol, [('pet_file', 'source_file')]),
+                            (selectfiles, vol2vol, [('fs_subject_dir', 'subjects_dir')]),
+                            (coreg_pet_to_t1w, vol2vol, [('out_lta_file', 'lta_file')]),
+                            (vol2vol, datasink, [('transformed_file', 'datasink.@mni305_pet')])
+                            ])
+        
+        if args.volume_smooth is not None:
+            smooth_vol = Node(MRIConvert(out_file = f'space-mni305_desc-sm{args.volume_smooth}_pet.nii.gz',
+                                         fwhm = args.volume_smooth),
+                                         name = 'smooth_vol')
+            
+            subject_wf.connect([(vol2vol, smooth_vol, [('transformed_file', 'in_file')]),
+                                (smooth_vol, datasink, [('out_file', 'datasink.@mni305_sm_pet')])
+                                ])
 
     
     if args.gtm is True:
@@ -742,6 +762,8 @@ if __name__ == '__main__':
     parser.add_argument('--limbic', help='Extract time activity curves from the limbic system', action='store_true')
     parser.add_argument('--surface', help='Extract surface-based time activity curves in fsaverage', action='store_true')
     parser.add_argument('--surface_smooth', help='Smooth surface-based time activity curves in fsaverage', type=int)
+    parser.add_argument('--volume', help='Extract volume-based time activity curves in mni305', action='store_true')
+    parser.add_argument('--volume_smooth', help='Smooth volume-based time activity curves in mni305', type=int)
     parser.add_argument('--petprep_hmc', help='Use outputs from petprep_hmc as input to workflow', action='store_true')
     parser.add_argument('--skip_bids_validator', help='Whether or not to perform BIDS dataset validation',
                    action='store_true')

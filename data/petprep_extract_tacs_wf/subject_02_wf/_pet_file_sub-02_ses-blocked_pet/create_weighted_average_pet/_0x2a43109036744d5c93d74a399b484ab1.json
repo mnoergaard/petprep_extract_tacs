@@ -1,0 +1,20 @@
+[
+    [
+        "function_str",
+        "def create_weighted_average_pet(pet_file, json_file):\n\n    import json\n    from niworkflows.interfaces.bids import ReadSidecarJSON\n    import nibabel as nib\n    import numpy as np\n    import os\n    from pathlib import Path\n\n    \"\"\"\n    Create a time-weighted average of dynamic PET data using mid-frames\n\n    Arguments\n    ---------\n    pet_file: string\n        path to input dynamic PET volume\n    bids_dir: string\n        path to BIDS directory containing the PET file\n    \"\"\"     \n\n    img = nib.load(pet_file)        \n    data = img.get_fdata()\n\n    # Load the .json file\n    with open(json_file, 'r') as jf:\n        meta = json.load(jf)\n\n    frames_start = np.array(meta['FrameTimesStart'])\n    frames_duration = np.array(meta['FrameDuration'])\n\n    frames = range(data.shape[-1])\n\n    new_pth = os.getcwd()\n\n    mid_frames = frames_start + frames_duration/2\n    wavg = np.trapz(data[..., frames], dx=np.diff(mid_frames[frames]), axis=3)/np.sum(mid_frames)\n\n    out_name = Path(pet_file.replace('_pet.', '_desc-wavg_pet.')).name\n    out_file = os.path.join(new_pth, out_name)    \n    nib.save(nib.Nifti1Image(wavg, img.affine), out_file)\n\n    return out_file\n"
+    ],
+    [
+        "json_file",
+        [
+            "/Users/martinnorgaard/Documents/GitHub/petprep_extract_tacs/data/sub-02/ses-blocked/pet/sub-02_ses-blocked_pet.json",
+            "6fb046646bac5f1789503d49d977fe0b"
+        ]
+    ],
+    [
+        "pet_file",
+        [
+            "/Users/martinnorgaard/Documents/GitHub/petprep_extract_tacs/data/sub-02/ses-blocked/pet/sub-02_ses-blocked_pet.nii.gz",
+            "470b7493b3a454908d189356594572e1"
+        ]
+    ]
+]

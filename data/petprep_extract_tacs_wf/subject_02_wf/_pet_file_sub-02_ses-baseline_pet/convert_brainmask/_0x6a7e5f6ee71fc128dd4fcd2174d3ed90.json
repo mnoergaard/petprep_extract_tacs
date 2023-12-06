@@ -1,0 +1,17 @@
+[
+    [
+        "in_file",
+        [
+            "/Users/martinnorgaard/Documents/GitHub/petprep_extract_tacs/data/derivatives/freesurfer/sub-02/mri/brainmask.mgz",
+            "0ed60a2210a96ed5e1aa25f075641f75"
+        ]
+    ],
+    [
+        "out_file",
+        "space-T1w_desc-brain_mask.nii.gz"
+    ],
+    [
+        "subjects_dir",
+        "/Applications/freesurfer/7.4.1/subjects"
+    ]
+]
