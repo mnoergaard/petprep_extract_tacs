@@ -22,9 +22,9 @@ def get_opt_fwhm(opt_params):
 
     fwhm = pd.DataFrame({'fwhm_x': [fwhm_x], 'fwhm_y': [fwhm_y], 'fwhm_z': [fwhm_z]})
 
-    fwhm.to_csv(os.path.join(new_pth, 'pvc-agtm_desc-fwhm_stats.tsv'), sep='\t', index=False)
+    fwhm.to_csv(os.path.join(new_pth, 'pvc-agtm_desc-fwhm_confounds.tsv'), sep='\t', index=False)
 
-    tsv_file = os.path.join(new_pth, 'pvc-agtm_desc-fwhm_stats.tsv')
+    tsv_file = os.path.join(new_pth, 'pvc-agtm_desc-fwhm_confounds.tsv')
 
     return fwhm_x, fwhm_y, fwhm_z, tsv_file
 
@@ -161,7 +161,7 @@ def gtm_stats_to_stats(gtm_stats):
     gtm_df_output = pd.DataFrame([gtm_df['volume_mm3'].to_list()], columns=gtm_df['name'].to_list())
     
     # Create the output file name by replacing '.stats' with '.tsv' in the input file name.
-    tsv_file = gtm_stats.replace('gtm.stats.dat','desc-gtmseg_stats.tsv')
+    tsv_file = gtm_stats.replace('gtm.stats.dat','desc-gtmseg_volumes.tsv')
     
     # Write the new DataFrame to the output file.
    # We use a tab separator, and we don't write the index.
@@ -296,7 +296,7 @@ def limbic_to_stats(out_stats):
     summary_df_output = pd.DataFrame([summary_df['volume_mm3'].to_list()], columns=summary_df['name'].to_list())
     
     # Create the output file name by replacing '.stats' with '.tsv' in the input file name.
-    tsv_file = out_stats.replace('_dseg.stats', '_stats.tsv')
+    tsv_file = out_stats.replace('_dseg.stats', '_volumes.tsv')
     
     # Write the new DataFrame to the output file.
    # We use a tab separator, and we don't write the index.
