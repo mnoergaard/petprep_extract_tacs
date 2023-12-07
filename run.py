@@ -221,6 +221,9 @@ def init_single_subject_wf(subject_id):
                  'orig_file': f'derivatives/freesurfer/sub-{subject_id}/mri/orig.mgz',
                  'fs_subject_dir': 'derivatives/freesurfer'
                  }
+    
+    if args.petprep_hmc is True:
+         templates.update({'pet_file': 'derivatives/petprep_hmc/s*/pet/*{pet_file}.[n]*' if not sessions else 'derivatives/petprep_hmc/s*/s*/pet/*{pet_file}.[n]*'})
 
     selectfiles = Node(SelectFiles(templates,
                                    base_directory=args.bids_dir),
