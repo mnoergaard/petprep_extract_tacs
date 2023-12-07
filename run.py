@@ -65,17 +65,17 @@ def main(args):
     reg_files = glob.glob(os.path.join(Path(args.bids_dir),'petprep_extract_tacs_wf','datasink','*','from-pet_to-t1w_reg.lta'))
 
     for idx, x in enumerate(reg_files):
-        match_sub_id = re.search(r'sub-([A-Za-z0-9]+)_', reg_files[idx])
+        match_sub_id = re.search(r'sub-([A-Za-z0-9]+)', reg_files[idx])
         sub_id = match_sub_id.group(1)
         
-        match_ses_id = re.search(r'ses-([A-Za-z0-9]+)_', reg_files[idx])
+        match_ses_id = re.search(r'ses-([A-Za-z0-9]+)', reg_files[idx])
 
         if match_ses_id:
             ses_id = match_ses_id.group(1)
         else:
             ses_id = None
 
-        match_file_prefix = re.search(r'_pet_file_(.*?)_pet', reg_files[idx])
+        match_file_prefix = re.search(r'_pet_file_(.*?)/', reg_files[idx])
         file_prefix = match_file_prefix.group(1)
 
         if ses_id is not None:
@@ -208,14 +208,15 @@ def init_single_subject_wf(subject_id):
 
     # Use os.path.basename to get the last part of the path and then remove the extensions
     cleaned_subject_data = [strip_extensions(os.path.basename(path)) for path in subject_data]
+    cleaned_subject_data = [s.replace('_pet', '') for s in cleaned_subject_data]
 
     inputs = Node(IdentityInterface(fields=['pet_file']), name='inputs')
     inputs.iterables = ('pet_file', cleaned_subject_data)
 
     sessions = layout.get_sessions(subject=subject_id)
 
-    templates = {'pet_file': 's*/pet/*{pet_file}.[n]*' if not sessions else 's*/s*/pet/*{pet_file}.[n]*',
-                 'json_file': 's*/pet/*{pet_file}.json' if not sessions else 's*/s*/pet/*{pet_file}.json',
+    templates = {'pet_file': 's*/pet/*{pet_file}_pet.[n]*' if not sessions else 's*/s*/pet/*{pet_file}_pet.[n]*',
+                 'json_file': 's*/pet/*{pet_file}_pet.json' if not sessions else 's*/s*/pet/*{pet_file}_pet.json',
                  'brainmask_file': f'derivatives/freesurfer/sub-{subject_id}/mri/brainmask.mgz',
                  'wm_file': f'derivatives/freesurfer/sub-{subject_id}/mri/wmparc.mgz',
                  'orig_file': f'derivatives/freesurfer/sub-{subject_id}/mri/orig.mgz',
@@ -223,7 +224,7 @@ def init_single_subject_wf(subject_id):
                  }
     
     if args.petprep_hmc is True:
-         templates.update({'pet_file': 'derivatives/petprep_hmc/s*/*{pet_file}.[n]*' if not sessions else 'derivatives/petprep_hmc/s*/s*/*{pet_file}.[n]*'})
+        templates.update({'pet_file': 'derivatives/petprep_hmc/s*/*{pet_file}_desc-mc_pet.[n]*' if not sessions else 'derivatives/petprep_hmc/s*/s*/*{pet_file}_desc-mc_pet.[n]*'})
 
     selectfiles = Node(SelectFiles(templates,
                                    base_directory=args.bids_dir),
