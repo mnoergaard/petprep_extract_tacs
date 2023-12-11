@@ -137,7 +137,6 @@ def init_single_subject_anat_wf(subject_id):
     
     if args.gtm is True or args.agtm is True:
         gtmseg = Node(GTMSeg(subject_id = f'sub-{subject_id}', 
-                            out_file = 'space-T1w_desc-gtmseg_dseg.nii.gz',
                             xcerseg = True),
                     name = 'gtmseg')
         
