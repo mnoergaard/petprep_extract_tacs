@@ -137,12 +137,10 @@ def init_single_subject_anat_wf(subject_id):
     
     if args.gtm is True or args.agtm is True:
         gtmseg = Node(GTMSeg(subject_id = f'sub-{subject_id}', 
-                            out_file = 'gtmseg.mgz',
                             xcerseg = True),
                     name = 'gtmseg')
         
-        subject_wf.connect([(selectfiles, gtmseg, [('fs_subject_dir', 'subjects_dir')]),
-                            (gtmseg, datasink, [('out_file', 'datasink.@gtmseg_file')])
+        subject_wf.connect([(selectfiles, gtmseg, [('fs_subject_dir', 'subjects_dir')])
                             ])
 
     if args.brainstem is True:
