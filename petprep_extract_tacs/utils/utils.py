@@ -125,20 +125,22 @@ def summary_to_stats(summary_file):
                              comment='#',
                              header = None, 
                              delim_whitespace=True,
-                             usecols=[3,4],
-                             names=['volume_mm3', 'name'])
+                             usecols=[1,3,4],
+                             names=['index','volume_mm3', 'name'])
     
     # Create a new DataFrame where each row of 'summary_df' is a column.
     # The column names in the new DataFrame are taken from the 'name' column of 'summary_df',
     # and the values are taken from the 'volume_mm3' column of 'summary_df'.
-    summary_df_output = pd.DataFrame([summary_df['volume_mm3'].to_list()], columns=summary_df['name'].to_list())
+    #summary_df_output = pd.DataFrame([summary_df['volume_mm3'].to_list()], columns=summary_df['name'].to_list())
     
     # Create the output file name by replacing '.stats' with '.tsv' in the input file name.
     tsv_file = summary_file.replace('.txt', '.tsv')
     
     # Write the new DataFrame to the output file.
    # We use a tab separator, and we don't write the index.
-    summary_df_output.to_csv(tsv_file, sep='\t', index=False)
+    summary_df.rename(columns={'volume_mm3':'volume-mm3'}, inplace=True)
+    summary_df = summary_df[['index','name','volume-mm3']]
+    summary_df.to_csv(tsv_file, sep='\t', index=False)
     
     # Return the output file name.
     return tsv_file
@@ -158,14 +160,15 @@ def gtm_stats_to_stats(gtm_stats):
     # Create a new DataFrame where each row of 'summary_df' is a column.
     # The column names in the new DataFrame are taken from the 'name' column of 'summary_df',
     # and the values are taken from the 'volume_mm3' column of 'summary_df'.
-    gtm_df_output = pd.DataFrame([gtm_df['volume_mm3'].to_list()], columns=gtm_df['name'].to_list())
+    #gtm_df_output = pd.DataFrame([gtm_df['volume_mm3'].to_list()], columns=gtm_df['name'].to_list())
     
     # Create the output file name by replacing '.stats' with '.tsv' in the input file name.
-    tsv_file = gtm_stats.replace('gtm.stats.dat','desc-gtmseg_volumes.tsv')
+    tsv_file = gtm_stats.replace('gtm.stats.dat','desc-gtmseg_morph.tsv')
     
     # Write the new DataFrame to the output file.
    # We use a tab separator, and we don't write the index.
-    gtm_df_output.to_csv(tsv_file, sep='\t', index=False)
+    gtm_df.rename(columns={'volume_mm3':'volume-mm3'}, inplace=True)
+    gtm_df.to_csv(tsv_file, sep='\t', index=False)
     
     # Return the output file name.
     return tsv_file
@@ -287,20 +290,22 @@ def limbic_to_stats(out_stats):
                              comment='#',
                              header = None, 
                              delim_whitespace=True,
-                             usecols=[3,4],
-                             names=['volume_mm3', 'name'])
+                             usecols=[1,3,4],
+                             names=['index','volume_mm3', 'name'])
     
     # Create a new DataFrame where each row of 'summary_df' is a column.
     # The column names in the new DataFrame are taken from the 'name' column of 'summary_df',
     # and the values are taken from the 'volume_mm3' column of 'summary_df'.
-    summary_df_output = pd.DataFrame([summary_df['volume_mm3'].to_list()], columns=summary_df['name'].to_list())
+    #summary_df_output = pd.DataFrame([summary_df['volume_mm3'].to_list()], columns=summary_df['name'].to_list())
     
     # Create the output file name by replacing '.stats' with '.tsv' in the input file name.
-    tsv_file = out_stats.replace('_dseg.stats', '_volumes.tsv')
+    tsv_file = out_stats.replace('_dseg.stats', '_morph.tsv')
     
     # Write the new DataFrame to the output file.
    # We use a tab separator, and we don't write the index.
-    summary_df_output.to_csv(tsv_file, sep='\t', index=False)
+    summary_df.rename(columns={'volume_mm3':'volume-mm3'}, inplace=True)
+    summary_df = summary_df[['index','name','volume-mm3']]
+    summary_df.to_csv(tsv_file, sep='\t', index=False)
     
     # Return the output file name.
     return tsv_file

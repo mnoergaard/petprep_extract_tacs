@@ -163,6 +163,13 @@ def init_single_subject_anat_wf(subject_id):
             
         subject_wf.connect([(selectfiles, segment_ha, [('fs_subject_dir', 'subjects_dir')])
                             ])
+        
+ #   if args.cvs is True:
+ #       cvs = Node(CVSReg(subject_id = f'sub-{subject_id}'),
+ #                   name = 'cvs')
+ #       
+ #       subject_wf.connect([(selectfiles, cvs, [('fs_subject_dir', 'subjects_dir')])
+ #                           ])
     
     return subject_wf
 
@@ -446,7 +453,7 @@ def init_single_subject_wf(subject_id):
                                         default_color_table = True,
                                         avgwf_txt_file = 'desc-brainstem_tacs.txt',
                                         ctab_out_file = 'desc-brainstem_dseg.ctab',
-                                        summary_file = 'desc-brainstem_volumes.txt'),
+                                        summary_file = 'desc-brainstem_morph.txt'),
                                 name = 'segstats_bs')
             
             create_bs_tacs = Node(Function(input_names = ['avgwf_file', 'ctab_file', 'json_file'],
@@ -489,7 +496,7 @@ def init_single_subject_wf(subject_id):
                                         default_color_table = True,
                                         avgwf_txt_file = 'desc-thalamus_tacs.txt',
                                         ctab_out_file = 'desc-thalamus_dseg.ctab',
-                                        summary_file = 'desc-thalamus_volumes.txt'),
+                                        summary_file = 'desc-thalamus_morph.txt'),
                                 name = 'segstats_th')
             
             create_th_tacs = Node(Function(input_names = ['avgwf_file', 'ctab_file', 'json_file'],
@@ -533,7 +540,7 @@ def init_single_subject_wf(subject_id):
                                         default_color_table = True,
                                         avgwf_txt_file = 'hemi-L_desc-hippocampusAmygdala_tacs.txt',
                                         ctab_out_file = 'hemi-L_desc-hippocampusAmygdala_dseg.ctab',
-                                        summary_file = 'hemi-L_desc-hippocampusAmygdala_volumes.txt'),
+                                        summary_file = 'hemi-L_desc-hippocampusAmygdala_morph.txt'),
                                 name = 'segstats_ha_lh')
             
             create_ha_tacs_lh = Node(Function(input_names = ['avgwf_file', 'ctab_file', 'json_file'],
@@ -559,7 +566,7 @@ def init_single_subject_wf(subject_id):
                                         default_color_table = True,
                                         avgwf_txt_file = 'hemi-R_desc-hippocampusAmygdala_tacs.txt',
                                         ctab_out_file = 'hemi-R_desc-hippocampusAmygdala_dseg.ctab',
-                                        summary_file = 'hemi-R_desc-hippocampusAmygdala_volumes.txt'),
+                                        summary_file = 'hemi-R_desc-hippocampusAmygdala_morph.txt'),
                                 name = 'segstats_ha_rh')
             
             create_ha_tacs_rh = Node(Function(input_names = ['avgwf_file', 'ctab_file', 'json_file'],
@@ -591,7 +598,7 @@ def init_single_subject_wf(subject_id):
                                         default_color_table = True,
                                         avgwf_txt_file = 'desc-hippocampusAmygdala_tacs.txt',
                                         ctab_out_file = 'desc-hippocampusAmygdala_dseg.ctab',
-                                        summary_file = 'desc-hippocampusAmygdala_volumes.txt'),
+                                        summary_file = 'desc-hippocampusAmygdala_morph.txt'),
                                 name = 'segstats_ha')
             
             create_ha_tacs = Node(Function(input_names = ['avgwf_file', 'ctab_file', 'json_file'],
@@ -654,7 +661,7 @@ def init_single_subject_wf(subject_id):
                                         default_color_table = True,
                                         avgwf_txt_file = 'desc-whiteMatter_tacs.txt',
                                         ctab_out_file = 'desc-whiteMatter_dseg.ctab',
-                                        summary_file = 'desc-whiteMatter_volumes.txt'),
+                                        summary_file = 'desc-whiteMatter_morph.txt'),
                                 name = 'segstats_wm')
             
             create_wm_tacs = Node(Function(input_names = ['avgwf_file', 'ctab_file', 'json_file'],
@@ -703,7 +710,7 @@ def init_single_subject_wf(subject_id):
                 segstats_raphe = Node(SegStats(exclude_id = 0,
                                             avgwf_txt_file = 'desc-raphe_tacs.txt',
                                             ctab_out_file = 'desc-raphe_dseg.ctab',
-                                            summary_file = 'desc-raphe_volumes.txt'),
+                                            summary_file = 'desc-raphe_morph.txt'),
                                     name = 'segstats_raphe')
                 
                 segstats_raphe.inputs.color_table_file = pkg_resources.resource_filename('petprep_extract_tacs', 'utils/raphe+pons_cleaned.ctab')
@@ -747,7 +754,7 @@ def init_single_subject_wf(subject_id):
                 segstats_limbic = Node(SegStats(exclude_id = 0,
                                             avgwf_txt_file = 'desc-limbic_tacs.txt',
                                             ctab_out_file = 'desc-limbic_dseg.ctab',
-                                            summary_file = 'desc-limbic_volumes.txt'),
+                                            summary_file = 'desc-limbic_morph.txt'),
                                     name = 'segstats_limbic')
                 
                 segstats_limbic.inputs.color_table_file = pkg_resources.resource_filename('petprep_extract_tacs', 'utils/sclimbic_cleaned.ctab')
