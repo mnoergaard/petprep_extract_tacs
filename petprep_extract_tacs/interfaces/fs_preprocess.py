@@ -219,11 +219,9 @@ class ApplyVolTransform(FSCommand):
     
 class CVSRegisterInputSpec(FSTraitedSpec):
     source_file = File(
-        exists=True,
         argstr="--mov %s",
-        copyfile=False,
         mandatory=True,
-        desc="Input volume you wish to transform",
+        desc="Subject ID you wish to use CVS register for",
     )
     template_file = File(
         argstr="--template %s",
