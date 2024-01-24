@@ -9,7 +9,7 @@ from nibabel import load
 
 from nipype import logging, LooseVersion
 from nipype.utils.filemanip import fname_presuffix, check_depends
-from nipype.interface.io import FreeSurferSource
+from nipype.interfaces.io import FreeSurferSource
 from nipype.interfaces.base import (
     TraitedSpec,
     File,
@@ -22,7 +22,7 @@ from nipype.interfaces.base import (
     isdefined,
 )
 from nipype.interfaces.freesurfer.base import FSCommand, FSTraitedSpec, FSTraitedSpecOpenMP, FSCommandOpenMP, Info
-from nipype.interfaces.freesurfer..utils import copy2subjdir
+from nipype.interfaces.freesurfer.utils import copy2subjdir
 
 class ApplyVolTransformInputSpec(FSTraitedSpec):
     source_file = File(
@@ -215,4 +215,59 @@ class ApplyVolTransform(FSCommand):
     def _gen_filename(self, name):
         if name == "transformed_file":
             return self._get_outfile()
+        return None
+    
+class CVSRegisterInputSpec(FSTraitedSpec):
+    source_file = File(
+        exists=True,
+        argstr="--mov %s",
+        copyfile=False,
+        mandatory=True,
+        desc="Input volume you wish to transform",
+    )
+    template_file = File(
+        argstr="--template %s",
+        desc="FreeSurfer subject name as found in $SUBJECTS_DIR (or --templatedir)",
+    )
+    mni = traits.Bool(
+        argstr="--mni",
+        desc="Use the CVS atlas in MNI152 space as a target for registration (as opposed to the default CVS template).",
+    )
+    subjects_dir = Directory(
+        exists=True, mandatory=True, desc="Path to FreeSurfer subjects directory", argstr='%s'
+        )
+
+
+class CVSRegisterOutputSpec(TraitedSpec):
+    m3z_file = File(exists=True, desc="Path to output file if used normally")
+
+
+class CVSRegister(FSCommand):
+    """Use FreeSurfer mri_cvs_register to apply a transform.
+
+    Examples
+    --------
+    >>> from nipype.interfaces.freesurfer import CVSRegister
+    >>> cvsreg = CVSRegister()
+    >>> cvsreg.inputs.source_file = 'subject_id'
+    >>> cvsreg.inputs.mni = True
+    >>> cvsreg.cmdline
+    'mri_cvs_register --mov subject_id --mni'
+    """
+
+    _cmd = "mri_cvs_register"
+    input_spec = CVSRegisterInputSpec
+    output_spec = CVSRegisterOutputSpec
+
+    def _list_outputs(self):
+        outputs = self.output_spec().get()
+        subj_dir = os.path.abspath(self.inputs.subjects_dir + '/' + self.inputs.subject_id + '/cvs/')
+
+        outputs['m3z_file'] = os.path.join(subj_dir, 'final_CVSmorph_tocvs_avg35_inMNI152.m3z')
+
+        return outputs
+
+    def _gen_filename(self, name):
+        if name == 'subjects_dir':
+            return os.path.abspath(self.inputs.subject_id)
         return None
