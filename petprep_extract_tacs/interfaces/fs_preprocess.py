@@ -231,10 +231,14 @@ class CVSRegisterInputSpec(FSTraitedSpec):
         argstr="--mni",
         desc="Use the CVS atlas in MNI152 space as a target for registration (as opposed to the default CVS template).",
     )
+    cleanall = traits.Bool(
+        argstr="--cleanall",
+        desc="Remove all intermediate files",
+    )
 
 
 class CVSRegisterOutputSpec(TraitedSpec):
-    m3z_file = File(exists=True, desc="Path to output file if used normally")
+    m3z_file = File(desc="Path to output file if used normally")
 
 
 class CVSRegister(FSCommand):
