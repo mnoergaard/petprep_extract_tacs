@@ -218,7 +218,7 @@ class ApplyVolTransform(FSCommand):
         return None
     
 class CVSRegisterInputSpec(FSTraitedSpec):
-    source_file = File(
+    subject_id = File(
         argstr="--mov %s",
         mandatory=True,
         desc="Subject ID you wish to use CVS register for",
