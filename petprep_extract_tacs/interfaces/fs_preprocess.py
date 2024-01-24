@@ -231,9 +231,6 @@ class CVSRegisterInputSpec(FSTraitedSpec):
         argstr="--mni",
         desc="Use the CVS atlas in MNI152 space as a target for registration (as opposed to the default CVS template).",
     )
-    subjects_dir = Directory(
-        exists=True, mandatory=True, desc="Path to FreeSurfer subjects directory", argstr='%s'
-        )
 
 
 class CVSRegisterOutputSpec(TraitedSpec):
