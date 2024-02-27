@@ -830,9 +830,23 @@ if __name__ == '__main__':
     parser.add_argument('--petprep_hmc', help='Use outputs from petprep_hmc as input to workflow', action='store_true')
     parser.add_argument('--skip_bids_validator', help='Whether or not to perform BIDS dataset validation',
                    action='store_true')
+    parser.add_argument('--docker', help='When this flag is present petprep_extract_tacs will attempt to run from within a docker '
+                        'container', action='store_true')
     parser.add_argument('-v', '--version', action='version',
                     version='PETPrep extract time activity curves BIDS-App version {}'.format(__version__))
     
     args = parser.parse_args() 
     
-    main(args)
+    if not args.docker:
+        main(args)
+    else:
+        # check to see if docker is available
+         
+        # check to see if the docker image is available
+         
+        # attempt to build the image if it isn't present
+
+        # mount all of the input and output directories
+
+        # run the docker image with all of the arguments collected from the parser in args
+        pass
