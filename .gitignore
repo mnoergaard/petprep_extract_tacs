@@ -2,3 +2,4 @@ freesurfer_binaries/*
 *__pycache__*
 *.egg-info*
 *.vscode/
+venv/

@@ -917,11 +917,11 @@ def check_docker_image_exists(image_name, build=False):
 if __name__ == '__main__': 
     parser = argparse.ArgumentParser(description='BIDS App for PETPrep extract time activity curves (TACs) workflow')
     parser.add_argument('--bids_dir', required=True,  help='The directory with the input dataset '
-                    'formatted according to the BIDS standard.', type=pathlib.Path)
+                    'formatted according to the BIDS standard.', type=str)
     parser.add_argument('--output_dir', required=False, help='The directory where the output files '
                     'should be stored. If you are running group level analysis '
                     'this folder should be prepopulated with the results of the'
-                    'participant level analysis.', type=pathlib.Path)
+                    'participant level analysis.', type=str)
     parser.add_argument('--analysis_level', default='participant', help='Level of the analysis that will be performed. '
                     'Multiple participant level analyses can be run independently '
                     '(in parallel) using the same output_dir.',
@@ -954,7 +954,7 @@ if __name__ == '__main__':
     parser.add_argument('-v', '--version', action='version',
                     version='PETPrep extract time activity curves BIDS-App version {}'.format(__version__))
     
-    args = parser.parse_args() 
+    args, unknown = parser.parse_known_args() 
     
     # determine the present working directory
     pwd = pathlib.Path.cwd()
@@ -967,15 +967,17 @@ if __name__ == '__main__':
         code_dir = None
 
     # expand bids and output dir's to absolute path
-    if isinstance(args.bids_dir, pathlib.PosixPath) and "~" in str(args.bids_dir):
-        args.bids_dir = args.bids_dir.expanduser().resolve()
+    if isinstance(pathlib.Path(args.bids_dir), pathlib.PosixPath) and "~" in str(args.bids_dir):
+        args.bids_dir = str(pathlib.Path(args.bids_dir).expanduser().resolve())
     else:
-        args.bids_dir = args.bids_dir.absolute()
-    if isinstance(args.output_dir, pathlib.PosixPath) and "~" in str(args.output_dir):
-        args.output_dir = args.output_dir.expanduser().resolve()
+        args.bids_dir = str(pathlib.Path(args.bids_dir).absolute())
+    if "~" in str(args.output_dir):
+        args.output_dir = str(pathlib.Path(args.output_dir).expanduser().resolve())
     else:
         if args.output_dir:
-            args.output_dir = args.output_dir.absolute()
+            args.output_dir = str(pathlib.Path(args.output_dir).absolute())
+        else:
+            args.output_dir = str(pathlib.Path(args.bids_dir) / "derivatives" / "petprep_extract_tacs")
 
 
     if not args.docker:
@@ -1001,7 +1003,7 @@ if __name__ == '__main__':
         output_dir_mount_point = str(args.output_dir)
 
         if output_dir_mount_point == "None" or output_dir_mount_point is None:
-            output_mount_point = str(args.bids_dir / "derivatives" / "petprep_extract_tacs")
+            output_mount_point = str(pathlib.Path(args.bids_dir) / "derivatives" / "petprep_extract_tacs")
 
         # create the output directory if it doesn't exist
         if not pathlib.Path(output_dir_mount_point).exists():
@@ -1010,8 +1012,8 @@ if __name__ == '__main__':
         subprocess.run(f"chown -R {uid}:{gid} {output_dir_mount_point}", shell=True)        
 
         # mount all of the input and output directories
-        args.bids_dir = pathlib.Path('/bids_dir')
-        args.output_dir = pathlib.Path('/output_dir')
+        args.bids_dir = '/bids_dir'
+        args.output_dir = '/output_dir'
 
         print(
             "Attempting to run in docker container, mounting {} to {} and {} to {}".format(
@@ -1051,7 +1053,7 @@ if __name__ == '__main__':
         docker_command += (
             f"-a stderr -a stdout --rm "
             f"-v {bids_dir_mount_point}:{args.bids_dir} "
-            f"-v {output_mount_point}:{args.output_dir} "
+            f"-v {output_dir_mount_point}:{args.output_dir} "
         )
         if code_dir:
             docker_command += f"-v {code_dir}:/petprep_extract_tacs "
