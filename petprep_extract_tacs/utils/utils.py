@@ -190,12 +190,16 @@ def gtm_stats_to_stats(gtm_stats):
     import numpy as np
     import json
     import nibabel as nib
+    import os
+
+    new_pth = os.getcwd()
     
     gtm_df = pd.read_csv(gtm_stats, 
-                            header = None, 
-                            delim_whitespace=True, 
-                            usecols=[1,2,4], 
-                            names=['index','name','volume_mm3'])
+                             comment='#',
+                             header = None, 
+                             delim_whitespace=True,
+                             usecols=[1,3,4],
+                             names=['index','volume_mm3', 'name'])
     
     # Create a new DataFrame where each row of 'summary_df' is a column.
     # The column names in the new DataFrame are taken from the 'name' column of 'summary_df',
@@ -203,7 +207,9 @@ def gtm_stats_to_stats(gtm_stats):
     #gtm_df_output = pd.DataFrame([gtm_df['volume_mm3'].to_list()], columns=gtm_df['name'].to_list())
     
     # Create the output file name by replacing '.stats' with '.tsv' in the input file name.
-    tsv_file = gtm_stats.replace('gtm.stats.dat','desc-gtmseg_morph.tsv')
+
+
+    tsv_file = os.path.join(new_pth, 'desc-gtmseg_morph.tsv')
     
     # Write the new DataFrame to the output file.
    # We use a tab separator, and we don't write the index.
