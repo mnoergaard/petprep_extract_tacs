@@ -105,6 +105,46 @@ def avgwf_to_tacs(avgwf_file, ctab_file, json_file):
     
     return tsv_file
 
+def stats_to_stats(summary_file):
+    """
+    This function reads a 'summary.stats' file, transforms the data, and saves it as a '.tsv' file.
+
+    Parameters:
+    summary_file (str): The path to the input '.stats' file.
+
+    Returns:
+    tsv_file (str): The path to the output '.tsv' file.
+    """
+
+    import pandas as pd
+    
+    # Read the 'summary.stats' file into a DataFrame.
+    # We only take the 4th and 5th columns (0-indexed), which we name 'volume_mm3' and 'name'.
+    # Lines starting with '#' are ignored.
+    summary_df = pd.read_csv(summary_file, 
+                             comment='#',
+                             header = None, 
+                             delim_whitespace=True,
+                             usecols=[1,3,4],
+                             names=['index','volume_mm3', 'name'])
+    
+    # Create a new DataFrame where each row of 'summary_df' is a column.
+    # The column names in the new DataFrame are taken from the 'name' column of 'summary_df',
+    # and the values are taken from the 'volume_mm3' column of 'summary_df'.
+    #summary_df_output = pd.DataFrame([summary_df['volume_mm3'].to_list()], columns=summary_df['name'].to_list())
+    
+    # Create the output file name by replacing '.stats' with '.tsv' in the input file name.
+    tsv_file = summary_file.replace('.stats', '.tsv')
+    
+    # Write the new DataFrame to the output file.
+   # We use a tab separator, and we don't write the index.
+    summary_df.rename(columns={'volume_mm3':'volume-mm3'}, inplace=True)
+    summary_df = summary_df[['index','name','volume-mm3']]
+    summary_df.to_csv(tsv_file, sep='\t', index=False)
+    
+    # Return the output file name.
+    return tsv_file
+
 def summary_to_stats(summary_file):
     """
     This function reads a 'summary.stats' file, transforms the data, and saves it as a '.tsv' file.
