@@ -368,7 +368,7 @@ def init_single_subject_wf(subject_id):
             
             create_gtmseg_stats = Node(Function(input_names = ['gtm_stats'],
                                                 output_names = ['out_file'],
-                                                function = gtm_stats_to_stats),
+                                                function = stats_to_stats),
                                     name = 'create_gtmseg_stats')
             
             create_gtmseg_dsegtsv = Node(Function(input_names = ['gtm_stats'],
@@ -386,7 +386,7 @@ def init_single_subject_wf(subject_id):
                             (gtmpvc, create_gtmseg_tacs, [('gtm_stats', 'gtm_stats')]),
                             (selectfiles, create_gtmseg_tacs, [('json_file', 'json_file')]),
                             (create_gtmseg_tacs, datasink, [('out_file', 'datasink.@gtmseg_tacs')]),
-                            (selectfiles, stats_to_stats, [('gtm_stats', 'summary_file')]),
+                            (selectfiles, create_gtmseg_stats, [('gtm_stats', 'summary_file')]),
                             (create_gtmseg_stats, datasink, [('out_file', 'datasink.@gtmseg_stats')]),
                             (selectfiles, convert_gtmseg_file, [('gtm_file', 'in_file')]),
                             (convert_gtmseg_file, datasink, [('out_file', 'datasink.@gtmseg_file')]),
