@@ -52,9 +52,9 @@ def main(args):
     os.makedirs(output_dir, exist_ok=True)
 
     # Run ANAT workflow
-    anat_main = init_anat_wf()
-    if anat_main._get_all_nodes():
-        anat_main.run(plugin='MultiProc', plugin_args={'n_procs': int(args.n_procs)})
+    #anat_main = init_anat_wf()
+    #if anat_main._get_all_nodes():
+    #    anat_main.run(plugin='MultiProc', plugin_args={'n_procs': int(args.n_procs)})
 
     # Run PET workflow
     main = init_petprep_extract_tacs_wf()
@@ -366,9 +366,9 @@ def init_single_subject_wf(subject_id):
             
             create_gtmseg_tacs.inputs.pvc_dir = gtmpvc.inputs.pvc_dir
             
-            create_gtmseg_stats = Node(Function(input_names = ['summary_file'],
+            create_gtmseg_stats = Node(Function(input_names = ['gtm_stats'],
                                                 output_names = ['out_file'],
-                                                function = stats_to_stats),
+                                                function = gtm_stats_to_stats),
                                     name = 'create_gtmseg_stats')
             
             create_gtmseg_dsegtsv = Node(Function(input_names = ['gtm_stats'],
@@ -386,7 +386,7 @@ def init_single_subject_wf(subject_id):
                             (gtmpvc, create_gtmseg_tacs, [('gtm_stats', 'gtm_stats')]),
                             (selectfiles, create_gtmseg_tacs, [('json_file', 'json_file')]),
                             (create_gtmseg_tacs, datasink, [('out_file', 'datasink.@gtmseg_tacs')]),
-                            (selectfiles, create_gtmseg_stats, [('gtm_stats', 'summary_file')]),
+                            (selectfiles, create_gtmseg_stats, [('gtm_stats', 'gtm_stats')]),
                             (create_gtmseg_stats, datasink, [('out_file', 'datasink.@gtmseg_stats')]),
                             (selectfiles, convert_gtmseg_file, [('gtm_file', 'in_file')]),
                             (convert_gtmseg_file, datasink, [('out_file', 'datasink.@gtmseg_file')]),
