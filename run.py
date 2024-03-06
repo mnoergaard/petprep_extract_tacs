@@ -17,7 +17,7 @@ from nipype.interfaces.freesurfer import MRICoreg, ApplyVolTransform, MRIConvert
 from petprep_extract_tacs.interfaces.petsurfer import GTMSeg, GTMPVC
 from petprep_extract_tacs.interfaces.segment import SegmentBS, SegmentHA_T1, SegmentThalamicNuclei, MRISclimbicSeg
 from petprep_extract_tacs.interfaces.fs_model import SegStats
-from petprep_extract_tacs.utils.utils import ctab_to_dsegtsv, avgwf_to_tacs, summary_to_stats, gtm_to_tacs, gtm_stats_to_stats, gtm_to_dsegtsv, limbic_to_dsegtsv, limbic_to_stats, plot_reg, get_opt_fwhm
+from petprep_extract_tacs.utils.utils import ctab_to_dsegtsv, avgwf_to_tacs, summary_to_stats, gtm_to_tacs, gtm_stats_to_stats, gtm_to_dsegtsv, limbic_to_dsegtsv, limbic_to_stats, plot_reg, get_opt_fwhm, stats_to_stats
 
 from petprep_extract_tacs.bids import collect_data
 
@@ -350,6 +350,7 @@ def init_single_subject_wf(subject_id):
     if args.gtm is True or args.agtm is True:
             
             templates.update({'gtm_file': f'derivatives/freesurfer/sub-{subject_id}/mri/gtmseg.mgz'})
+            templates.update({'gtm_stats': f'derivatives/freesurfer/sub-{subject_id}/stats/gtmseg.stats'})
         
             gtmpvc = Node(GTMPVC(default_seg_merge = True,
                                 auto_mask = (1,0.1),
@@ -385,7 +386,7 @@ def init_single_subject_wf(subject_id):
                             (gtmpvc, create_gtmseg_tacs, [('gtm_stats', 'gtm_stats')]),
                             (selectfiles, create_gtmseg_tacs, [('json_file', 'json_file')]),
                             (create_gtmseg_tacs, datasink, [('out_file', 'datasink.@gtmseg_tacs')]),
-                            (gtmpvc, create_gtmseg_stats, [('gtm_stats', 'gtm_stats')]),
+                            (selectfiles, stats_to_stats, [('gtm_stats', 'summary_file')]),
                             (create_gtmseg_stats, datasink, [('out_file', 'datasink.@gtmseg_stats')]),
                             (selectfiles, convert_gtmseg_file, [('gtm_file', 'in_file')]),
                             (convert_gtmseg_file, datasink, [('out_file', 'datasink.@gtmseg_file')]),
@@ -437,7 +438,7 @@ def init_single_subject_wf(subject_id):
                                     (selectfiles, agtmpvc, [('gtm_file', 'segmentation')]),
                                     (coreg_pet_to_t1w, agtmpvc, [('out_lta_file', 'reg_file')]),
                                     (agtmpvc, create_agtmseg_tacs, [('gtm_file', 'in_file')]),
-                                    (agtmpvc, create_agtmseg_tacs, [('gtm_stats', 'gtm_stats')]),
+                                    (selectfiles, create_agtmseg_tacs, [('gtm_stats', 'gtm_stats')]),
                                     (selectfiles, create_agtmseg_tacs, [('json_file', 'json_file')]),
                                     (create_agtmseg_tacs, datasink, [('out_file', 'datasink.@agtmseg_tacs')]),
                                     (opt_fwhm, datasink, [('tsv_file', 'datasink.@opt_fwhm')])
