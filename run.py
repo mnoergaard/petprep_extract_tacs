@@ -366,7 +366,7 @@ def init_single_subject_wf(subject_id):
             
             create_gtmseg_tacs.inputs.pvc_dir = gtmpvc.inputs.pvc_dir
             
-            create_gtmseg_stats = Node(Function(input_names = ['gtm_stats'],
+            create_gtmseg_stats = Node(Function(input_names = ['summary_file'],
                                                 output_names = ['out_file'],
                                                 function = stats_to_stats),
                                     name = 'create_gtmseg_stats')
