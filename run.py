@@ -20,7 +20,7 @@ from nipype.interfaces.freesurfer import MRICoreg, ApplyVolTransform, MRIConvert
 from petprep_extract_tacs.interfaces.petsurfer import GTMSeg, GTMPVC
 from petprep_extract_tacs.interfaces.segment import SegmentBS, SegmentHA_T1, SegmentThalamicNuclei, MRISclimbicSeg
 from petprep_extract_tacs.interfaces.fs_model import SegStats
-from petprep_extract_tacs.utils.utils import ctab_to_dsegtsv, avgwf_to_tacs, summary_to_stats, gtm_to_tacs, gtm_stats_to_stats, gtm_to_dsegtsv, limbic_to_dsegtsv, limbic_to_stats, plot_reg, get_opt_fwhm
+from petprep_extract_tacs.utils.utils import ctab_to_dsegtsv, avgwf_to_tacs, summary_to_stats, gtm_to_tacs, gtm_stats_to_stats, gtm_to_dsegtsv, limbic_to_dsegtsv, limbic_to_stats, plot_reg, get_opt_fwhm, stats_to_stats
 
 from petprep_extract_tacs.bids import collect_data
 
@@ -226,7 +226,7 @@ def init_single_subject_wf(subject_id):
 
     templates = {'pet_file': 's*/pet/*{pet_file}_pet.[n]*' if not sessions else 's*/s*/pet/*{pet_file}_pet.[n]*',
                  'json_file': 's*/pet/*{pet_file}_pet.json' if not sessions else 's*/s*/pet/*{pet_file}_pet.json',
-                 'brainmask_file': f'derivatives/freesurfer/sub-{subject_id}/mri/brainmask.mgz',
+                 'brainmask_file': f'derivatives/freesurfer/sub-{subject_id}/mri/T1.mgz',
                  'wm_file': f'derivatives/freesurfer/sub-{subject_id}/mri/wmparc.mgz',
                  'orig_file': f'derivatives/freesurfer/sub-{subject_id}/mri/orig.mgz',
                  'fs_subject_dir': 'derivatives/freesurfer'
@@ -241,8 +241,9 @@ def init_single_subject_wf(subject_id):
 
     # Define nodes for extraction of tacs
 
-    coreg_pet_to_t1w = Node(MRICoreg(out_lta_file = 'from-pet_to-t1w_reg.lta',
-                                     subject_id = f'sub-{subject_id}'),
+    coreg_pet_to_t1w = Node(MRICoreg(out_lta_file = 'from-pet_to-t1w_reg.lta'
+                                     #subject_id = f'sub-{subject_id}'
+                                     ),
                        name = 'coreg_pet_to_t1w')
     
     create_time_weighted_average = Node(Function(input_names = ['pet_file', 'json_file'],
@@ -272,7 +273,7 @@ def init_single_subject_wf(subject_id):
                         (selectfiles, create_time_weighted_average, [('pet_file', 'pet_file')]),
                         (selectfiles, create_time_weighted_average, [('json_file', 'json_file')]),
                         (selectfiles, coreg_pet_to_t1w, [('brainmask_file', 'reference_file')]),
-                        (selectfiles, coreg_pet_to_t1w, [('fs_subject_dir', 'subjects_dir')]),
+                        #(selectfiles, coreg_pet_to_t1w, [('fs_subject_dir', 'subjects_dir')]),
                         (create_time_weighted_average, coreg_pet_to_t1w, [('out_file', 'source_file')]),
                         (coreg_pet_to_t1w, move_pet_to_anat, [('out_lta_file', 'lta_file')]),
                         (selectfiles, move_pet_to_anat, [('brainmask_file', 'target_file')]),
@@ -353,6 +354,7 @@ def init_single_subject_wf(subject_id):
     if args.gtm is True or args.agtm is True:
             
             templates.update({'gtm_file': f'derivatives/freesurfer/sub-{subject_id}/mri/gtmseg.mgz'})
+            templates.update({'gtm_stats': f'derivatives/freesurfer/sub-{subject_id}/stats/gtmseg.stats'})
         
             gtmpvc = Node(GTMPVC(default_seg_merge = True,
                                 auto_mask = (1,0.1),
@@ -388,7 +390,7 @@ def init_single_subject_wf(subject_id):
                             (gtmpvc, create_gtmseg_tacs, [('gtm_stats', 'gtm_stats')]),
                             (selectfiles, create_gtmseg_tacs, [('json_file', 'json_file')]),
                             (create_gtmseg_tacs, datasink, [('out_file', 'datasink.@gtmseg_tacs')]),
-                            (gtmpvc, create_gtmseg_stats, [('gtm_stats', 'gtm_stats')]),
+                            (selectfiles, create_gtmseg_stats, [('gtm_stats', 'gtm_stats')]),
                             (create_gtmseg_stats, datasink, [('out_file', 'datasink.@gtmseg_stats')]),
                             (selectfiles, convert_gtmseg_file, [('gtm_file', 'in_file')]),
                             (convert_gtmseg_file, datasink, [('out_file', 'datasink.@gtmseg_file')]),
