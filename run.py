@@ -438,7 +438,7 @@ def init_single_subject_wf(subject_id):
                                     (selectfiles, agtmpvc, [('gtm_file', 'segmentation')]),
                                     (coreg_pet_to_t1w, agtmpvc, [('out_lta_file', 'reg_file')]),
                                     (agtmpvc, create_agtmseg_tacs, [('gtm_file', 'in_file')]),
-                                    (selectfiles, create_agtmseg_tacs, [('gtm_stats', 'gtm_stats')]),
+                                    (agtmpvc, create_agtmseg_tacs, [('gtm_stats', 'gtm_stats')]),
                                     (selectfiles, create_agtmseg_tacs, [('json_file', 'json_file')]),
                                     (create_agtmseg_tacs, datasink, [('out_file', 'datasink.@agtmseg_tacs')]),
                                     (opt_fwhm, datasink, [('tsv_file', 'datasink.@opt_fwhm')])
