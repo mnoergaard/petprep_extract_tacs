@@ -52,9 +52,9 @@ def main(args):
     os.makedirs(output_dir, exist_ok=True)
 
     # Run ANAT workflow
-    #anat_main = init_anat_wf()
-    #if anat_main._get_all_nodes():
-    #    anat_main.run(plugin='MultiProc', plugin_args={'n_procs': int(args.n_procs)})
+    anat_main = init_anat_wf()
+    if anat_main._get_all_nodes():
+        anat_main.run(plugin='MultiProc', plugin_args={'n_procs': int(args.n_procs)})
 
     # Run PET workflow
     main = init_petprep_extract_tacs_wf()
