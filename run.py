@@ -10,6 +10,7 @@ import json
 from platform import system
 import pkg_resources
 from bids import BIDSLayout
+from nipype import config
 from nipype.interfaces.utility import IdentityInterface, Merge
 from nipype.pipeline import Workflow
 from nipype import Node, Function, DataSink
@@ -25,9 +26,41 @@ from petprep_extract_tacs.utils.utils import ctab_to_dsegtsv, avgwf_to_tacs, sum
 from petprep_extract_tacs.bids import collect_data
 
 
+
 __version__ = open(os.path.join(os.path.dirname(os.path.realpath(__file__)),
                                 'version')).read()
 
+
+def determine_in_docker():
+    """
+    Determines if the script is running in a docker container, returns True if it is, False otherwise
+
+    :return: if running in docker container
+    :rtype: bool
+    """
+    in_docker = False
+    # check if /proc/1/cgroup exists
+    if pathlib.Path("/proc/1/cgroup").exists():
+        with open("/proc/1/cgroup", "rt") as infile:
+            lines = infile.readlines()
+            for line in lines:
+                if "docker" in line:
+                    in_docker = True
+    if pathlib.Path("/.dockerenv").exists():
+        in_docker = True
+    if pathlib.Path("/proc/1/sched").exists():
+        with open("/proc/1/sched", "rt") as infile:
+            lines = infile.readlines()
+            for line in lines:
+                if "bash" in line:
+                    in_docker = True
+    return in_docker
+
+# set logging to not be at root
+if determine_in_docker():
+    workflow_config = {'logging': {'log_directory': '/logs/'}}
+else:
+    workflow_config = {'logging': {'log_directory': f'{os.getcwd()}'}}
 
 def main(args):
     # Check whether BIDS directory exists and instantiate BIDSLayout
@@ -58,10 +91,13 @@ def main(args):
     # Run ANAT workflow
     anat_main = init_anat_wf()
     if anat_main._get_all_nodes():
+        # set logging
+        anat_main.config.update(workflow_config)
         anat_main.run(plugin='MultiProc', plugin_args={'n_procs': int(args.n_procs)})
 
     # Run PET workflow
     main = init_petprep_extract_tacs_wf()
+    main.config.update(workflow_config)
     main.run(plugin='MultiProc', plugin_args={'n_procs': int(args.n_procs)})
 
 
@@ -848,30 +884,7 @@ def check_docker_installed():
     return docker_installed
 
 
-def determine_in_docker():
-    """
-    Determines if the script is running in a docker container, returns True if it is, False otherwise
 
-    :return: if running in docker container
-    :rtype: bool
-    """
-    in_docker = False
-    # check if /proc/1/cgroup exists
-    if pathlib.Path("/proc/1/cgroup").exists():
-        with open("/proc/1/cgroup", "rt") as infile:
-            lines = infile.readlines()
-            for line in lines:
-                if "docker" in line:
-                    in_docker = True
-    if pathlib.Path("/.dockerenv").exists():
-        in_docker = True
-    if pathlib.Path("/proc/1/sched").exists():
-        with open("/proc/1/sched", "rt") as infile:
-            lines = infile.readlines()
-            for line in lines:
-                if "bash" in line:
-                    in_docker = True
-    return in_docker
 
 
 def check_docker_image_exists(image_name, build=False):
