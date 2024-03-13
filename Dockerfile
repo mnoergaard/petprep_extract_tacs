@@ -107,9 +107,5 @@ COPY docker_own.sh /petprep_extract_tacs/docker_own.sh
 COPY nipype.config.docker /petprep_extract_tacs/nipype.config
 COPY nipype.config.docker /root/nipype.config
 # set the entrypoint to the main executable run.py
-# we don't run run.py directly because we need to set up the ownership of the output files
-# so we run a wrapper script that sets up the launches run.py and sets the ownership of the output files
-# on successful exit or on failure using trap.
-#ENTRYPOINT ["bash", "/petprep_extract_tacs/docker_own.sh", "python3", "/petprep_extract_tacs/run.py"]
 WORKDIR "/workdir"
 ENTRYPOINT ["python3", "/petprep_extract_tacs/run.py"]

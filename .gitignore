@@ -3,3 +3,4 @@ freesurfer_binaries/*
 *.egg-info*
 *.vscode/
 venv/
+*_env/

@@ -10,7 +10,6 @@ import json
 from platform import system
 import pkg_resources
 from bids import BIDSLayout
-from nipype import config
 from nipype.interfaces.utility import IdentityInterface, Merge
 from nipype.pipeline import Workflow
 from nipype import Node, Function, DataSink
@@ -56,11 +55,6 @@ def determine_in_docker():
                     in_docker = True
     return in_docker
 
-# set logging to not be at root
-if determine_in_docker():
-    workflow_config = {'logging': {'log_directory': '/logs/'}}
-else:
-    workflow_config = {'logging': {'log_directory': f'{os.getcwd()}'}}
 
 def main(args):
     # Check whether BIDS directory exists and instantiate BIDSLayout
@@ -92,12 +86,10 @@ def main(args):
     anat_main = init_anat_wf()
     if anat_main._get_all_nodes():
         # set logging
-        anat_main.config.update(workflow_config)
         anat_main.run(plugin='MultiProc', plugin_args={'n_procs': int(args.n_procs)})
 
     # Run PET workflow
     main = init_petprep_extract_tacs_wf()
-    main.config.update(workflow_config)
     main.run(plugin='MultiProc', plugin_args={'n_procs': int(args.n_procs)})
 
 
