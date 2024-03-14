@@ -958,6 +958,8 @@ if __name__ == '__main__':
                    action='store_true')
     parser.add_argument('--docker', help='When this flag is present petprep_extract_tacs will attempt to run from within a docker '
                         'container', action='store_true')
+    parser.add_argument('--run_as_root', help='When this flag is present petprep_extract_tacs will attempt to run as root if running in docker', action='store_true',
+                        default=False)
     parser.add_argument('-v', '--version', action='version',
                     version='PETPrep extract time activity curves BIDS-App version {}'.format(__version__))
     
@@ -1008,6 +1010,7 @@ if __name__ == '__main__':
 
         bids_dir_mount_point = str(args.bids_dir)
         output_dir_mount_point = str(args.output_dir)
+        working_dir_mount_point = str(pathlib.Path.cwd())
 
         if output_dir_mount_point == "None" or output_dir_mount_point is None:
             output_mount_point = str(pathlib.Path(args.bids_dir) / "derivatives" / "petprep_extract_tacs")
@@ -1023,8 +1026,9 @@ if __name__ == '__main__':
         args.output_dir = '/output_dir'
 
         print(
-            "Attempting to run in docker container, mounting {} to {} and {} to {}".format(
-                bids_dir_mount_point, args.bids_dir, output_dir_mount_point, args.output_dir
+            "Attempting to run in docker container, mounting {} to {}, {} to {}, and {} to {}".format(
+                bids_dir_mount_point, args.bids_dir, output_dir_mount_point, args.output_dir,
+                '/workdir', working_dir_mount_point
             )
         )
         # convert args to dictionary
@@ -1054,13 +1058,14 @@ if __name__ == '__main__':
         # invoke docker run command to run petdeface in container, while redirecting stdout and stderr to terminal
         docker_command = f"docker run "
 
-        if system_platform == "Linux":
+        if system_platform == "Linux" and not args.run_as_root:
             docker_command += f"--user={uid}:{gid} "
 
         docker_command += (
             f"-a stderr -a stdout --rm "
             f"-v {bids_dir_mount_point}:{args.bids_dir} "
             f"-v {output_dir_mount_point}:{args.output_dir} "
+            f"-v {working_dir_mount_point}:/workdir "
         )
         if code_dir:
             docker_command += f"-v {code_dir}:/petprep_extract_tacs "
@@ -1076,7 +1081,7 @@ if __name__ == '__main__':
 
         docker_command += f"petprep_extract_tacs:latest " f"{args_string}"
 
-        docker_command += f" --user={uid}:{gid}"
+        #docker_command += f" --user={uid}:{gid}"
         docker_command += f" system_platform={system_platform}"
 
         print("Running docker command: \n{}".format(docker_command))
