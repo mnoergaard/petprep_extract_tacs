@@ -4,3 +4,6 @@ freesurfer_binaries/*
 *.vscode/
 venv/
 *_env/
+
+*strace*
+run_docker_*
