@@ -1079,7 +1079,7 @@ if __name__ == '__main__':
         # specify platform
         docker_command += "--platform linux/amd64 "
 
-        docker_command += f"petprep_extract_tacs_mgxd " f"{args_string}"
+        docker_command += f"petprep_extract_tacs " f"{args_string}"
 
         #docker_command += f" --user={uid}:{gid}"
         docker_command += f" system_platform={system_platform}"

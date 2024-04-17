@@ -34,7 +34,8 @@ setup(
         "pybids>=0.16.1",
         "sqlalchemy==1.3.24",
         "wrapt==1.15.0",
-        "niworkflows @ git+https://github.com/bendhouseart/niworkflows#egg=fix/zip-extract-race-condition",
+        "niworkflows==1.7.9",
+        "templateflow @ git+https://github.com/templateflow/python-client"
         "ipython==8.13.2"
     ],
     extras_require={
