@@ -1,0 +1,6 @@
+crash-*
+.vscode/
+build/
+__pycache__
+freesurfer_binaries/
+*egg-info/
