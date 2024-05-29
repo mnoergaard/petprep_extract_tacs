@@ -1,9 +1,12 @@
-freesurfer_binaries/*
+crash-*
+.vscode/
+build/
+freesurfer_binaries/
+*egg-info/
 *__pycache__*
 *.egg-info*
 *.vscode/
 venv/
 *_env/
-
 *strace*
 run_docker_*
