@@ -31,10 +31,11 @@ setup(
         "formulaic==0.5.2",
         "interface-meta==1.3.0",
         "num2words==0.5.12",
-        "pybids==0.16.1",
+        "pybids>=0.16.1",
         "sqlalchemy==1.3.24",
         "wrapt==1.15.0",
         "niworkflows==1.7.9",
+        "templateflow @ git+https://github.com/templateflow/python-client.git",
         "ipython==8.13.2"
     ],
     extras_require={

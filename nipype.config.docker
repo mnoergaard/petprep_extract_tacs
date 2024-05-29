@@ -1,0 +1,4 @@
+[logging]
+log_directory = /logs/
+[execution]
+stop_on_first_crash = false

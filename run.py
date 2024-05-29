@@ -4,7 +4,10 @@ from pathlib import Path
 import glob
 import re
 import shutil
+import subprocess
+import pathlib
 import json
+from platform import system
 import pkg_resources
 from bids import BIDSLayout
 from nipype.interfaces.utility import IdentityInterface, Merge
@@ -21,8 +24,36 @@ from petprep_extract_tacs.utils.utils import ctab_to_dsegtsv, avgwf_to_tacs, sum
 
 from petprep_extract_tacs.bids import collect_data
 
+
+
 __version__ = open(os.path.join(os.path.dirname(os.path.realpath(__file__)),
                                 'version')).read()
+
+
+def determine_in_docker():
+    """
+    Determines if the script is running in a docker container, returns True if it is, False otherwise
+
+    :return: if running in docker container
+    :rtype: bool
+    """
+    in_docker = False
+    # check if /proc/1/cgroup exists
+    if pathlib.Path("/proc/1/cgroup").exists():
+        with open("/proc/1/cgroup", "rt") as infile:
+            lines = infile.readlines()
+            for line in lines:
+                if "docker" in line:
+                    in_docker = True
+    if pathlib.Path("/.dockerenv").exists():
+        in_docker = True
+    if pathlib.Path("/proc/1/sched").exists():
+        with open("/proc/1/sched", "rt") as infile:
+            lines = infile.readlines()
+            for line in lines:
+                if "bash" in line:
+                    in_docker = True
+    return in_docker
 
 
 def main(args):
@@ -54,6 +85,7 @@ def main(args):
     # Run ANAT workflow
     anat_main = init_anat_wf()
     if anat_main._get_all_nodes():
+        # set logging
         anat_main.run(plugin='MultiProc', plugin_args={'n_procs': int(args.n_procs)})
 
     # Run PET workflow
@@ -797,14 +829,106 @@ def init_single_subject_wf(subject_id):
 def add_sub(subject_id):
     return 'sub-' + subject_id
 
+def locate_freesurfer_license():
+    """
+    Checks for freesurfer license on host system and returns path to license file if it exists.
+    Raises error if $FREESURFER_HOME is not set or if license file does not exist at $FREESURFER_HOME/license.txt
+
+    :raises ValueError: if FREESURFER_HOME environment variable is not set
+    :raises ValueError: if license file does not exist at FREESURFER_HOME/license.txt
+    :return: full path to Freesurfer license file
+    :rtype: pathlib.Path
+    """
+    # collect freesurfer home environment variable
+    fs_home = pathlib.Path(os.environ.get("FREESURFER_HOME", ""))
+    if not fs_home:
+        raise ValueError(
+            "FREESURFER_HOME environment variable is not set, unable to determine location of license file"
+        )
+    else:
+        fs_license = fs_home / pathlib.Path("license.txt")
+        if not fs_license.exists():
+            raise ValueError(
+                "Freesurfer license file does not exist at {}".format(fs_license)
+            )
+        else:
+            return fs_license
+
+
+def check_docker_installed():
+    """
+    Checks to see if docker is installed on the host system, raises exception if it is not.
+
+    :raises Exception: if docker is not installed
+    :return: status of docker installation
+    :rtype: bool
+    """
+    try:
+        subprocess.run(
+            ["docker", "--version"],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            check=True,
+        )
+        docker_installed = True
+    except subprocess.CalledProcessError:
+        raise Exception("Could not detect docker installation, exiting")
+    return docker_installed
+
+
+
+
+
+def check_docker_image_exists(image_name, build=False):
+    """
+    Checks to see if a docker image exists, if it does not and build is set to True, it will attempt to build the image.
+
+    :param image_name: name of docker image
+    :type image_name: string
+    :param build: try to build a docker image if none is found, defaults to False
+    :type build: bool, optional
+    :return: status of whether or not the image exists
+    :rtype: bool
+    """
+    try:
+        subprocess.run(
+            ["docker", "inspect", image_name],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            check=True,
+        )
+        image_exists = True
+        print("Docker image {} exists".format(image_name))
+    except subprocess.CalledProcessError:
+        image_exists = False
+        print("Docker image {} does not exist".format(image_name))
+
+    if build:
+        try:
+            # get dockerfile path
+            dockerfile_path = pathlib.Path(__file__).parent / pathlib.Path("Dockerfile")
+            subprocess.run(
+                ["docker", "build", "-t", image_name, str(dockerfile_path)],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                check=True,
+            )
+            image_exists = True
+            print("Docker image {} has been built.".format(image_name))
+        except subprocess.CalledProcessError:
+            image_exists = False
+            print("Docker image {} could not be built.".format(image_name))
+    return image_exists
+
+
 if __name__ == '__main__': 
     parser = argparse.ArgumentParser(description='BIDS App for PETPrep extract time activity curves (TACs) workflow')
     parser.add_argument('--bids_dir', required=True,  help='The directory with the input dataset '
-                    'formatted according to the BIDS standard.')
+                    'formatted according to the BIDS standard.', type=str)
     parser.add_argument('--output_dir', required=False, help='The directory where the output files '
                     'should be stored. If you are running group level analysis '
                     'this folder should be prepopulated with the results of the'
-                    'participant level analysis.')
+                    'participant level analysis.', type=str)
     parser.add_argument('--analysis_level', default='participant', help='Level of the analysis that will be performed. '
                     'Multiple participant level analyses can be run independently '
                     '(in parallel) using the same output_dir.',
@@ -832,9 +956,134 @@ if __name__ == '__main__':
     parser.add_argument('--petprep_hmc', help='Use outputs from petprep_hmc as input to workflow', action='store_true')
     parser.add_argument('--skip_bids_validator', help='Whether or not to perform BIDS dataset validation',
                    action='store_true')
+    parser.add_argument('--docker', help='When this flag is present petprep_extract_tacs will attempt to run from within a docker '
+                        'container', action='store_true')
+    parser.add_argument('--run_as_root', help='When this flag is present petprep_extract_tacs will attempt to run as root if running in docker', action='store_true',
+                        default=False)
     parser.add_argument('-v', '--version', action='version',
                     version='PETPrep extract time activity curves BIDS-App version {}'.format(__version__))
     
-    args = parser.parse_args() 
+    args, unknown = parser.parse_known_args() 
     
-    main(args)
+    # determine the present working directory
+    pwd = pathlib.Path.cwd()
+
+    # if this script is being run where this file is located assume that the user wants to mount the code folder
+    # into the docker container
+    if pwd == pathlib.Path(__file__).parent:
+        code_dir = str(pathlib.Path(__file__).parent.absolute())
+    else:
+        code_dir = None
+
+    # expand bids and output dir's to absolute path
+    if isinstance(pathlib.Path(args.bids_dir), pathlib.PosixPath) and "~" in str(args.bids_dir):
+        args.bids_dir = str(pathlib.Path(args.bids_dir).expanduser().resolve())
+    else:
+        args.bids_dir = str(pathlib.Path(args.bids_dir).absolute())
+    if "~" in str(args.output_dir):
+        args.output_dir = str(pathlib.Path(args.output_dir).expanduser().resolve())
+    else:
+        if args.output_dir:
+            args.output_dir = str(pathlib.Path(args.output_dir).absolute())
+        else:
+            args.output_dir = str(pathlib.Path(args.bids_dir) / "derivatives" / "petprep_extract_tacs")
+
+
+    if not args.docker:
+        main(args)
+    else:
+        # check to see if docker is available
+        check_docker_installed()
+         
+        # check to see if the docker image is available
+        image_exists = check_docker_image_exists('petprep_extract_tacs', build=False)
+         
+        # attempt to build the image if it isn't present
+        if not image_exists:
+            check_docker_image_exists('petprep_extract_tacs', build=True)
+
+        # add string to docker command that collects local user id and gid, then runs the docker command as the local user
+        # this is necessary to avoid permission issues when writing files to the output directory
+        uid = os.geteuid()
+        gid = os.getegid()
+        system_platform = system()
+
+        bids_dir_mount_point = str(args.bids_dir)
+        output_dir_mount_point = str(args.output_dir)
+        working_dir_mount_point = str(pathlib.Path.cwd())
+
+        if output_dir_mount_point == "None" or output_dir_mount_point is None:
+            output_mount_point = str(pathlib.Path(args.bids_dir) / "derivatives" / "petprep_extract_tacs")
+
+        # create the output directory if it doesn't exist
+        if not pathlib.Path(output_dir_mount_point).exists():
+            pathlib.Path(output_dir_mount_point).mkdir(parents=True, exist_ok=True)
+        # own it
+        subprocess.run(f"chown -R {uid}:{gid} {output_dir_mount_point}", shell=True)        
+
+        # mount all of the input and output directories
+        args.bids_dir = '/bids_dir'
+        args.output_dir = '/output_dir'
+
+        print(
+            "Attempting to run in docker container, mounting {} to {}, {} to {}, and {} to {}".format(
+                bids_dir_mount_point, args.bids_dir, output_dir_mount_point, args.output_dir,
+                '/workdir', working_dir_mount_point
+            )
+        )
+        # convert args to dictionary
+        args_dict = vars(args)
+        for key, value in args_dict.items():
+            if isinstance(value, pathlib.PosixPath):
+                args_dict[key] = str(value)
+
+        args_dict.pop("docker")
+
+        # run the docker image with all of the arguments collected from the parser in args
+        # remove False boolean keys and values, and set true boolean keys to empty string
+        args_dict = {key: value for key, value in args_dict.items() if value}
+        set_to_empty_str = [key for key, value in args_dict.items() if value == True]
+        for key in set_to_empty_str:
+            args_dict[key] = "empty_str"
+
+        args_string = " ".join(
+            ["--{} {}".format(key, value) for key, value in args_dict.items() if value]
+        )
+        args_string = args_string.replace("empty_str", "")
+
+        # remove --input_dir from args_string as input dir is positional, we
+        # we're simply removing an artifact of argparse
+        args_string = args_string.replace("--input_dir", "")
+
+        # invoke docker run command to run petdeface in container, while redirecting stdout and stderr to terminal
+        docker_command = f"docker run "
+
+        if system_platform == "Linux" and not args.run_as_root:
+            docker_command += f"--user={uid}:{gid} "
+
+        docker_command += (
+            f"-a stderr -a stdout --rm "
+            f"-v {bids_dir_mount_point}:{args.bids_dir} "
+            f"-v {output_dir_mount_point}:{args.output_dir} "
+            f"-v {working_dir_mount_point}:/workdir "
+        )
+        if code_dir:
+            docker_command += f"-v {code_dir}:/petprep_extract_tacs "
+
+        # collect location of freesurfer license if it's installed and working
+        if check_valid_fs_license():
+            license_location = locate_freesurfer_license()
+            if license_location:
+                docker_command += f"-v {license_location}:/opt/freesurfer/license.txt "
+
+        # specify platform
+        docker_command += "--platform linux/amd64 "
+
+        docker_command += f"petprep_extract_tacs " f"{args_string}"
+
+        #docker_command += f" --user={uid}:{gid}"
+        docker_command += f" system_platform={system_platform}"
+
+        print("Running docker command: \n{}".format(docker_command))
+
+        subprocess.run(docker_command, shell=True)
