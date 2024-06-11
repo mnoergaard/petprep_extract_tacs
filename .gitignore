@@ -10,3 +10,6 @@ venv/
 *_env/
 *strace*
 run_docker_*
+
+# notes for debugging/dev, don't want to commit this garbage
+notes.txt
