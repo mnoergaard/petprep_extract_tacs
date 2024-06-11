@@ -1,5 +1,6 @@
 import argparse
 import os
+import sys
 from pathlib import Path
 import glob
 import re
@@ -7,6 +8,7 @@ import shutil
 import subprocess
 import pathlib
 import json
+import warnings
 from platform import system
 import pkg_resources
 from bids import BIDSLayout
@@ -23,6 +25,7 @@ from petprep_extract_tacs.interfaces.fs_model import SegStats
 from petprep_extract_tacs.utils.utils import ctab_to_dsegtsv, avgwf_to_tacs, summary_to_stats, gtm_to_tacs, gtm_stats_to_stats, gtm_to_dsegtsv, limbic_to_dsegtsv, limbic_to_stats, plot_reg, get_opt_fwhm, stats_to_stats
 
 from petprep_extract_tacs.bids import collect_data
+from petutils.petutils import PETFrameTimingError, check_nifti_json_frame_consistency
 
 
 
@@ -90,7 +93,13 @@ def main(args):
 
     # Run PET workflow
     main = init_petprep_extract_tacs_wf()
-    main.run(plugin='MultiProc', plugin_args={'n_procs': int(args.n_procs)})
+    # determine if this nipype.pipeline.engine.workflows.Workflow is empty
+    # if so exit early.
+    if not main._get_all_nodes(): 
+        print("\033[91mNo valid PET files found. Exiting early.\033[0m")
+        sys.exit(1)
+    else:
+        main.run(plugin='MultiProc', plugin_args={'n_procs': int(args.n_procs)})
 
 
     # Loop through directories and store according to PET-BIDS specification
@@ -216,11 +225,22 @@ def init_petprep_extract_tacs_wf():
     # Define the subjects to iterate over
     subject_list = layout.get(return_type='id', target='subject', suffix='pet')
 
+    # sometimes the number of entries for FrameTimesStart and FrameDuration in the json file 
+    # ar. not equal to the number of frames in the nifti file or each other. This will 
+    # cause this pipeline to fail. Here we try to catch this error and notify the user of that
+    # issue while still running the pipeline on valid files.
+
     # Set up the main workflow to iterate over subjects
     for subject_id in subject_list:
-        # For each subject, create a subject-specific workflow
-        subject_wf = init_single_subject_wf(subject_id)
-        petprep_extract_tacs_wf.add_nodes([subject_wf])
+        try:
+            check_nifti_json_frame_consistency(layout, [subject_id])
+            # For each subject, create a subject-specific workflow
+            subject_wf = init_single_subject_wf(subject_id)
+            petprep_extract_tacs_wf.add_nodes([subject_wf])
+        except PETFrameTimingError as err:
+            # use warnings to display an error message in red text to the user
+            print(f"\033[91m{err}\033[0m")
+            print(f"\033[91mSkipping extract tacs on subject: {subject_id}\033[0m")
 
     return petprep_extract_tacs_wf
 
