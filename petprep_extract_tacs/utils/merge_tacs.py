@@ -10,28 +10,6 @@ import re
 from petprep_extract_tacs.bids import collect_participants
 
 
-def offset_to_one_time_zero(bids_dir, *tacs, inplace=False):
-    """
-    Finds the corresonding pet json sidecar files for each TAC file and extracts the time zero from each run.
-    Then offsets the following runs to match the time zero of run 1.
-
-    Parameters
-    ----------
-    bids_dir : str
-        path to a BIDS dataset
-    tacs : list
-        list of TAC file paths
-    inplace : bool
-        if True, the TAC files will be modified in place defaults to false
-
-    Returns
-    -------
-    offset_tacs : dict
-        dictionary of tacs provided via *tacs along with their offset applied to the frame start and end times
-    """
-
-    # use pybids to get all of the entities for each TAC file
-    layout = bids.BIDSLayout(bids_dir, derivatives=True)
 
 
 def collect_and_merge_tsvs(
