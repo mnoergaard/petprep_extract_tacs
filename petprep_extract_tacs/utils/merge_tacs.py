@@ -10,8 +10,6 @@ import re
 from petprep_extract_tacs.bids import collect_participants
 
 
-
-
 def collect_and_merge_tsvs(
     bids_dir, tsv_type="tacs", subjects=[], delete_extra_runs=False, **kwargs
 ):
@@ -31,7 +29,7 @@ def collect_and_merge_tsvs(
         Type of TSV file to output to merge corresponding the bids suffix.
     subjects : list
         List of subjects to run this function on.
-    merge : bool
+    delet_extra_runs : bool
         If True, the tsv's will be merged into a single file, if False this function will not merge, but instead
         only keep the first copy of the tsvs that are found and remove the run-[0-9] from the filename. This is
         useful for dseg and morph tsvs.
