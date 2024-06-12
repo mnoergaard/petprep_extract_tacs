@@ -48,7 +48,13 @@ pytest = "*"
 
 [tool.poetry.group.dev.dependencies]
 nipreps = "^1.0"
+black = "^24.4.2"
+
+[tool.poetry.scripts]
+petprep_extract_tacs_merge_runs = "petprep_extract_tacs.merge_runs.py"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
+
+
