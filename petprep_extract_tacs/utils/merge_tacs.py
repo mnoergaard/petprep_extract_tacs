@@ -47,7 +47,7 @@ def collect_and_merge_tsvs(
     for root, folders, files in os.walk(bids_dir):
         for f in files:
             full_file_path = os.path.join(root, f)
-            print(full_file_path)
+ 
             if f.endswith(
                 ".tsv"
             ):  # and os.path.join('derivatives', 'petprep_extract_tacs') in full_file_path:
