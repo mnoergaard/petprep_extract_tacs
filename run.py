@@ -128,6 +128,23 @@ def main(args):
     if os.path.exists(os.path.join(args.bids_dir, 'anat_wf')):
         shutil.rmtree(os.path.join(args.bids_dir, 'anat_wf'))
 
+    # add dataset_description.json to derivatives directory
+    dataset_description_json = {
+        "Name": "PETPrep extraction of time activity curves workflow",
+        "DatasetType": "derivative",
+        "BIDSVersion": "1.7.0",
+        "GeneratedBy": [
+            {
+                "Name": "petprep_extract_tacs",
+                "Version": str(__version__),
+            }
+        ]
+    }
+
+    json_object = json.dumps(dataset_description_json, indent=4)
+    with open(os.path.join(args.output_dir, 'dataset_description.json'), "w") as outfile:
+        outfile.write(json_object)
+
 def init_anat_wf():
     from bids import BIDSLayout
 
