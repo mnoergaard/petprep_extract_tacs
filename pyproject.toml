@@ -49,6 +49,7 @@ pytest = "*"
 [tool.poetry.group.dev.dependencies]
 nipreps = "^1.0"
 black = "^24.4.2"
+pytest = "^8.2.2"
 
 [tool.poetry.scripts]
 petprep_extract_tacs_merge_runs = "petprep_extract_tacs.merge_runs.py"

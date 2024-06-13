@@ -143,20 +143,7 @@ def main(args):
         # collect and merge tacs
         collect_and_merge_tsvs(
             args.bids_dir, 
-            tsv_type='tacs', 
             subjects=args.participant_label)
-        # collect and merge dseg tsvs
-        collect_and_merge_tsvs(
-            args.bids_dir,
-            tsv_type='dseg',
-            subjects=args.participant_label,
-            delete_extra_runs=True)
-        # collect and merge morph tsvs
-        collect_and_merge_tsvs(
-            args.bids_dir,
-            tsv_type='morph',
-            subjects=args.participant_label,
-            delete_extra_runs=True)
 
 
 def init_anat_wf():
@@ -1003,7 +990,7 @@ if __name__ == '__main__':
     parser.add_argument('--run_as_root', help='When this flag is present petprep_extract_tacs will attempt to run as root if running in docker', action='store_true',
                         default=False)
     parser.add_argument('--merge_runs', help='Merge TACs (and use a single *_dseg.tsv and *_morph.tsv per session) across runs for each subject when the coincide with a single "session". This will ' +
-                        'greedily merge runs. For more granular control of this sort of behavior use the command line version of this on a file by file basis. ' 
+                        'greedily merge runs. For more granular control of this sort of behavior use the command line version of this on a file by file basis. ' + 
                         'It is available via petprep_extract_tacs_merge_runs post install.', action='store_true', default=False)
     parser.add_argument('-v', '--version', action='version',
                     version='PETPrep extract time activity curves BIDS-App version {}'.format(__version__))

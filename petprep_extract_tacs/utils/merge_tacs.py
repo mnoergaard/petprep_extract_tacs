@@ -1,6 +1,5 @@
 import pandas
 import pathlib
-import bids
 import argparse
 import os
 from difflib import get_close_matches
@@ -10,9 +9,7 @@ import re
 from petprep_extract_tacs.bids import collect_participants
 
 
-def collect_and_merge_tsvs(
-    bids_dir, tsv_type="tacs", subjects=[], delete_extra_runs=False, **kwargs
-):
+def collect_and_merge_tsvs(bids_dir, subjects=[], **kwargs):
     """
     Collect and merge all tsv's that should be combined across a runs. This is
     function is primarily aimed at combining PET time activity curve (TACS) for
@@ -29,10 +26,6 @@ def collect_and_merge_tsvs(
         Type of TSV file to output to merge corresponding the bids suffix.
     subjects : list
         List of subjects to run this function on.
-    delet_extra_runs : bool
-        If True, the tsv's will be merged into a single file, if False this function will not merge, but instead
-        only keep the first copy of the tsvs that are found and remove the run-[0-9] from the filename. This is
-        useful for dseg and morph tsvs.
     **kwargs : dict
         Keyword arguments to pass to pandas.read_csv.
 
@@ -47,10 +40,7 @@ def collect_and_merge_tsvs(
     for root, folders, files in os.walk(bids_dir):
         for f in files:
             full_file_path = os.path.join(root, f)
-            print(full_file_path)
-            if f.endswith(
-                ".tsv"
-            ):  # and os.path.join('derivatives', 'petprep_extract_tacs') in full_file_path:
+            if f.endswith(".tsv"):
                 all_tsvs.append(full_file_path)
 
     # filter out any files that don't have petprep_extract_tacs/derivatives in the path
@@ -60,9 +50,6 @@ def collect_and_merge_tsvs(
 
     # filter to only files that contain _run- in the filename
     all_tsvs = [f for f in all_tsvs if "_run-" in f]
-
-    # filter to only files that contain the tsv_type in the filename
-    all_tsvs = [f for f in all_tsvs if tsv_type in f]
 
     all_tsvs.sort()
 
@@ -110,17 +97,15 @@ def collect_and_merge_tsvs(
 
     merged_tsvs = []
     for subject, set_of_tacs in subjects_to_be_merged.items():
-        for tsvs in set_of_tacs.values():
-            if not delete_extra_runs:
-                merged_dataframes = merge_tsvs(*v)
-            else:
-                merged_dataframes = pandas.read_csv(tsvs[0], sep="\t", **kwargs)
+        for regex_path, tsvs in set_of_tacs.items():
+            if "tacs" in regex_path:
+                out_dataframes = merge_tsvs(*tsvs)
+            if "morph" in regex_path or "dseg" in regex_path:
+                out_dataframes = pandas.read_csv(tsvs[0], sep="\t", **kwargs)
             # create a filename for these merged tacs by removing the _run-[0-9] from the filename
             # this will allow us to save the merged tacs to a single file
             combined_file_name = re.sub(r"_run-[0-9]_", "_", tsvs[0])
-            merged_dataframes.to_csv(
-                combined_file_name, sep="\t", index=False, **kwargs
-            )
+            out_dataframes.to_csv(combined_file_name, sep="\t", index=False, **kwargs)
             merged_tsvs.append(combined_file_name)
             for tsv in tsvs:
                 os.remove(tsv)
@@ -160,28 +145,15 @@ if __name__ == "__main__":
     )
     parser.add_argument("bids_dir", type=str, help="Path to the BIDS directory.")
     parser.add_argument(
-        "--tsv_type",
-        type=str,
-        default="tacs",
-        help="Type of TSV file to output to merge.\nDefault: tacs   ",
-    )
-    parser.add_argument(
         "--subjects",
         type=str,
         nargs="+",
         help="List of subjects to merge tsvs to merge.",
         default=[],
     )
-    parser.add_argument(
-        "--delete-extra-runs",
-        action="store_true",
-        help="If True, the extra runs will be deleted and only the first run will be kept. Thank you inheritance!",
-    )
     args = parser.parse_args()
 
     tacs = collect_and_merge_tsvs(
         args.bids_dir,
-        tsv_type=args.tsv_type,
         subjects=args.subjects,
-        delete_extra_runs=args.delete_extra_runs,
     )
