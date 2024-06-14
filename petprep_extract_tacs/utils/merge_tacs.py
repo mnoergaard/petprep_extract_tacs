@@ -116,7 +116,6 @@ def collect_and_merge_tsvs(bids_dir, subjects=[], **kwargs):
     dseg_niftis = glob.glob(f"{bids_dir}/**/derivatives/petprep_extract_tacs/**/*dseg.nii*", recursive=True)
     for nifti in dseg_niftis:
         if '_run-' in nifti:
-            re.sub(r"_run-[0-9]_", "_", nifti)
             shutil.move(nifti, re.sub(r"_run-[0-9]_", "_", nifti))
        
 
