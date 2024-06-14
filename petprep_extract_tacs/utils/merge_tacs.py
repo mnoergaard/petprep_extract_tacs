@@ -5,6 +5,8 @@ import os
 from difflib import get_close_matches
 from pprint import pprint
 import re
+import glob
+import shutil
 
 from petprep_extract_tacs.bids import collect_participants
 
@@ -109,6 +111,14 @@ def collect_and_merge_tsvs(bids_dir, subjects=[], **kwargs):
             merged_tsvs.append(combined_file_name)
             for tsv in tsvs:
                 os.remove(tsv)
+
+    # lastly we want to remove the dseg niftis that are duplicates as well
+    dseg_niftis = glob.glob(f"{bids_dir}/**/derivatives/petprep_extract_tacs/**/*dseg.nii*", recursive=True)
+    for nifti in dseg_niftis:
+        if '_run-' in nifti:
+            re.sub(r"_run-[0-9]_", "_", nifti)
+            shutil.move(nifti, re.sub(r"_run-[0-9]_", "_", nifti))
+       
 
     return merged_tsvs
 
