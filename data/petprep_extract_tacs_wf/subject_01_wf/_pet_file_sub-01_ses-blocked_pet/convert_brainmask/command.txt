@@ -1,1 +1,0 @@
-mri_convert --input_volume /Users/martinnorgaard/Documents/GitHub/petprep_extract_tacs/data/derivatives/freesurfer/sub-01/mri/brainmask.mgz --output_volume space-T1w_desc-brain_mask.nii.gz
