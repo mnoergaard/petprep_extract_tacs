@@ -85,8 +85,6 @@ These options, when specified, instruct the workflow to extract time activity cu
 
 `--agtm`, `--psf` (initial PSF guess, e.g. `--psf 3`)
 
-`--surface`, `--surface_smooth`
-
 ### Advanced options
 
 #### `--petprep_hmc`
