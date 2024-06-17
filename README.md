@@ -71,7 +71,7 @@ This argument specifies the label(s) of the participant(s) that should be analyz
 
 This argument sets the number of processors to use when running the workflow. The default is 2.
 
-#### Region extration options
+#### Region extraction options
 
 `--gtm`, `--brainstem`, `--thalamicNuclei`, `--hippocampusAmygdala`, `--wm`, `--raphe`, `--limbic`
 
