@@ -2,7 +2,7 @@
 
 ## Overview
 
-This BIDS App is designed to extract time activity curves (TACs) from PET data. The workflow has options to extract TACs from different regions of the brain, and it uses the Brain Imaging Data Structure (BIDS) standard for organizing and describing the data. This README will guide you through how to use the app and the various options available.
+This BIDS App is designed to extract time activity curves (TACs) from PET data. The workflow has options to extract TACs from different regions of the brain, and it uses the Brain Imaging Data Structure (BIDS) standard for organizing and describing the data. This README will guide you through how to use the app and the various options available. The workflow requires that freesurfer's recon-all was already executed for these subjects, and exist as a 'freesurfer' directory inside the derivatives directory for the given BIDS dataset. 
 
 ## Features
 
