@@ -109,6 +109,8 @@ Indicates the script will run within a Docker container.
 
 Runs the script as root if executed within Docker.
 
+### Version
+
 #### `-v`, `--version`
 
 This argument displays the current version of the PETPrep extract time activity curves BIDS-App.
