@@ -19,9 +19,9 @@ This BIDS App is designed to extract time activity curves (TACs) from PET data. 
 
 To get started, you'll need to have your data organized according to the BIDS standard. Once that's in place, you can run the app like this:
 
-\```bash
-python main.py --bids_dir /path/to/your/bids/dataset --output_dir /path/to/output/dir
-\```
+```bash
+python3 run.py --bids_dir /path/to/your/bids/dataset --output_dir /path/to/output/dir --n_procs 4 --wm
+```
 
 This will run the app on your BIDS dataset and save the output to the specified directory.
 
