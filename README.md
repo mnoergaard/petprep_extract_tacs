@@ -112,3 +112,14 @@ Runs the script as root if executed within Docker.
 #### `-v`, `--version`
 
 This argument displays the current version of the PETPrep extract time activity curves BIDS-App.
+
+## Citations
+For the methodology and algorithms used in this BIDS App, please cite the following publications:
+
+1. Greve, D. N., Svarer, C., Fisher, P. M., Feng, L., Hansen, A. E., Baare, W., ... & Knudsen, G. M. (2014). Cortical surface-based analysis reduces bias and variance in kinetic modeling of brain PET data. Neuroimage, 92, 225-236.
+
+2. Greve, D. N., Salat, D. H., Bowen, S. L., Izquierdo-Garcia, D., Schultz, A. P., Catana, C., ... & Johnson, K. A. (2016). Different partial volume correction methods lead to different conclusions: An 18 F-FDG-PET study of aging. NeuroImage, 132, 334-343.
+
+3. Fischl, B. (2012). FreeSurfer. NeuroImage, 62(2), 774–781.
+
+
