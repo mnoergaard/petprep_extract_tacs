@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "petprep_extract_tacs"
-version = "0.0.0"
+version = "0.0.2"
 description = "PETPrep Extract Time Activity Curves Workflow"
 authors = ["Martin Norgaard <martin.noergaard@di.ku.dk>"]
 homepage = "https://github.com/mnoergaard/petprep_extract_tacs"
