@@ -371,7 +371,7 @@ def init_single_subject_wf(subject_id):
                                     sampling_units = 'frac',
                                     cortex_mask = True,
                                     target_subject = 'fsaverage',
-                                    out_file = 'space-fsaverage_hemi-lh_pet.nii.gz'
+                                    out_file = 'space-fsaverage_hemi-L_pet.nii.gz'
                                     ),
                         name = 'vol2surf_lh')
                      
@@ -381,15 +381,15 @@ def init_single_subject_wf(subject_id):
                                     sampling_units = 'frac',
                                     cortex_mask = True,
                                     target_subject = 'fsaverage',
-                                    out_file = 'space-fsaverage_hemi-rh_pet.nii.gz'
+                                    out_file = 'space-fsaverage_hemi-R_pet.nii.gz'
                                     ),
                         name = 'vol2surf_rh')
         
         if args.surface_smooth is not None:
             vol2surf_lh.inputs.smooth_surf = args.surface_smooth
-            vol2surf_lh.inputs.out_file = f'space-fsaverage_hemi-lh_desc-sm{args.surface_smooth}_pet.nii.gz'
+            vol2surf_lh.inputs.out_file = f'space-fsaverage_hemi-L_desc-sm{args.surface_smooth}_pet.nii.gz'
             vol2surf_rh.inputs.smooth_surf = args.surface_smooth
-            vol2surf_rh.inputs.out_file = f'space-fsaverage_hemi-rh_desc-sm{args.surface_smooth}_pet.nii.gz'
+            vol2surf_rh.inputs.out_file = f'space-fsaverage_hemi-R_desc-sm{args.surface_smooth}_pet.nii.gz'
             
          
         subject_wf.connect([(selectfiles, vol2surf_lh, [('pet_file', 'source_file')]),
