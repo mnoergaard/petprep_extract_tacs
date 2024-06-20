@@ -314,8 +314,8 @@ def init_single_subject_wf(subject_id):
 
     # Define nodes for extraction of tacs
 
-    coreg_pet_to_t1w = Node(MRICoreg(out_lta_file = 'from-pet_to-t1w_reg.lta'
-                                     #subject_id = f'sub-{subject_id}'
+    coreg_pet_to_t1w = Node(MRICoreg(out_lta_file = 'from-pet_to-t1w_reg.lta',
+                                     subject_id = f'sub-{subject_id}'
                                      ),
                        name = 'coreg_pet_to_t1w')
     
@@ -346,7 +346,7 @@ def init_single_subject_wf(subject_id):
                         (selectfiles, create_time_weighted_average, [('pet_file', 'pet_file')]),
                         (selectfiles, create_time_weighted_average, [('json_file', 'json_file')]),
                         (selectfiles, coreg_pet_to_t1w, [('brainmask_file', 'reference_file')]),
-                        #(selectfiles, coreg_pet_to_t1w, [('fs_subject_dir', 'subjects_dir')]),
+                        (selectfiles, coreg_pet_to_t1w, [('fs_subject_dir', 'subjects_dir')]),
                         (create_time_weighted_average, coreg_pet_to_t1w, [('out_file', 'source_file')]),
                         (coreg_pet_to_t1w, move_pet_to_anat, [('out_lta_file', 'lta_file')]),
                         (selectfiles, move_pet_to_anat, [('brainmask_file', 'target_file')]),
