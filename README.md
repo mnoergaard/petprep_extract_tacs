@@ -2,7 +2,7 @@
 
 ## Overview
 
-This BIDS App is designed to extract time activity curves (TACs) from PET data. The workflow has options to extract TACs from different regions of the brain, and it uses the Brain Imaging Data Structure (BIDS) standard for organizing and describing the data. This README will guide you through how to use the app and the various options available. The workflow requires that freesurfer's recon-all was already executed for these subjects, and exist as a 'freesurfer' directory inside the derivatives directory for the given BIDS dataset. 
+This BIDS App is designed to extract time activity curves (TACs) from PET data. The workflow has options to extract TACs from different regions of the brain, and it uses the Brain Imaging Data Structure (BIDS) standard for organizing and describing the data. This README will guide you through how to use the app and the various options available. The workflow requires that freesurfer's recon-all was already executed for these subjects, and exist as a 'freesurfer' directory inside the derivatives directory for the given BIDS dataset.
 
 ## Features
 
@@ -101,13 +101,34 @@ Option to merge TACs across runs for each subject within a single session.
 
 ### Docker options
 
-#### `docker`
+#### `--docker`
 
-Indicates the script will run within a Docker container.
+Indicates the script will run within a Docker container that contains all of the necessary dependencies for this project. A version of FreeSurfer should stil be installed along with a valid license. If you have difficulty using this extra option below is an example of an "unwrapped" command to execute this pipeline in Docker.
+
+```bash
+docker run -a stderr -a stdout --rm \ 
+-v /Users/user1/data/dataset/:/bids_dir \
+-v /Users/user1/data/dataset/derivatives/petprep_extract_tacs:/output_dir \
+-v $PWD:/workdir -v /Users/user1/Projects/petprep_extract_tacs:/petprep_extract_tacs \
+-v /Applications/freesurfer/7.4.1/license.txt:/opt/freesurfer/license.txt \
+--platform linux/amd64 \
+petprep_extract_tacs \
+--bids_dir /bids_dir --output_dir /output_dir --analysis_level participant --n_procs 4 system_platform=Darwin
+```
+
+The docker container can be build with the following command:
+
+```bash
+cd petprep_extract_tacs && docker build . -t petprep_extract_tacs
+```
+
+We specify the platform as linux/amd64 since running with a single architecture typically leads to greater reliability. That said, 
+this pipeline has been developed and tested on both x86 Linux and Apple Silicon.
 
 #### `--run_as_root`
 
-Runs the script as root if executed within Docker.
+Runs the script as root if executed within Docker, by default the `--docker` flag will attempt to run the container as the calling
+user.
 
 ### Version
 
@@ -123,5 +144,3 @@ For the methodology and algorithms used in this BIDS App, please cite the follow
 2. Greve, D. N., Salat, D. H., Bowen, S. L., Izquierdo-Garcia, D., Schultz, A. P., Catana, C., ... & Johnson, K. A. (2016). Different partial volume correction methods lead to different conclusions: An 18 F-FDG-PET study of aging. NeuroImage, 132, 334-343.
 
 3. Fischl, B. (2012). FreeSurfer. NeuroImage, 62(2), 774–781.
-
-
