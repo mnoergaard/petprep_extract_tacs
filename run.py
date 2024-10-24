@@ -71,8 +71,11 @@ def main(args):
         raise Exception('BIDS directory does not exist')
 
     # Check whether FreeSurfer license is valid
-    if check_valid_fs_license() is not True:
-        raise Exception('You need a valid FreeSurfer license to proceed!')
+    try:
+        check_valid_fs_license() 
+    except FileNotFoundError:
+        if not locate_freesurfer_license().exists():
+            raise Exception('You need a valid FreeSurfer license to proceed!')
 
     # Get all PET files
     if args.participant_label is None:
@@ -884,20 +887,32 @@ def locate_freesurfer_license():
     :return: full path to Freesurfer license file
     :rtype: pathlib.Path
     """
-    # collect freesurfer home environment variable
-    fs_home = pathlib.Path(os.environ.get("FREESURFER_HOME", ""))
-    if not fs_home:
-        raise ValueError(
-            "FREESURFER_HOME environment variable is not set, unable to determine location of license file"
-        )
-    else:
-        fs_license = fs_home / pathlib.Path("license.txt")
-        if not fs_license.exists():
+
+    # check to see if FREESURFER_LICENSE variable is set, if so we can skip the rest of this function
+    if os.environ.get("FREESURFER_LICENSE", ""):
+        fs_license_env_var = pathlib.Path(os.environ.get("FREESURFER_LICENSE", ""))
+        if not fs_license_env_var.exists():
             raise ValueError(
-                "Freesurfer license file does not exist at {}".format(fs_license)
+                f"Freesurfer license file does not exist at {fs_license_env_var}, but is set under $FREESURFER_LICENSE variable."
+                f"Update or unset this varible to use the license.txt at $FREESURFER_HOME"
             )
         else:
-            return fs_license
+            return fs_license_env_var
+    else:
+    # collect freesurfer home environment variable and look there instead
+        fs_home = pathlib.Path(os.environ.get("FREESURFER_HOME", ""))
+        if not fs_home:
+            raise ValueError(
+                "FREESURFER_HOME environment variable is not set, unable to determine location of license file"
+            )
+        else:
+            fs_license = fs_home / pathlib.Path("license.txt")
+            if not fs_license.exists():
+                raise ValueError(
+                    "Freesurfer license file does not exist at {}".format(fs_license)
+                )
+            else:
+                return fs_license
 
 
 def check_docker_installed():
@@ -1002,7 +1017,9 @@ if __name__ == '__main__':
     parser.add_argument('--skip_bids_validator', help='Whether or not to perform BIDS dataset validation',
                    action='store_true')
     parser.add_argument('--docker', help='When this flag is present petprep_extract_tacs will attempt to run from within a docker '
-                        'container', action='store_true')
+                        'container', action='store_true', default=False)
+    parser.add_argument('--singularity', '-si', help='When this flag is present petprep_extract_tacs will attempt to run from within a singularity '
+                        'container', action='store_true', default=False),
     parser.add_argument('--run_as_root', help='When this flag is present petprep_extract_tacs will attempt to run as root if running in docker', action='store_true',
                         default=False)
     parser.add_argument('--merge_runs', help='Merge TACs (and use a single *_dseg.tsv and *_morph.tsv per session) across runs for each subject when the coincide with a single "session". This will ' +
@@ -1037,9 +1054,9 @@ if __name__ == '__main__':
             args.output_dir = str(pathlib.Path(args.bids_dir) / "derivatives" / "petprep_extract_tacs")
 
 
-    if not args.docker:
+    if not args.docker and not args.singularity:
         main(args)
-    else:
+    elif args.docker:
         # check to see if docker is available
         check_docker_installed()
          
@@ -1119,7 +1136,7 @@ if __name__ == '__main__':
             docker_command += f"-v {code_dir}:/petprep_extract_tacs "
 
         # collect location of freesurfer license if it's installed and working
-        if check_valid_fs_license():
+        if check_valid_fs_license() or locate_freesurfer_license().exists():
             license_location = locate_freesurfer_license()
             if license_location:
                 docker_command += f"-v {license_location}:/opt/freesurfer/license.txt "
@@ -1135,3 +1152,51 @@ if __name__ == '__main__':
         print("Running docker command: \n{}".format(docker_command))
 
         subprocess.run(docker_command, shell=True)
+    elif args.singularity:
+        singularity_command = f"singularity exec -e"
+
+        if args.output_dir == "None" or args.output_dir is None or args.output_dir == "":
+            args.output_dir = pathlib.Path(args.bids_dir).absolute() / "derivatives" / "petprep_extract_tacs"
+
+        # create output directory if it doesn't exist
+        if not pathlib.Path(args.output_dir).exists():
+            pathlib.Path(args.output_dir).mkdir(parents=True, exist_ok=True)
+
+        # convert args to dictionary
+        args_dict = vars(args)
+        for key, value in args_dict.items():
+            if isinstance(value, pathlib.PosixPath):
+                args_dict[key] = str(value)
+
+        args_dict.pop("singularity")
+
+        # remove False boolean keys and values, and set true boolean keys to empty string
+        args_dict = {key: value for key, value in args_dict.items() if value}
+        set_to_empty_str = [key for key, value in args_dict.items() if value == True]
+        for key in set_to_empty_str:
+            args_dict[key] = "empty_str"
+
+        args_string = " ".join(
+            ["--{} {}".format(key, value) for key, value in args_dict.items() if value]
+        )
+        args_string = args_string.replace("empty_str", "")
+
+        # collect location of freesurfer license if it's installed and working
+        try:
+            check_valid_fs_license()
+        except:
+            if locate_freesurfer_license().exists():
+                license_location = locate_freesurfer_license()
+            else:
+                raise FileNotFoundError(
+                    "Freesurfer license not found, please set FREESURFER_LICENSE environment variable or place license.txt in FREESURFER_HOME"
+                )
+
+        singularity_command += f" --bind {str(license_location)}:/opt/freesurfer/license.txt"
+        singularity_command += f" docker://bendhouseart/petprep_extract_tacs:latest" #TODO change this to openneuropet or mnoergaard
+        singularity_command += f" python3 /petprep_extract_tacs/run.py "
+        singularity_command += args_string
+
+        print("Running singularity command: \n{}".format(singularity_command))
+
+        subprocess.run(singularity_command, shell=True)
