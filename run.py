@@ -75,8 +75,12 @@ def main(args):
         raise Exception('You need a valid FreeSurfer license to proceed!')
 
     # Get all PET files
-    if args.participant_label is None:
+    if args.participant_label is []:
         args.participant_label = layout.get(suffix='pet', target='subject', return_type='id')
+    for sub in args.participant_label:
+        if sub not in layout.get(suffix='pet', target='subject', return_type='id'):
+            print(f"No valid PET files found for subject {sub}. Exiting.")
+            sys.exit(1)
 
     # Create derivatives directories
     if args.output_dir is None:
@@ -87,13 +91,13 @@ def main(args):
     os.makedirs(output_dir, exist_ok=True)
 
     # Run ANAT workflow
-    anat_main = init_anat_wf()
+    anat_main = init_anat_wf(args.participant_label)
     if anat_main._get_all_nodes():
         # set logging
         anat_main.run(plugin='MultiProc', plugin_args={'n_procs': int(args.n_procs)})
 
     # Run PET workflow
-    main = init_petprep_extract_tacs_wf()
+    main = init_petprep_extract_tacs_wf(args.participant_label)
     # determine if this nipype.pipeline.engine.workflows.Workflow is empty
     # if so exit early.
     if not main._get_all_nodes(): 
@@ -162,7 +166,7 @@ def main(args):
     with open(os.path.join(args.output_dir, 'dataset_description.json'), "w") as outfile:
         outfile.write(json_object)
 
-def init_anat_wf():
+def init_anat_wf(subject_list: list = []):
     from bids import BIDSLayout
 
     layout = BIDSLayout(args.bids_dir, validate=False)
@@ -171,7 +175,8 @@ def init_anat_wf():
     anat_wf.config['execution']['remove_unnecessary_outputs'] = 'false'
 
     # Define the subjects to iterate over
-    subject_list = layout.get(return_type='id', target='subject', suffix='pet')
+    if not subject_list:
+        subject_list = layout.get(return_type='id', target='subject', suffix='pet')
 
     # Set up the main workflow to iterate over subjects
     for subject_id in subject_list:
@@ -239,7 +244,7 @@ def init_single_subject_anat_wf(subject_id):
     
     return subject_wf
 
-def init_petprep_extract_tacs_wf():
+def init_petprep_extract_tacs_wf(subject_list: list = []):
     from bids import BIDSLayout
 
     layout = BIDSLayout(args.bids_dir, validate=False)
@@ -248,7 +253,8 @@ def init_petprep_extract_tacs_wf():
     petprep_extract_tacs_wf.config['execution']['remove_unnecessary_outputs'] = 'false'
 
     # Define the subjects to iterate over
-    subject_list = layout.get(return_type='id', target='subject', suffix='pet')
+    if not subject_list:
+        subject_list = layout.get(return_type='id', target='subject', suffix='pet')
 
     # sometimes the number of entries for FrameTimesStart and FrameDuration in the json file 
     # ar. not equal to the number of frames in the nifti file or each other. This will 
@@ -983,7 +989,7 @@ if __name__ == '__main__':
                    '(so it does not include "sub-"). If this parameter is not '
                    'provided all subjects should be analyzed. Multiple '
                    'participants can be specified with a space separated list.',
-                   nargs="+", default=None)
+                   nargs="+", default=[])
     parser.add_argument('--n_procs', help='Number of processors to use when running the workflow', default=2)
     parser.add_argument('--gtm', help='Extract time activity curves from the geometric transfer matrix segmentation (gtmseg)', action='store_true')
     parser.add_argument('--brainstem', help='Extract time activity curves from the brainstem', action='store_true')
