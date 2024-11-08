@@ -113,11 +113,12 @@ def collect_and_merge_tsvs(bids_dir, subjects=[], **kwargs):
                 os.remove(tsv)
 
     # lastly we want to remove the dseg niftis that are duplicates as well
-    dseg_niftis = glob.glob(f"{bids_dir}/**/derivatives/petprep_extract_tacs/**/*dseg.nii*", recursive=True)
+    dseg_niftis = glob.glob(
+        f"{bids_dir}/**/derivatives/petprep_extract_tacs/**/*dseg.nii*", recursive=True
+    )
     for nifti in dseg_niftis:
-        if '_run-' in nifti:
+        if "_run-" in nifti:
             shutil.move(nifti, re.sub(r"_run-[0-9]_", "_", nifti))
-       
 
     return merged_tsvs
 
