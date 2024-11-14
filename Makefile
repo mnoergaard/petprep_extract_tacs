@@ -4,10 +4,6 @@ black:
 		black $$file; \
 	done
 
-lint: black
-	echo "Checking actions too"
-	actionlint .github/workflows/*
-
 # install python dependencies
 pythondeps:
 	pip install --upgrade pip && pip install  -e .
