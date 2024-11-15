@@ -24,6 +24,7 @@ from petprep_extract_tacs.interfaces.segment import SegmentBS, SegmentHA_T1, Seg
 from petprep_extract_tacs.interfaces.fs_model import SegStats
 from petprep_extract_tacs.utils.utils import ctab_to_dsegtsv, avgwf_to_tacs, summary_to_stats, gtm_to_tacs, gtm_stats_to_stats, gtm_to_dsegtsv, limbic_to_dsegtsv, limbic_to_stats, plot_reg, get_opt_fwhm, stats_to_stats
 from petprep_extract_tacs.utils.merge_tacs import collect_and_merge_tsvs
+from niworkflows.utils.bids import collect_participants
 
 from petprep_extract_tacs.bids import collect_data
 from petutils.petutils import PETFrameTimingError, check_nifti_json_frame_consistency
@@ -75,12 +76,34 @@ def main(args):
         raise Exception('You need a valid FreeSurfer license to proceed!')
 
     # Get all PET files
-    if args.participant_label is []:
-        args.participant_label = layout.get(suffix='pet', target='subject', return_type='id')
-    for sub in args.participant_label:
-        if sub not in layout.get(suffix='pet', target='subject', return_type='id'):
-            print(f"No valid PET files found for subject {sub}. Exiting.")
-            sys.exit(1)
+    if args.participant_label:
+        subjects = args.participant_label
+        # if participant_label contains sub- remove it as it's redundant and will only cause
+        # issues when using pybids
+        if any("sub-" in subject for subject in subjects): 
+            print("One or more subjects contains the sub- string")
+        subjects = [subject.replace("sub-", "") for subject in subjects if "sub-" in subject]
+        # raise error if supplied subject is not present in dataset
+        partipants = layout.get(return_type='id', target='subject')
+        for subject in subjects:
+            if subject not in partipants:
+                raise FileNotFoundError(f"Participant {subject} not found in dataset {args.bids_dir}")
+    else:
+        subjects = layout.get(return_type='id', target='subject')
+
+    if args.participant_label_exclude:
+        print("Removing the following subjects: {args.participant_label_exclude}")
+        args.participant_label_exclude = [subject.replace("sub-", "") for subject in args.participant_label_exclude if "sub-" in subject]
+        subjects = [subject for subject in subjects if subject not in args.participant_label_exclude]
+        print(f"Subjects remaining in the TAC workflow: {subjects}")
+    
+    args.session_label = [session.replace("ses-", "") for session in args.session_label if "ses-" in session]
+    if args.session_label:
+        if any('ses-' in session for session in args.session_label):
+            print("One or more sessions contains the ses- string")
+        sessions_to_exclude = set(layout.get(return_type='id', target='session')) - (set(layout.get(return_type='id', target='session')) & set(args.session_label)) | set(args.session_label_exclude)
+    else:
+        sessions_to_exclude = args.session_label_exclude
 
     # Create derivatives directories
     if args.output_dir is None:
@@ -91,13 +114,13 @@ def main(args):
     os.makedirs(output_dir, exist_ok=True)
 
     # Run ANAT workflow
-    anat_main = init_anat_wf(args.participant_label)
+    anat_main = init_anat_wf(subjects)
     if anat_main._get_all_nodes():
         # set logging
         anat_main.run(plugin='MultiProc', plugin_args={'n_procs': int(args.n_procs)})
 
     # Run PET workflow
-    main = init_petprep_extract_tacs_wf(args.participant_label)
+    main = init_petprep_extract_tacs_wf(subjects, sessions_to_exclude=sessions_to_exclude)
     # determine if this nipype.pipeline.engine.workflows.Workflow is empty
     # if so exit early.
     if not main._get_all_nodes(): 
@@ -244,7 +267,7 @@ def init_single_subject_anat_wf(subject_id):
     
     return subject_wf
 
-def init_petprep_extract_tacs_wf(subject_list: list = []):
+def init_petprep_extract_tacs_wf(subject_list: list = [], sessions_to_exclude: list = []):
     from bids import BIDSLayout
 
     layout = BIDSLayout(args.bids_dir, validate=False)
@@ -266,7 +289,7 @@ def init_petprep_extract_tacs_wf(subject_list: list = []):
         try:
             check_nifti_json_frame_consistency(layout, [subject_id])
             # For each subject, create a subject-specific workflow
-            subject_wf = init_single_subject_wf(subject_id)
+            subject_wf = init_single_subject_wf(subject_id, sessions_to_exclude)
             petprep_extract_tacs_wf.add_nodes([subject_wf])
         except PETFrameTimingError as err:
             # use warnings to display an error message in red text to the user
@@ -276,7 +299,7 @@ def init_petprep_extract_tacs_wf(subject_list: list = []):
     return petprep_extract_tacs_wf
 
 
-def init_single_subject_wf(subject_id):
+def init_single_subject_wf(subject_id, sessions_to_exclude=[]):
     from bids import BIDSLayout
 
     layout = BIDSLayout(args.bids_dir, validate=False)
@@ -287,6 +310,9 @@ def init_single_subject_wf(subject_id):
 
     subject_data = collect_data(layout,
                             participant_label=subject_id)[0]['pet']
+
+    # remove any sessions that are to be excluded
+    subject_data = [x for x in subject_data if not any(ses in x for ses in sessions_to_exclude)]
 
     # This function will strip the extension(s) from a filename
     def strip_extensions(filename):
@@ -974,13 +1000,13 @@ def check_docker_image_exists(image_name, build=False):
 
 if __name__ == '__main__': 
     parser = argparse.ArgumentParser(description='BIDS App for PETPrep extract time activity curves (TACs) workflow')
-    parser.add_argument('--bids_dir', required=True,  help='The directory with the input dataset '
+    parser.add_argument('bids_dir',  help='The directory with the input dataset '
                     'formatted according to the BIDS standard.', type=str)
-    parser.add_argument('--output_dir', required=False, help='The directory where the output files '
+    parser.add_argument('output_dir', help='The directory where the output files '
                     'should be stored. If you are running group level analysis '
                     'this folder should be prepopulated with the results of the'
-                    'participant level analysis.', type=str)
-    parser.add_argument('--analysis_level', default='participant', help='Level of the analysis that will be performed. '
+                    'participant level analysis.', type=str, nargs='?')
+    parser.add_argument('analysis_level', default='participant', help='Level of the analysis that will be performed. '
                     'Multiple participant level analyses can be run independently '
                     '(in parallel) using the same output_dir.',
                     choices=['participant', 'group'])
@@ -990,6 +1016,9 @@ if __name__ == '__main__':
                    'provided all subjects should be analyzed. Multiple '
                    'participants can be specified with a space separated list.',
                    nargs="+", default=[])
+    parser.add_argument('--session_label', help='The label(s) of the session(s) that should be analyzed. If not '
+                    'specified all sessions should be analyzed. Multiple sessions can be specified with a '
+                    'space separated list.', nargs="+", default=[]) 
     parser.add_argument('--n_procs', help='Number of processors to use when running the workflow', default=2)
     parser.add_argument('--gtm', help='Extract time activity curves from the geometric transfer matrix segmentation (gtmseg)', action='store_true')
     parser.add_argument('--brainstem', help='Extract time activity curves from the brainstem', action='store_true')
@@ -1016,6 +1045,12 @@ if __name__ == '__main__':
                         'It is available via petprep_extract_tacs_merge_runs post install.', action='store_true', default=False)
     parser.add_argument('-v', '--version', action='version',
                     version='PETPrep extract time activity curves BIDS-App version {}'.format(__version__))
+    parser.add_argument('--participant_label_exclude', help='Exclude a participant(s) from the TAC workflow, '
+                        'functions similar to participant_label, but instead of including '
+                        'the specified participants, they are excluded.', 
+                   nargs="+", default=[])
+    parser.add_argument('--session_label_exclude', help='Exclude a session(s) from the TAC workflow', nargs="+", default=[])
+
     
     args, unknown = parser.parse_known_args() 
     
