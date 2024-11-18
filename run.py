@@ -82,24 +82,25 @@ def main(args):
         # issues when using pybids
         if any("sub-" in subject for subject in subjects): 
             print("One or more subjects contains the sub- string")
-        subjects = [subject.replace("sub-", "") for subject in subjects if "sub-" in subject]
+        subjects = [subject.replace("sub-", "") for subject in subjects]
         # raise error if supplied subject is not present in dataset
         partipants = layout.get(return_type='id', target='subject')
         for subject in subjects:
             if subject not in partipants:
                 raise FileNotFoundError(f"Participant {subject} not found in dataset {args.bids_dir}")
+                
     else:
         subjects = layout.get(return_type='id', target='subject')
 
     if args.participant_label_exclude:
-        print("Removing the following subjects: {args.participant_label_exclude}")
-        args.participant_label_exclude = [subject.replace("sub-", "") for subject in args.participant_label_exclude if "sub-" in subject]
+        print(f"Removing the following subjects: {args.participant_label_exclude}")
+        args.participant_label_exclude = [subject.replace("sub-", "") for subject in args.participant_label_exclude]
         subjects = [subject for subject in subjects if subject not in args.participant_label_exclude]
         print(f"Subjects remaining in the TAC workflow: {subjects}")
     
-    args.session_label = [session.replace("ses-", "") for session in args.session_label if "ses-" in session]
     if args.session_label:
         if any('ses-' in session for session in args.session_label):
+            args.session_label = [session.replace("ses-", "") for session in args.session_label]
             print("One or more sessions contains the ses- string")
         sessions_to_exclude = set(layout.get(return_type='id', target='session')) - (set(layout.get(return_type='id', target='session')) & set(args.session_label)) | set(args.session_label_exclude)
     else:
