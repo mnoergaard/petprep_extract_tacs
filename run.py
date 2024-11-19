@@ -1193,7 +1193,7 @@ if __name__ == '__main__':
                 )
 
         singularity_command += f" --bind {str(license_location)}:/opt/freesurfer/license.txt"
-        singularity_command += f" docker://bendhouseart/petprep_extract_tacs:latest" #TODO change this to openneuropet or mnoergaard
+        singularity_command += f" docker://martinnoergaard/petprep_extract_tacs:latest"
         singularity_command += f" python3 /petprep_extract_tacs/run.py "
         singularity_command += args_string
 
