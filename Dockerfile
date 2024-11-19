@@ -31,7 +31,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Install Freesurfer
 ENV FREESURFER_HOME="/opt/freesurfer" \
     PATH="/opt/freesurfer/bin:$PATH" \
-    FREESURFER_VERSION=7.3.2 \
+    FREESURFER_VERSION=7.4.1 \
     USE_LOCAL_FREESURFER=False
 
 # copy over local freesurfer binaries
