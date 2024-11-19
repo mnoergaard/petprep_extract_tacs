@@ -104,29 +104,42 @@ def main(args):
         subjects = args.participant_label
         # if participant_label contains sub- remove it as it's redundant and will only cause
         # issues when using pybids
-        if any("sub-" in subject for subject in subjects): 
+        if any("sub-" in subject for subject in subjects):
             print("One or more subjects contains the sub- string")
         subjects = [subject.replace("sub-", "") for subject in subjects]
         # raise error if supplied subject is not present in dataset
-        partipants = layout.get(return_type='id', target='subject')
+        partipants = layout.get(return_type="id", target="subject")
         for subject in subjects:
             if subject not in partipants:
-                raise FileNotFoundError(f"Participant {subject} not found in dataset {args.bids_dir}")
-                
+                raise FileNotFoundError(
+                    f"Participant {subject} not found in dataset {args.bids_dir}"
+                )
+
     else:
-        subjects = layout.get(return_type='id', target='subject')
+        subjects = layout.get(return_type="id", target="subject")
 
     if args.participant_label_exclude:
         print(f"Removing the following subjects: {args.participant_label_exclude}")
-        args.participant_label_exclude = [subject.replace("sub-", "") for subject in args.participant_label_exclude]
-        subjects = [subject for subject in subjects if subject not in args.participant_label_exclude]
+        args.participant_label_exclude = [
+            subject.replace("sub-", "") for subject in args.participant_label_exclude
+        ]
+        subjects = [
+            subject
+            for subject in subjects
+            if subject not in args.participant_label_exclude
+        ]
         print(f"Subjects remaining in the TAC workflow: {subjects}")
-    
+
     if args.session_label:
-        if any('ses-' in session for session in args.session_label):
-            args.session_label = [session.replace("ses-", "") for session in args.session_label]
+        if any("ses-" in session for session in args.session_label):
+            args.session_label = [
+                session.replace("ses-", "") for session in args.session_label
+            ]
             print("One or more sessions contains the ses- string")
-        sessions_to_exclude = set(layout.get(return_type='id', target='session')) - (set(layout.get(return_type='id', target='session')) & set(args.session_label)) | set(args.session_label_exclude)
+        sessions_to_exclude = set(layout.get(return_type="id", target="session")) - (
+            set(layout.get(return_type="id", target="session"))
+            & set(args.session_label)
+        ) | set(args.session_label_exclude)
     else:
         sessions_to_exclude = args.session_label_exclude
 
@@ -145,7 +158,9 @@ def main(args):
         anat_main.run(plugin="MultiProc", plugin_args={"n_procs": int(args.n_procs)})
 
     # Run PET workflow
-    main = init_petprep_extract_tacs_wf(subjects, sessions_to_exclude=sessions_to_exclude)
+    main = init_petprep_extract_tacs_wf(
+        subjects, sessions_to_exclude=sessions_to_exclude
+    )
     # determine if this nipype.pipeline.engine.workflows.Workflow is empty
     # if so exit early.
     if not main._get_all_nodes():
@@ -237,7 +252,7 @@ def init_anat_wf(subject_list: list = []):
 
     # Define the subjects to iterate over
     if not subject_list:
-        subject_list = layout.get(return_type='id', target='subject', suffix='pet')
+        subject_list = layout.get(return_type="id", target="subject", suffix="pet")
 
     # Set up the main workflow to iterate over subjects
     for subject_id in subject_list:
@@ -315,7 +330,9 @@ def init_single_subject_anat_wf(subject_id):
     return subject_wf
 
 
-def init_petprep_extract_tacs_wf(subject_list: list = [], sessions_to_exclude: list = []):
+def init_petprep_extract_tacs_wf(
+    subject_list: list = [], sessions_to_exclude: list = []
+):
     from bids import BIDSLayout
 
     layout = BIDSLayout(args.bids_dir, validate=False)
@@ -327,7 +344,7 @@ def init_petprep_extract_tacs_wf(subject_list: list = [], sessions_to_exclude: l
 
     # Define the subjects to iterate over
     if not subject_list:
-        subject_list = layout.get(return_type='id', target='subject', suffix='pet')
+        subject_list = layout.get(return_type="id", target="subject", suffix="pet")
 
     # sometimes the number of entries for FrameTimesStart and FrameDuration in the json file
     # are not equal to the number of frames in the nifti file or each other. This will
@@ -361,7 +378,9 @@ def init_single_subject_wf(subject_id, sessions_to_exclude=[]):
     subject_data = collect_data(layout, participant_label=subject_id)[0]["pet"]
 
     # remove any sessions that are to be excluded
-    subject_data = [x for x in subject_data if not any(ses in x for ses in sessions_to_exclude)]
+    subject_data = [
+        x for x in subject_data if not any(ses in x for ses in sessions_to_exclude)
+    ]
 
     # This function will strip the extension(s) from a filename
     def strip_extensions(filename):
@@ -1493,62 +1512,176 @@ def check_docker_image_exists(image_name, build=False):
     return image_exists
 
 
-if __name__ == '__main__': 
-    parser = argparse.ArgumentParser(description='BIDS App for PETPrep extract time activity curves (TACs) workflow')
-    parser.add_argument('bids_dir',  help='The directory with the input dataset '
-                    'formatted according to the BIDS standard.', type=str)
-    parser.add_argument('output_dir', help='The directory where the output files '
-                    'should be stored. If you are running group level analysis '
-                    'this folder should be prepopulated with the results of the'
-                    'participant level analysis.', type=str, nargs='?')
-    parser.add_argument('analysis_level', default='participant', help='Level of the analysis that will be performed. '
-                    'Multiple participant level analyses can be run independently '
-                    '(in parallel) using the same output_dir.',
-                    choices=['participant', 'group'])
-    parser.add_argument('--participant_label', help='The label(s) of the participant(s) that should be analyzed. The label '
-                   'corresponds to sub-<participant_label> from the BIDS spec '
-                   '(so it does not include "sub-"). If this parameter is not '
-                   'provided all subjects should be analyzed. Multiple '
-                   'participants can be specified with a space separated list.',
-                   nargs="+", default=[])
-    parser.add_argument('--session_label', help='The label(s) of the session(s) that should be analyzed. If not '
-                    'specified all sessions should be analyzed. Multiple sessions can be specified with a '
-                    'space separated list.', nargs="+", default=[]) 
-    parser.add_argument('--n_procs', help='Number of processors to use when running the workflow', default=2)
-    parser.add_argument('--gtm', help='Extract time activity curves from the geometric transfer matrix segmentation (gtmseg)', action='store_true')
-    parser.add_argument('--brainstem', help='Extract time activity curves from the brainstem', action='store_true')
-    parser.add_argument('--thalamicNuclei', help='Extract time activity curves from the thalamic nuclei', action='store_true')
-    parser.add_argument('--hippocampusAmygdala', help='Extract time activity curves from the hippocampus and amygdala', action='store_true')
-    parser.add_argument('--wm', help='Extract time activity curves from the white matter', action='store_true')
-    parser.add_argument('--raphe', help='Extract time activity curves from the raphe nuclei', action='store_true')
-    parser.add_argument('--limbic', help='Extract time activity curves from the limbic system', action='store_true')
-    parser.add_argument('--surface', help='Extract surface-based time activity curves in fsaverage', action='store_true')
-    parser.add_argument('--surface_smooth', help='Smooth surface-based time activity curves in fsaverage', type=int)
-    parser.add_argument('--volume', help='Extract volume-based time activity curves in mni305', action='store_true')
-    parser.add_argument('--volume_smooth', help='Smooth volume-based time activity curves in mni305', type=int)
-    parser.add_argument('--agtm', help='Extract time activity curves from the adaptive gtm PVC', action='store_true')
-    parser.add_argument('--psf', help='Initial guess of point spread function of PET scanner for agtm', type=float)
-    parser.add_argument('--petprep_hmc', help='Use outputs from petprep_hmc as input to workflow', action='store_true')
-    parser.add_argument('--skip_bids_validator', help='Whether or not to perform BIDS dataset validation',
-                   action='store_true')
-    parser.add_argument('--docker', help='When this flag is present petprep_extract_tacs will attempt to run from within a docker '
-                        'container', action='store_true')
-    parser.add_argument('--run_as_root', help='When this flag is present petprep_extract_tacs will attempt to run as root if running in docker', action='store_true',
-                        default=False)
-    parser.add_argument('--merge_runs', help='Merge TACs (and use a single *_dseg.tsv and *_morph.tsv per session) across runs for each subject when the coincide with a single "session". This will ' +
-                        'greedily merge runs. For more granular control of this sort of behavior use the command line version of this on a file by file basis. ' + 
-                        'It is available via petprep_extract_tacs_merge_runs post install.', action='store_true', default=False)
-    parser.add_argument('-v', '--version', action='version',
-                    version='PETPrep extract time activity curves BIDS-App version {}'.format(__version__))
-    parser.add_argument('--participant_label_exclude', help='Exclude a participant(s) from the TAC workflow, '
-                        'functions similar to participant_label, but instead of including '
-                        'the specified participants, they are excluded.', 
-                   nargs="+", default=[])
-    parser.add_argument('--session_label_exclude', help='Exclude a session(s) from the TAC workflow', nargs="+", default=[])
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(
+        description="BIDS App for PETPrep extract time activity curves (TACs) workflow"
+    )
+    parser.add_argument(
+        "bids_dir",
+        help="The directory with the input dataset "
+        "formatted according to the BIDS standard.",
+        type=str,
+    )
+    parser.add_argument(
+        "output_dir",
+        help="The directory where the output files "
+        "should be stored. If you are running group level analysis "
+        "this folder should be prepopulated with the results of the"
+        "participant level analysis.",
+        type=str,
+        nargs="?",
+    )
+    parser.add_argument(
+        "analysis_level",
+        default="participant",
+        help="Level of the analysis that will be performed. "
+        "Multiple participant level analyses can be run independently "
+        "(in parallel) using the same output_dir.",
+        choices=["participant", "group"],
+    )
+    parser.add_argument(
+        "--participant_label",
+        help="The label(s) of the participant(s) that should be analyzed. The label "
+        "corresponds to sub-<participant_label> from the BIDS spec "
+        '(so it does not include "sub-"). If this parameter is not '
+        "provided all subjects should be analyzed. Multiple "
+        "participants can be specified with a space separated list.",
+        nargs="+",
+        default=[],
+    )
+    parser.add_argument(
+        "--session_label",
+        help="The label(s) of the session(s) that should be analyzed. If not "
+        "specified all sessions should be analyzed. Multiple sessions can be specified with a "
+        "space separated list.",
+        nargs="+",
+        default=[],
+    )
+    parser.add_argument(
+        "--n_procs",
+        help="Number of processors to use when running the workflow",
+        default=2,
+    )
+    parser.add_argument(
+        "--gtm",
+        help="Extract time activity curves from the geometric transfer matrix segmentation (gtmseg)",
+        action="store_true",
+    )
+    parser.add_argument(
+        "--brainstem",
+        help="Extract time activity curves from the brainstem",
+        action="store_true",
+    )
+    parser.add_argument(
+        "--thalamicNuclei",
+        help="Extract time activity curves from the thalamic nuclei",
+        action="store_true",
+    )
+    parser.add_argument(
+        "--hippocampusAmygdala",
+        help="Extract time activity curves from the hippocampus and amygdala",
+        action="store_true",
+    )
+    parser.add_argument(
+        "--wm",
+        help="Extract time activity curves from the white matter",
+        action="store_true",
+    )
+    parser.add_argument(
+        "--raphe",
+        help="Extract time activity curves from the raphe nuclei",
+        action="store_true",
+    )
+    parser.add_argument(
+        "--limbic",
+        help="Extract time activity curves from the limbic system",
+        action="store_true",
+    )
+    parser.add_argument(
+        "--surface",
+        help="Extract surface-based time activity curves in fsaverage",
+        action="store_true",
+    )
+    parser.add_argument(
+        "--surface_smooth",
+        help="Smooth surface-based time activity curves in fsaverage",
+        type=int,
+    )
+    parser.add_argument(
+        "--volume",
+        help="Extract volume-based time activity curves in mni305",
+        action="store_true",
+    )
+    parser.add_argument(
+        "--volume_smooth",
+        help="Smooth volume-based time activity curves in mni305",
+        type=int,
+    )
+    parser.add_argument(
+        "--agtm",
+        help="Extract time activity curves from the adaptive gtm PVC",
+        action="store_true",
+    )
+    parser.add_argument(
+        "--psf",
+        help="Initial guess of point spread function of PET scanner for agtm",
+        type=float,
+    )
+    parser.add_argument(
+        "--petprep_hmc",
+        help="Use outputs from petprep_hmc as input to workflow",
+        action="store_true",
+    )
+    parser.add_argument(
+        "--skip_bids_validator",
+        help="Whether or not to perform BIDS dataset validation",
+        action="store_true",
+    )
+    parser.add_argument(
+        "--docker",
+        help="When this flag is present petprep_extract_tacs will attempt to run from within a docker "
+        "container",
+        action="store_true",
+    )
+    parser.add_argument(
+        "--run_as_root",
+        help="When this flag is present petprep_extract_tacs will attempt to run as root if running in docker",
+        action="store_true",
+        default=False,
+    )
+    parser.add_argument(
+        "--merge_runs",
+        help='Merge TACs (and use a single *_dseg.tsv and *_morph.tsv per session) across runs for each subject when the coincide with a single "session". This will '
+        + "greedily merge runs. For more granular control of this sort of behavior use the command line version of this on a file by file basis. "
+        + "It is available via petprep_extract_tacs_merge_runs post install.",
+        action="store_true",
+        default=False,
+    )
+    parser.add_argument(
+        "-v",
+        "--version",
+        action="version",
+        version="PETPrep extract time activity curves BIDS-App version {}".format(
+            __version__
+        ),
+    )
+    parser.add_argument(
+        "--participant_label_exclude",
+        help="Exclude a participant(s) from the TAC workflow, "
+        "functions similar to participant_label, but instead of including "
+        "the specified participants, they are excluded.",
+        nargs="+",
+        default=[],
+    )
+    parser.add_argument(
+        "--session_label_exclude",
+        help="Exclude a session(s) from the TAC workflow",
+        nargs="+",
+        default=[],
+    )
 
-    
-    args, unknown = parser.parse_known_args() 
-    
+    args, unknown = parser.parse_known_args()
+
     # determine the present working directory
     pwd = pathlib.Path.cwd()
 
