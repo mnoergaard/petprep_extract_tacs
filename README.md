@@ -55,17 +55,28 @@ This is the directory with your input dataset formatted according to the BIDS st
 
 This is the directory where the output files should be stored. If you are running group level analysis, this folder should be prepopulated with the results of the participant level analysis.
 
-### Required Arguments
-
 #### `--analysis_level`
 
 This argument defines the level of the analysis that will be performed. Multiple participant level analyses can be run independently (in parallel) using the same output_dir. The default is 'participant'. The choices are 'participant' and 'group'.
+
+### Processing options
 
 #### `--participant_label`
 
 This argument specifies the label(s) of the participant(s) that should be analyzed. The label corresponds to sub-<participant_label> from the BIDS spec (so it does not include "sub-"). If this parameter is not provided, all subjects should be analyzed. Multiple participants can be specified with a space-separated list.
 
-### Processing options
+#### `--participant_label_exclude`
+
+This argument specifies the label(s) of the participant(s) that should _not_ be analyzed. If omitted all subjects should be analyzed. Multiple participants can be specified with a space-seperated list.
+
+#### `--session_label`
+
+Similar to `--participant_label`, used to specify which sessions to include. Multiple sessions can be provide via a space-separated list.
+
+#### `--session_label_exclude`
+
+Similar to `--participant_label_exclude`, used to specify session(s) that should _not_ be analyzed. If omitted all sessions should be analyzed. Multiple sessions can be specified with a space-seperated list.
+
 
 #### `--n_procs`
 
