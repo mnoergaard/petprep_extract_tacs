@@ -21,8 +21,15 @@ from nipype.interfaces.base import (
     CommandLineInputSpec,
     isdefined,
 )
-from nipype.interfaces.freesurfer.base import FSCommand, FSTraitedSpec, FSTraitedSpecOpenMP, FSCommandOpenMP, Info
+from nipype.interfaces.freesurfer.base import (
+    FSCommand,
+    FSTraitedSpec,
+    FSTraitedSpecOpenMP,
+    FSCommandOpenMP,
+    Info,
+)
 from nipype.interfaces.freesurfer.utils import copy2subjdir
+
 
 class ApplyVolTransformInputSpec(FSTraitedSpec):
     source_file = File(
@@ -216,7 +223,8 @@ class ApplyVolTransform(FSCommand):
         if name == "transformed_file":
             return self._get_outfile()
         return None
-    
+
+
 class CVSRegisterInputSpec(FSTraitedSpec):
     subject_id = File(
         argstr="--mov %s",
@@ -260,13 +268,17 @@ class CVSRegister(FSCommand):
 
     def _list_outputs(self):
         outputs = self.output_spec().get()
-        subj_dir = os.path.abspath(self.inputs.subjects_dir + '/' + self.inputs.subject_id + '/cvs/')
+        subj_dir = os.path.abspath(
+            self.inputs.subjects_dir + "/" + self.inputs.subject_id + "/cvs/"
+        )
 
-        outputs['m3z_file'] = os.path.join(subj_dir, 'final_CVSmorph_tocvs_avg35_inMNI152.m3z')
+        outputs["m3z_file"] = os.path.join(
+            subj_dir, "final_CVSmorph_tocvs_avg35_inMNI152.m3z"
+        )
 
         return outputs
 
     def _gen_filename(self, name):
-        if name == 'subjects_dir':
+        if name == "subjects_dir":
             return os.path.abspath(self.inputs.subject_id)
         return None
