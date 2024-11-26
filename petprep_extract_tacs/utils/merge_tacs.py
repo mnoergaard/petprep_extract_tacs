@@ -8,7 +8,7 @@ import re
 import glob
 import shutil
 
-from petprep_extract_tacs.bids import collect_participants
+from petprep_extract_tacs.utils.bids import collect_participants
 
 
 def collect_and_merge_tsvs(bids_dir, subjects=[], **kwargs):

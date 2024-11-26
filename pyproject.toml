@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "petprep_extract_tacs"
-version = "0.0.3"
+version = "0.0.4"
 description = "PETPrep Extract Time Activity Curves Workflow"
 authors = ["Martin Norgaard <martin.noergaard@di.ku.dk>"]
 homepage = "https://github.com/mnoergaard/petprep_extract_tacs"
@@ -51,8 +51,10 @@ nipreps = "^1.0"
 black = "^24.4.2"
 pytest = "^8.2.2"
 
+[tool.poetry.scripts]
+petprep_extract_tacs = "petprep_extract_tacs.extract_tacs:cli"
+
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
-
 
