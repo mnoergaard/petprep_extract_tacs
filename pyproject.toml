@@ -45,11 +45,14 @@ petutils = "^0.1.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "*"
+sphinx = "^7.2.6"
+sphinx-rtd-theme = "^1.2.2"
 
 [tool.poetry.group.dev.dependencies]
 nipreps = "^1.0"
 black = "^24.4.2"
 pytest = "^8.2.2"
+sphinx-autobuild = "^2024.10.3"
 
 [tool.poetry.scripts]
 petprep_extract_tacs = "petprep_extract_tacs.extract_tacs:cli"
