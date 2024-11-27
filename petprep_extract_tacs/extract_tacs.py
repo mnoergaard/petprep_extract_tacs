@@ -2,6 +2,7 @@ import argparse
 import os
 import sys
 from pathlib import Path
+from typing import Union
 import glob
 import re
 import shutil
@@ -48,11 +49,8 @@ from petprep_extract_tacs.utils.utils import (
     stats_to_stats,
 )
 from petprep_extract_tacs.utils.merge_tacs import collect_and_merge_tsvs
-from niworkflows.utils.bids import collect_participants
-
-from petprep_extract_tacs.utils.bids import collect_data
+from niworkflows.utils.bids import collect_participants, collect_data
 from petutils.petutils import PETFrameTimingError, check_nifti_json_frame_consistency
-
 from importlib.metadata import version
 
 project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -166,14 +164,14 @@ def main(args):
     os.makedirs(output_dir, exist_ok=True)
 
     # Run ANAT workflow
-    anat_main = init_anat_wf(subjects)
+    anat_main = init_anat_wf(args, subjects)
     if anat_main._get_all_nodes():
         # set logging
         anat_main.run(plugin="MultiProc", plugin_args={"n_procs": int(args.n_procs)})
 
     # Run PET workflow
     main = init_petprep_extract_tacs_wf(
-        subjects, sessions_to_exclude=sessions_to_exclude
+        args, subjects, sessions_to_exclude=sessions_to_exclude
     )
     # determine if this nipype.pipeline.engine.workflows.Workflow is empty
     # if so exit early.
@@ -256,8 +254,11 @@ def main(args):
         outfile.write(json_object)
 
 
-def init_anat_wf(subject_list: list = []):
+def init_anat_wf(args: Union[argparse.Namespace, dict], subject_list: list = []):
     from bids import BIDSLayout
+
+    if isinstance(args, dict):
+        args = argparse.Namespace(**args)
 
     layout = BIDSLayout(args.bids_dir, validate=False)
 
@@ -271,13 +272,13 @@ def init_anat_wf(subject_list: list = []):
     # Set up the main workflow to iterate over subjects
     for subject_id in subject_list:
         # For each subject, create a subject-specific workflow
-        subject_wf = init_single_subject_anat_wf(subject_id)
+        subject_wf = init_single_subject_anat_wf(args, subject_id)
         anat_wf.add_nodes([subject_wf])
 
     return anat_wf
 
 
-def init_single_subject_anat_wf(subject_id):
+def init_single_subject_anat_wf(args, subject_id):
     from bids import BIDSLayout
 
     layout = BIDSLayout(args.bids_dir, validate=False)
@@ -345,9 +346,14 @@ def init_single_subject_anat_wf(subject_id):
 
 
 def init_petprep_extract_tacs_wf(
-    subject_list: list = [], sessions_to_exclude: list = []
+    args: Union[argparse.Namespace, dict],
+    subject_list: list = [],
+    sessions_to_exclude: list = [],
 ):
     from bids import BIDSLayout
+
+    if isinstance(args, dict):
+        args = argparse.Namespace(**args)
 
     layout = BIDSLayout(args.bids_dir, validate=False)
 
@@ -380,8 +386,13 @@ def init_petprep_extract_tacs_wf(
     return petprep_extract_tacs_wf
 
 
-def init_single_subject_wf(subject_id, sessions_to_exclude=[]):
+def init_single_subject_wf(
+    args: Union[argparse.Namespace, dict], subject_id, sessions_to_exclude=[]
+):
     from bids import BIDSLayout
+
+    if isinstance(args, dict):
+        args = argparse.Namespace(**args)
 
     layout = BIDSLayout(args.bids_dir, validate=False)
 

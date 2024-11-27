@@ -1483,16 +1483,18 @@ tests = ["nitransforms[test]"]
 
 [[package]]
 name = "niworkflows"
-version = "1.7.9"
+version = "1.10.2"
 description = "NeuroImaging Workflows provides processing tools for magnetic resonance images of the brain."
 optional = false
-python-versions = ">=3.7"
+python-versions = ">=3.8"
 files = [
-    {file = "niworkflows-1.7.9.tar.gz", hash = "sha256:c42312488ba41352475d16bffea8710638f1df22ad22bf59c96f1e1c74e8969a"},
+    {file = "niworkflows-1.10.2-py3-none-any.whl", hash = "sha256:2a753d7d35f8723a7d7a433c10f8772e481d3cd1e5457637f66f46b8e5226781"},
+    {file = "niworkflows-1.10.2.tar.gz", hash = "sha256:ab95e4a2217ce151881e196cfbd649ffedc6c28ea4eed194f39d2f303b29be24"},
 ]
 
 [package.dependencies]
 attrs = "*"
+importlib-resources = {version = ">=5.7", markers = "python_version < \"3.11\""}
 jinja2 = "*"
 looseversion = "*"
 matplotlib = ">=3.4.2"
@@ -1504,7 +1506,7 @@ numpy = "*"
 packaging = "*"
 pandas = "*"
 pybids = ">=0.15.1"
-PyYAML = "*"
+pyyaml = "*"
 scikit-image = "*"
 scipy = "*"
 seaborn = "*"
@@ -1514,9 +1516,9 @@ traits = "<6.4"
 transforms3d = "*"
 
 [package.extras]
-all = ["coverage (>=5.2.1)", "flake8 (>=3.7.0)", "furo (>=2021.10.09,<2021.11.0)", "pydot (>=1.2.3)", "pydotplus", "pyntcloud", "pytest (>=4.4)", "pytest-cov", "pytest-env", "pytest-xdist (>=1.28)", "pytest-xvfb", "sphinx (>=4.0,<5.0)", "sphinxcontrib-apidoc", "sphinxcontrib-napoleon"]
-doc = ["furo (>=2021.10.09,<2021.11.0)", "pydot (>=1.2.3)", "pydotplus", "sphinx (>=4.0,<5.0)", "sphinxcontrib-apidoc", "sphinxcontrib-napoleon"]
-docs = ["furo (>=2021.10.09,<2021.11.0)", "pydot (>=1.2.3)", "pydotplus", "sphinx (>=4.0,<5.0)", "sphinxcontrib-apidoc", "sphinxcontrib-napoleon"]
+all = ["coverage (>=5.2.1)", "flake8 (>=3.7.0)", "furo", "pydot (>=1.2.3)", "pydotplus", "pyntcloud", "pytest (>=4.4)", "pytest-cov", "pytest-env", "pytest-xdist (>=1.28)", "pytest-xvfb", "sphinx", "sphinxcontrib-apidoc", "sphinxcontrib-napoleon"]
+doc = ["furo", "pydot (>=1.2.3)", "pydotplus", "sphinx", "sphinxcontrib-apidoc", "sphinxcontrib-napoleon"]
+docs = ["furo", "pydot (>=1.2.3)", "pydotplus", "sphinx", "sphinxcontrib-apidoc", "sphinxcontrib-napoleon"]
 pointclouds = ["pyntcloud"]
 style = ["flake8 (>=3.7.0)"]
 tests = ["coverage (>=5.2.1)", "pytest (>=4.4)", "pytest-cov", "pytest-env", "pytest-xdist (>=1.28)", "pytest-xvfb"]
@@ -3015,4 +3017,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.9,<3.12"
-content-hash = "254a1ec60052974d57793f9de71a82a3c29cec12d931d704b86c81a1688b2713"
+content-hash = "53051daa6fa890559174ca893b85e5b62667ed1b7e1c4283677deb7defa260fd"
