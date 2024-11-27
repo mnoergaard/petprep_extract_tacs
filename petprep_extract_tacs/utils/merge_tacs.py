@@ -13,30 +13,18 @@ from niworkflows.utils.bids import collect_participants, collect_data
 
 def collect_and_merge_tsvs(bids_dir, subjects=[], **kwargs):
     """
-    Collect and merge all tsv's that should be combined across a runs. This is
-    function is primarily aimed at combining PET time activity curve (TACS) for
-    long scans present in a BIDS directory or BIDS subject directory.
+    Collect and merge all TSV files that should be combined across runs.
 
-    The tsv_type parameter can be changed to specify a deseg.tsv or morph.tsv where
-    appropriate.
+    This function is primarily aimed at combining PET Time Activity Curves (TACs) for long scans present in a BIDS directory or BIDS subject directory.
+    
+    Parameters:
+        bids_dir (str): Path to the BIDS directory.
+        subjects (list): List of subjects to process. Defaults to an empty list.
+        kwargs (dict): Additional keyword arguments to pass to `pandas.read_csv`.
 
-    Parameters
-    ----------
-    bids_dir : str
-        Path to the BIDS directory.
-    tsv_type : str
-        Type of TSV file to output to merge corresponding the bids suffix.
-    subjects : list
-        List of subjects to run this function on.
-    **kwargs : dict
-        Keyword arguments to pass to pandas.read_csv.
-
-    Returns
-    -------
-    pandas.DataFrame
-        Collected TSVs.
+    Returns:
+        pandas.Dataframe: A DataFrame containing the collected TSVs.
     """
-
     # get every file in the bids directory with a tacs suffix
     all_tsvs = []
     for root, folders, files in os.walk(bids_dir):
@@ -127,17 +115,12 @@ def merge_tsvs(*args, **kwargs):
     """
     Merge TACs from different files into a single file.
 
-    Parameters
-    ----------
-    *args : list
-        List of tsv tac file paths to merge.
-    **kwargs : dict
-        Keyword arguments to pass to pandas.read_csv.
-
-    Returns
-    -------
-    pandas.DataFrame
-        Merged TACs.
+    Parameters:
+        args (list): list of tsv tac file paths to merge
+        kwargs (dict): keyword arguments to pass to pandas.read_csv
+    
+    Returns:
+        pandas.DataFrame: merged TACs
     """
     tacs = []
     args = [pathlib.Path(arg).resolve() for arg in args if pathlib.Path(arg).exists()]

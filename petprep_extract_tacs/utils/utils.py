@@ -7,6 +7,29 @@ This is a temporary script file.
 
 
 def get_opt_fwhm(opt_params):
+    """
+    Obtain optimal FWHM values from a parameters file.
+
+    Parameters
+    ----------
+    opt_params : str
+        Path to the file containing optimal FWHM parameters.
+
+    Returns
+    -------
+    tuple
+        A tuple containing:
+        - **fwhm_x** (*float*): FWHM value along the x-axis.
+        - **fwhm_y** (*float*): FWHM value along the y-axis.
+        - **fwhm_z** (*float*): FWHM value along the z-axis.
+        - **tsv_file** (*str*): Path to the generated TSV file with FWHM values.
+
+    Notes
+    -----
+    The function reads the optimal FWHM parameters from opt_params, creates a DataFrame,
+    saves it as a TSV file named `pvc-agtm_desc-fwhm_confounds.tsv` in the current working directory,
+    and returns the FWHM values along with the path to the TSV file.
+    """
     import os
     import pandas as pd
 
@@ -38,10 +61,10 @@ def ctab_to_dsegtsv(ctab_file):
     The columns are renamed to 'index' and 'name'. The DataFrame is then written to a .tsv file.
 
     Parameters:
-    ctab_file (str): The path to the .ctab file to be read.
+        ctab_file (str): The path to the .ctab file to be read.
 
     Returns:
-    None. Writes output to a .tsv file with a similar name as the input .ctab file.
+        tsv_file (str): Writes and returns output to a .tsv file with a similar name as the input .ctab file.
     """
 
     import pandas as pd
@@ -71,12 +94,12 @@ def avgwf_to_tacs(avgwf_file, ctab_file, json_file):
     respectively, to the avgwf DataFrame. The modified avgwf DataFrame is then written to a .tsv file with column names based on the .ctab file.
 
     Parameters:
-    avgwf_file (str): The path to the avgwf .txt file to be read.
-    ctab_file (str): The path to the .ctab file to be read. The first column of this file is used as column names for the avgwf DataFrame.
-    json_file (str): The path to the .json file to be read. The 'FrameTimesStart' and 'FrameDuration' lists from this file are added as columns to the avgwf DataFrame.
+        avgwf_file (str): The path to the avgwf .txt file to be read.
+        ctab_file  (str): The path to the .ctab file to be read. The first column of this file is used as column names for the avgwf DataFrame.
+        json_file  (str): The path to the .json file to be read. The 'FrameTimesStart' and 'FrameDuration' lists from this file are added as columns to the avgwf DataFrame.
 
     Returns:
-    tsv_file (str): The path to the .tsv file written. This file contains the data from the avgwf file, with column names based on the .ctab file and additional columns based on the .json file.
+        tsv_file (str): The path to the .tsv file written. This file contains the data from the avgwf file, with column names based on the .ctab file and additional columns based on the .json file.
     """
 
     import pandas as pd
@@ -119,10 +142,10 @@ def stats_to_stats(summary_file):
     This function reads a 'summary.stats' file, transforms the data, and saves it as a '.tsv' file.
 
     Parameters:
-    summary_file (str): The path to the input '.stats' file.
+        summary_file (str): The path to the input '.stats' file.
 
     Returns:
-    tsv_file (str): The path to the output '.tsv' file.
+        tsv_file (str): The path to the output '.tsv' file.
     """
 
     import pandas as pd
@@ -162,10 +185,10 @@ def summary_to_stats(summary_file):
     This function reads a 'summary.stats' file, transforms the data, and saves it as a '.tsv' file.
 
     Parameters:
-    summary_file (str): The path to the input '.stats' file.
+        summary_file (str): The path to the input '.stats' file.
 
     Returns:
-    tsv_file (str): The path to the output '.tsv' file.
+        tsv_file (str): The path to the output '.tsv' file.
     """
 
     import pandas as pd
@@ -242,13 +265,13 @@ def gtm_to_tacs(in_file, json_file, gtm_stats, pvc_dir):
     which are converted into numpy arrays and inserted as the first and second columns, respectively, to the gtm DataFrame. The modified gtm DataFrame is then written to a .tsv file with column names based on the .ctab file.
 
     Parameters:
-    in_file (str): The path to the .gtm file to be read.
-    json_file (str): The path to the .json file to be read. The 'FrameTimesStart' and 'FrameDuration' lists from this file are added as columns to the gtm DataFrame.
-    ctab_file (str): The path to the .ctab file to be read. The first column of this file is used as column names for the gtm DataFrame.
-    gtmseg_file (str): The path to the .gtmseg file to be read. The data from this file is added as columns to the gtm DataFrame.
+        in_file (str): The path to the .gtm file to be read.
+        json_file (str): The path to the .json file to be read. The 'FrameTimesStart' and 'FrameDuration' lists from this file are added as columns to the gtm DataFrame.
+        ctab_file (str): The path to the .ctab file to be read. The first column of this file is used as column names for the gtm DataFrame.
+        gtmseg_file (str): The path to the .gtmseg file to be read. The data from this file is added as columns to the gtm DataFrame.
 
     Returns:
-    None. Writes output to a .tsv file with a similar name as the input .gtm file.
+        tsv_file (str): Path to output .tsv file with a similar name as the input .gtm file.
     """
 
     import pandas as pd
@@ -351,10 +374,10 @@ def limbic_to_stats(out_stats):
     This function reads a 'summary.stats' file, transforms the data, and saves it as a '.tsv' file.
 
     Parameters:
-    summary_file (str): The path to the input '.stats' file.
+        summary_file (str): The path to the input '.stats' file.
 
     Returns:
-    tsv_file (str): The path to the output '.tsv' file.
+        tsv_file (str): The path to the output '.tsv' file.
     """
 
     import pandas as pd
