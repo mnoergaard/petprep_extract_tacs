@@ -34,10 +34,16 @@ pip install petprep-extract-tacs
 
 ## Quickstart
 
-To get started, you'll need to have your data organized according to the BIDS standard. Once that's in place, you can run the app like this:
+After installation, you'll need to have your data organized according to the BIDS standard. Once that's in place, you can run the app like this:
 
 ```bash
-python3 run.py --bids_dir /path/to/your/bids/dataset --output_dir /path/to/output/dir --n_procs 4 --wm
+petprep_extract_tacs /path/to/your/bids/dataset /path/to/output/dir --n_procs 4 --wm
+```
+
+Alternatively, you can run the code directly with Python using the `run.py` entrypoint:
+
+```bash
+python3 run.py /path/to/your/bids/dataset /path/to/output/dir --n_procs 4 --wm
 ```
 
 This will run the app on your BIDS dataset and save the output to the specified directory. Additional region-specific and smoothing options can be specified as detailed below.
@@ -124,7 +130,7 @@ docker run -a stderr -a stdout --rm \
 -v /Applications/freesurfer/7.4.1/license.txt:/opt/freesurfer/license.txt \
 --platform linux/amd64 \
 petprep_extract_tacs \
---bids_dir /bids_dir --output_dir /output_dir --analysis_level participant --n_procs 4 system_platform=Darwin
+--bids_dir /bids_dir /output_dir participant --n_procs 4 system_platform=Darwin
 ```
 
 The docker container can be build with the following command:
