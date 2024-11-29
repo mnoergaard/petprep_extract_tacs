@@ -58,6 +58,10 @@ if project_root not in sys.path:
     sys.path.insert(0, project_root)
 
 try:
+    """
+    Try to load version from pyproject.toml file if available,
+    else uses importlib.metadata.version to get the version of the package.
+    """
     # load version from pyproject.toml file if available
     __version__ = "None"
     with open(
@@ -75,11 +79,8 @@ def determine_in_docker():
     """
     Determines if the script is running in a docker container, returns True if it is, False otherwise
 
-    Parameters:
-        None
-    
-    Returns:
-        bool: True if running in docker container, False otherwise
+    :return: True if running in docker container, False otherwise
+    :rtype: bool
     """
     in_docker = False
     # check if /proc/1/cgroup exists
@@ -101,6 +102,10 @@ def determine_in_docker():
 
 
 def main(args):
+    """
+    Runs the PETPrep extract tacs workflow when provided with arguments collected from 
+    the cli function.
+    """
     # Check whether BIDS directory exists and instantiate BIDSLayout
     if os.path.exists(args.bids_dir):
         if not args.skip_bids_validator:
@@ -258,6 +263,10 @@ def main(args):
 
 
 def init_anat_wf(args: Union[argparse.Namespace, dict], subject_list: list = []):
+    """
+    Starts the anatomical workflow for the PETPrep extract tacs workflow by 
+    creating nodes with init_single_subject_anat_wf.
+    """
     from bids import BIDSLayout
 
     if isinstance(args, dict):
@@ -282,6 +291,9 @@ def init_anat_wf(args: Union[argparse.Namespace, dict], subject_list: list = [])
 
 
 def init_single_subject_anat_wf(args, subject_id):
+    """
+    Creates an anatomical node for a single subject in the PETPrep extract tacs workflow.
+    """
     from bids import BIDSLayout
 
     layout = BIDSLayout(args.bids_dir, validate=False)
@@ -349,7 +361,7 @@ def init_single_subject_anat_wf(args, subject_id):
 
 
 def init_petprep_extract_tacs_wf(
-    args: Union[argparse.Namespace],
+    args: Union[argparse.Namespace, dict],
     dict,
     subject_list: list = [],
     sessions_to_exclude: list = [],
@@ -1558,7 +1570,6 @@ def cli():
     processes the input arguments, and either runs the main workflow or sets up and
     runs a Docker container with the appropriate settings.
 
-    Arguments:
     - bids_dir (str): The directory with the input dataset formatted according to the BIDS standard.
     - output_dir (str, optional): The directory where the output files should be stored. If running group level analysis, this folder should be prepopulated with the results of the participant level analysis.
     - analysis_level (str): Level of the analysis that will be performed. Choices are "participant" or "group".

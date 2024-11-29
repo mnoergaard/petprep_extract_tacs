@@ -115,13 +115,15 @@ def merge_tsvs(*args, **kwargs):
     """
     Merge TACs from different files into a single file.
 
-    Parameters:
-        args (list): list of tsv tac file paths to merge
-        kwargs (dict): keyword arguments to pass to pandas.read_csv
-    
-    Returns:
-        pandas.DataFrame: merged TACs
+    :param args: List of tsv tac file paths to merge.
+    :type args: list
+    :param kwargs: Keyword arguments to pass to pandas.read_csv.
+    :type kwargs: dict
+
+    :return: Merged TACs.
+    :rtype: pandas.DataFrame
     """
+
     tacs = []
     args = [pathlib.Path(arg).resolve() for arg in args if pathlib.Path(arg).exists()]
 
@@ -133,6 +135,17 @@ def merge_tsvs(*args, **kwargs):
 
 
 def main():
+    """
+    This function is the entry point for the merge_tacs.py script.
+    It accepts two input arguments at the command line:
+    - bids_dir: Path to the BIDS directory.
+    - subjects: List of subjects to merge tsvs to merge. If not provided, all subjects will be processed.
+    
+    can be called via:
+    $ python merge_tacs.py /path/to/bids_dir --subjects 01 02 03
+    or
+    merge_tacs /path/to/bids_dir --subjects 01 02 03
+    """
     parser = argparse.ArgumentParser(
         description="Merge TACs from different files into a single file."
     )
