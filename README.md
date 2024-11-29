@@ -53,15 +53,15 @@ This will run the app on your BIDS dataset and save the output to the specified 
 ### Required Arguments
 Here's a detailed look at all the options you can use with this BIDS App:
 
-#### `--bids_dir`
+#### `bids_dir`
 
 This is the directory with your input dataset formatted according to the BIDS standard. This argument is required.
 
-#### `--output_dir`
+#### `output_dir`
 
 This is the directory where the output files should be stored. If you are running group level analysis, this folder should be prepopulated with the results of the participant level analysis.
 
-#### `--analysis_level`
+#### `analysis_level`
 
 This argument defines the level of the analysis that will be performed. Multiple participant level analyses can be run independently (in parallel) using the same output_dir. The default is 'participant'. The choices are 'participant' and 'group'.
 
