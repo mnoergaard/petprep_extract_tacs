@@ -9,13 +9,13 @@ def create_weighted_average_pet(pet_file, json_file):
 
     """
     Create a time-weighted average of dynamic PET data using mid-frames
-    
-    Arguments
-    ---------
-    pet_file: string
-        path to input dynamic PET volume
-    bids_dir: string
-        path to BIDS directory containing the PET file
+
+    :param pet_file: Path to input dynamic PET volume
+    :type pet_file: str
+    :param json_file: Path to BIDS sidecar JSON file
+    :type json_file: str
+    :return: Path to the weighted average PET file
+    :rtype: str
     """
 
     img = nib.load(pet_file)
