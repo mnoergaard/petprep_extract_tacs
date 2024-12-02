@@ -34,10 +34,16 @@ pip install petprep-extract-tacs
 
 ## Quickstart
 
-To get started, you'll need to have your data organized according to the BIDS standard. Once that's in place, you can run the app like this:
+After installation, you'll need to have your data organized according to the BIDS standard. Once that's in place, you can run the app like this:
 
 ```bash
-python3 run.py --bids_dir /path/to/your/bids/dataset --output_dir /path/to/output/dir --n_procs 4 --wm
+petprep_extract_tacs /path/to/your/bids/dataset /path/to/output/dir participant --n_procs 4 --wm
+```
+
+Alternatively, you can run the code directly with Python using the `run.py` entrypoint:
+
+```bash
+python3 run.py /path/to/your/bids/dataset /path/to/output/dir participant --n_procs 4 --wm
 ```
 
 This will run the app on your BIDS dataset and save the output to the specified directory. Additional region-specific and smoothing options can be specified as detailed below.
@@ -47,17 +53,17 @@ This will run the app on your BIDS dataset and save the output to the specified 
 ### Required Arguments
 Here's a detailed look at all the options you can use with this BIDS App:
 
-#### `--bids_dir`
+#### `bids_dir`
 
 This is the directory with your input dataset formatted according to the BIDS standard. This argument is required.
 
-#### `--output_dir`
+#### `output_dir`
 
 This is the directory where the output files should be stored. If you are running group level analysis, this folder should be prepopulated with the results of the participant level analysis.
 
-#### `--analysis_level`
+#### `analysis_level`
 
-This argument defines the level of the analysis that will be performed. Multiple participant level analyses can be run independently (in parallel) using the same output_dir. The default is 'participant'. The choices are 'participant' and 'group'.
+This argument defines the level of the analysis that will be performed. Multiple participant level analyses can be run independently (in parallel) using the same output_dir. The choices are 'participant' and 'group'.
 
 ### Processing options
 
@@ -124,7 +130,7 @@ docker run -a stderr -a stdout --rm \
 -v /Applications/freesurfer/7.4.1/license.txt:/opt/freesurfer/license.txt \
 --platform linux/amd64 \
 petprep_extract_tacs \
---bids_dir /bids_dir --output_dir /output_dir --analysis_level participant --n_procs 4 system_platform=Darwin
+/bids_dir /output_dir participant --n_procs 4 system_platform=Darwin
 ```
 
 The docker container can be build with the following command:

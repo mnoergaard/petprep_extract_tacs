@@ -8,7 +8,7 @@ import re
 import glob
 import shutil
 
-from petprep_extract_tacs.bids import collect_participants
+from niworkflows.utils.bids import collect_participants, collect_data
 
 
 def collect_and_merge_tsvs(bids_dir, subjects=[], **kwargs):
@@ -149,7 +149,7 @@ def merge_tsvs(*args, **kwargs):
     return tacs
 
 
-if __name__ == "__main__":
+def main():
     parser = argparse.ArgumentParser(
         description="Merge TACs from different files into a single file."
     )
@@ -167,3 +167,7 @@ if __name__ == "__main__":
         args.bids_dir,
         subjects=args.subjects,
     )
+
+
+if __name__ == "__main__":
+    main()
