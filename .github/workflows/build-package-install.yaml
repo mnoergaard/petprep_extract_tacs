@@ -22,13 +22,25 @@ jobs:
             with:
               python-version: ${{ matrix.python-version }}
 
+          - name: Check python3 == python${{ matrix.python-version }}
+            run: |
+              installed_python=$(python3 --version)
+              echo "Installed Python: $installed_python"
+              if [[ "$installed_python" != *"${{ matrix.python-version }}"* ]]; then
+                echo "Python version mismatch. Expected: ${{ matrix.python-version }}, but got: $installed_python"
+                exit 1
+              elif
+                echo "${{ matrix.python-version }} aliased as python3"
+              fi
+
+
           - name: Install Poetry
             run: |
               curl -sSL https://install.python-poetry.org | python3 -
 
           - name: Install dependencies
             run: |
-              python${{ matrix.python-version }} -m pip install setuptools
+              python3 -m pip install setuptools
               poetry install --with dev
 
           - name: Package with Poetry
