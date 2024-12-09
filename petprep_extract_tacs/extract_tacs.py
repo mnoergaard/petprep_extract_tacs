@@ -621,7 +621,7 @@ def init_single_subject_wf(
             [
                 (selectfiles, vol2vol, [("pet_file", "source_file")]),
                 (selectfiles, vol2vol, [("fs_subject_dir", "subjects_dir")]),
-                (coreg_pet_to_t1w, vol2vol, [("out_lta_file", "lta_file")]),
+                (coreg_pet_to_t1w, vol2vol, [("out_lta_file", "reg_file")]),
                 (vol2vol, datasink, [("transformed_file", "datasink.@mni305_pet")]),
             ]
         )

@@ -1,0 +1,60 @@
+name: Build and Install
+
+on:
+    push:
+        branches:
+            - '**'
+
+jobs:
+    build-install:
+        runs-on: ${{ matrix.os }}
+        strategy:
+          matrix:
+            os: [ubuntu-latest]
+            python-version: ["3.9", "3.10", "3.11"]
+
+        steps:
+          - name: Checkout repository
+            uses: actions/checkout@v2
+
+          - name: Set up Python
+            uses: actions/setup-python@v2
+            with:
+              python-version: ${{ matrix.python-version }}
+
+          - name: Check python3 == python${{ matrix.python-version }}
+            run: |
+              installed_python=$(python3 --version)
+              echo "Installed Python: $installed_python"
+              if [[ "$installed_python" != *"${{ matrix.python-version }}"* ]]; then
+                echo "Python version mismatch. Expected: ${{ matrix.python-version }}, but got: $installed_python"
+                exit 1
+              else
+                echo "${{ matrix.python-version }}"
+              fi
+
+
+          - name: Install Poetry
+            run: |
+              curl -sSL https://install.python-poetry.org | python3 -
+
+          - name: Install dependencies
+            run: |
+              python3 -m pip install setuptools
+              poetry install --with dev
+
+          - name: Package with Poetry
+            run: |
+              # clear out dist folder first
+              rm -rf dist
+              poetry build
+
+          - name: Install Built Package
+            run: |
+              python3 -m pip install dist/*.whl
+
+          - name: Test Installation
+            run: |
+              petprep_extract_tacs --version
+              merge_tacs --help
+
