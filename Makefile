@@ -20,6 +20,14 @@ dockerpush: dockerbuild
 	docker push openneuropet/$(shell cat pyproject.toml | grep name | cut -d '"' -f 2):$(shell cat pyproject.toml | grep version | head -n 1 | cut -d '"' -f 2)
 	docker push openneuropet/$(shell cat pyproject.toml | grep name | cut -d '"' -f 2):latest
 
+.PHONY: docs
+docs:
+	poetry run sphinx-build -b html docs docs/_build/html
+
+.PHONY: docs-serve
+docs-serve:
+	poetry run sphinx-autobuild docs docs/_build/html
+
 # runs github actions ci locally using nektos/act
 # needs to be installed with brew install act on mac
 # install instructions for other platforms can be found here:
