@@ -25,6 +25,8 @@ jobs:
 
       - name: Codespell
         uses: codespell-project/actions-codespell@v2
+        with:
+            exclude_file: pyproject.toml poetry.lock
       
       - name: Lint files with Black
         run: make check-black
