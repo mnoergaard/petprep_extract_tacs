@@ -52,9 +52,6 @@ jobs:
           - name: Install Built Package
             run: |
               python3 -m pip install dist/*.whl
-
-          - name: Test Installation
-            run: |
               petdeface --version
               mergetacs --help
 
