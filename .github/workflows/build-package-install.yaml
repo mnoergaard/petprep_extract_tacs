@@ -28,7 +28,7 @@ jobs:
 
           - name: Install dependencies
             run: |
-              pip install setuptools
+              python3 -m pip install setuptools
               poetry install --with dev
 
           - name: Package with Poetry
@@ -39,7 +39,7 @@ jobs:
 
           - name: Install Built Package
             run: |
-              pip install dist/*.whl
+              python3 -m pip install dist/*.whl
 
           - name: Test Installation
             run: |
