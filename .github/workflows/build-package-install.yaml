@@ -30,7 +30,7 @@ jobs:
                 echo "Python version mismatch. Expected: ${{ matrix.python-version }}, but got: $installed_python"
                 exit 1
               else
-                echo "${{ matrix.python-version }} aliased as python3"
+                echo "${{ matrix.python-version }}"
               fi
 
 
@@ -52,6 +52,9 @@ jobs:
           - name: Install Built Package
             run: |
               python3 -m pip install dist/*.whl
-              petdeface --version
-              mergetacs --help
+
+          - name: Test Installation
+            run: |
+              pet_prep_extract_tacs --version
+              merge_tacs --help
 
