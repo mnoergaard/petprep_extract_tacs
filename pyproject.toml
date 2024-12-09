@@ -50,7 +50,6 @@ pytest = "*"
 nipreps = "^1.0"
 black = "^24.4.2"
 pytest = "^8.2.2"
-setuptools = "*"  # not installed on newer versions of python, required for building
 
 [tool.poetry.scripts]
 petprep_extract_tacs = "petprep_extract_tacs.extract_tacs:cli"
