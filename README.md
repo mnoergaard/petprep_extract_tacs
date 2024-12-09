@@ -1,8 +1,9 @@
 # BIDS App for PETPrep Extract Time Activity Curves Workflow
 
----
-
 [![Build and Install](https://github.com/mnoergaard/petprep_extract_tacs/actions/workflows/build-package-install.yaml/badge.svg)](https://github.com/mnoergaard/petprep_extract_tacs/actions/workflows/build-package-install.yaml)
+[![Build Docs with Actions](https://github.com/mnoergaard/petprep_extract_tacs/actions/workflows/build-docs-with-actions.yaml/badge.svg)](https://github.com/mnoergaard/petprep_extract_tacs/actions/workflows/build-docs-with-actions.yaml)
+[![Documentation Status](https://readthedocs.org/projects/petprep_extract_tacs/badge/?version=latest)](https://petprep_extract_tacs.readthedocs.io/en/latest/?badge=latest)
+[![Lint and Spellcheck](https://github.com/mnoergaard/petprep_extract_tacs/actions/workflows/lint-and-spellcheck.yaml/badge.svg)](https://github.com/mnoergaard/petprep_extract_tacs/actions/workflows/lint-and-spellcheck.yaml)
 
 ## Overview
 
