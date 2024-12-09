@@ -55,6 +55,6 @@ jobs:
 
           - name: Test Installation
             run: |
-              pet_prep_extract_tacs --version
+              petprep_extract_tacs --version
               merge_tacs --help
 
