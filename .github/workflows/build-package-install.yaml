@@ -32,6 +32,8 @@ jobs:
 
           - name: Package with Poetry
             run: |
+              # clear out dist folder first
+              rm -rf dist
               poetry build
 
           - name: Install Built Package
