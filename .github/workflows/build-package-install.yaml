@@ -11,7 +11,7 @@ jobs:
         strategy:
           matrix:
             os: [ubuntu-latest]
-            python-version: [3.9, 3.10, 3.11]
+            python-version: ["3.9", "3.10", "3.11"]
 
         steps:
           - name: Checkout repository
@@ -28,7 +28,7 @@ jobs:
 
           - name: Install dependencies
             run: |
-              python3 -m pip install setuptools
+              python${{ matrix.python-version }} -m pip install setuptools
               poetry install --with dev
 
           - name: Package with Poetry
