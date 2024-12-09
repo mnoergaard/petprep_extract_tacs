@@ -124,7 +124,7 @@ Option to merge TACs across runs for each subject within a single session.
 
 #### `--docker`
 
-Indicates the script will run within a Docker container that contains all of the necessary dependencies for this project. A version of FreeSurfer should stil be installed along with a valid license. If you have difficulty using this extra option below is an example of an "unwrapped" command to execute this pipeline in Docker.
+Indicates the script will run within a Docker container that contains all of the necessary dependencies for this project. A version of FreeSurfer should still be installed along with a valid license. If you have difficulty using this extra option below is an example of an "unwrapped" command to execute this pipeline in Docker.
 
 ```bash
 docker run -a stderr -a stdout --rm \ 

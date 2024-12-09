@@ -43,13 +43,16 @@ niworkflows = "1.10.2"
 ipython = "8.13.2"
 petutils = "^0.1.0"
 
-[tool.poetry.dev-dependencies]
-pytest = "*"
+[tool.poetry.group.dev]
+optional = true
 
 [tool.poetry.group.dev.dependencies]
-nipreps = "^1.0"
 black = "^24.4.2"
+nipreps = "^1.0"
 pytest = "^8.2.2"
+sphinx-autobuild = "^2024.10.3"
+sphinx = "^7.2.6"
+sphinx-rtd-theme = "^1.2.2"
 
 [tool.poetry.scripts]
 petprep_extract_tacs = "petprep_extract_tacs.extract_tacs:cli"

@@ -11,3 +11,12 @@ venv/
 *strace*
 run_docker_*
 testdata/
+
+# .gitignore
+
+# Sphinx build directory
+docs/_build/
+
+# Sphinx cache
+docs/.doctrees
+docs/.buildinfo

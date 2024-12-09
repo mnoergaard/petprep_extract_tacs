@@ -58,6 +58,10 @@ if project_root not in sys.path:
     sys.path.insert(0, project_root)
 
 try:
+    """
+    Try to load version from pyproject.toml file if available,
+    else uses importlib.metadata.version to get the version of the package.
+    """
     # load version from pyproject.toml file if available
     __version__ = "None"
     with open(
@@ -75,7 +79,7 @@ def determine_in_docker():
     """
     Determines if the script is running in a docker container, returns True if it is, False otherwise
 
-    :return: if running in docker container
+    :return: True if running in docker container, False otherwise
     :rtype: bool
     """
     in_docker = False
@@ -98,6 +102,10 @@ def determine_in_docker():
 
 
 def main(args):
+    """
+    Runs the PETPrep extract tacs workflow when provided with arguments collected from
+    the cli function.
+    """
     # Check whether BIDS directory exists and instantiate BIDSLayout
     if os.path.exists(args.bids_dir):
         if not args.skip_bids_validator:
@@ -255,6 +263,10 @@ def main(args):
 
 
 def init_anat_wf(args: Union[argparse.Namespace, dict], subject_list: list = []):
+    """
+    Starts the anatomical workflow for the PETPrep extract tacs workflow by
+    creating nodes with init_single_subject_anat_wf.
+    """
     from bids import BIDSLayout
 
     if isinstance(args, dict):
@@ -279,6 +291,9 @@ def init_anat_wf(args: Union[argparse.Namespace, dict], subject_list: list = [])
 
 
 def init_single_subject_anat_wf(args, subject_id):
+    """
+    Creates an anatomical node for a single subject in the PETPrep extract tacs workflow.
+    """
     from bids import BIDSLayout
 
     layout = BIDSLayout(args.bids_dir, validate=False)
@@ -347,6 +362,7 @@ def init_single_subject_anat_wf(args, subject_id):
 
 def init_petprep_extract_tacs_wf(
     args: Union[argparse.Namespace, dict],
+    dict,
     subject_list: list = [],
     sessions_to_exclude: list = [],
 ):
@@ -1453,10 +1469,14 @@ def locate_freesurfer_license():
     Checks for freesurfer license on host system and returns path to license file if it exists.
     Raises error if $FREESURFER_HOME is not set or if license file does not exist at $FREESURFER_HOME/license.txt
 
-    :raises ValueError: if FREESURFER_HOME environment variable is not set
-    :raises ValueError: if license file does not exist at FREESURFER_HOME/license.txt
-    :return: full path to Freesurfer license file
-    :rtype: pathlib.Path
+    Parameters:
+        None
+
+    Returns:
+        fs_license (pathlib.Path): Path to Freesurfer license file
+
+    Raises:
+        ValueError: if FREESURFER_HOME environment variable is not set
     """
     # collect freesurfer home environment variable
     fs_home = pathlib.Path(os.environ.get("FREESURFER_HOME", ""))
@@ -1478,9 +1498,14 @@ def check_docker_installed():
     """
     Checks to see if docker is installed on the host system, raises exception if it is not.
 
-    :raises Exception: if docker is not installed
-    :return: status of docker installation
-    :rtype: bool
+    Parameters:
+        None
+
+    Returns:
+        docker_installed (bool): Status of docker installation
+
+    Raises:
+        Exception: if docker is not installed
     """
     try:
         subprocess.run(
@@ -1499,12 +1524,12 @@ def check_docker_image_exists(image_name, build=False):
     """
     Checks to see if a docker image exists, if it does not and build is set to True, it will attempt to build the image.
 
-    :param image_name: name of docker image
-    :type image_name: string
-    :param build: try to build a docker image if none is found, defaults to False
-    :type build: bool, optional
-    :return: status of whether or not the image exists
-    :rtype: bool
+    Parameters:
+        image_name (str): Name of docker image
+        build (bool): Try to build a docker image if none is found, defaults to False
+
+    Returns:
+        image_exists (bool): Status of whether or not the image exists
     """
     try:
         subprocess.run(
@@ -1538,6 +1563,43 @@ def check_docker_image_exists(image_name, build=False):
 
 
 def cli():
+    """
+    Command-line interface for the PETPrep extract time activity curves (TACs) workflow.
+
+    This function sets up the argument parser for the PETPrep extract TACs workflow,
+    processes the input arguments, and either runs the main workflow or sets up and
+    runs a Docker container with the appropriate settings.
+
+    - bids_dir (str): The directory with the input dataset formatted according to the BIDS standard.
+    - output_dir (str, optional): The directory where the output files should be stored. If running group level analysis, this folder should be prepopulated with the results of the participant level analysis.
+    - analysis_level (str): Level of the analysis that will be performed. Choices are "participant" or "group".
+    - --participant_label (list of str, optional): The label(s) of the participant(s) that should be analyzed. If not provided, all subjects will be analyzed.
+    - --session_label (list of str, optional): The label(s) of the session(s) that should be analyzed. If not specified, all sessions will be analyzed.
+    - --n_procs (int, optional): Number of processors to use when running the workflow. Default is 2.
+    - --gtm (bool, optional): Extract time activity curves from the geometric transfer matrix segmentation (gtmseg).
+    - --brainstem (bool, optional): Extract time activity curves from the brainstem.
+    - --thalamicNuclei (bool, optional): Extract time activity curves from the thalamic nuclei.
+    - --hippocampusAmygdala (bool, optional): Extract time activity curves from the hippocampus and amygdala.
+    - --wm (bool, optional): Extract time activity curves from the white matter.
+    - --raphe (bool, optional): Extract time activity curves from the raphe nuclei.
+    - --limbic (bool, optional): Extract time activity curves from the limbic system.
+    - --surface (bool, optional): Extract surface-based time activity curves in fsaverage.
+    - --surface_smooth (int, optional): Smooth surface-based time activity curves in fsaverage.
+    - --volume (bool, optional): Extract volume-based time activity curves in mni305.
+    - --volume_smooth (int, optional): Smooth volume-based time activity curves in mni305.
+    - --agtm (bool, optional): Extract time activity curves from the adaptive gtm PVC.
+    - --psf (float, optional): Initial guess of point spread function of PET scanner for agtm.
+    - --petprep_hmc (bool, optional): Use outputs from petprep_hmc as input to workflow.
+    - --skip_bids_validator (bool, optional): Whether or not to perform BIDS dataset validation.
+    - --docker (bool, optional): Run the workflow from within a Docker container.
+    - --run_as_root (bool, optional): Run as root if running in Docker. Default is False.
+    - --merge_runs (bool, optional): Merge TACs across runs for each subject when they coincide with a single session.
+    - -v, --version (bool, optional): Show the version of the PETPrep extract TACs BIDS-App.
+    - --participant_label_exclude (list of str, optional): Exclude a participant(s) from the TAC workflow.
+    - --session_label_exclude (list of str, optional): Exclude a session(s) from the TAC workflow.
+
+    The function also handles Docker setup and execution if the --docker flag is provided.
+    """
     parser = argparse.ArgumentParser(
         description="BIDS App for PETPrep extract time activity curves (TACs) workflow"
     )

@@ -9,34 +9,23 @@ import glob
 import shutil
 
 from niworkflows.utils.bids import collect_participants, collect_data
+from niworkflows.utils.bids import collect_participants, collect_data
 
 
 def collect_and_merge_tsvs(bids_dir, subjects=[], **kwargs):
     """
-    Collect and merge all tsv's that should be combined across a runs. This is
-    function is primarily aimed at combining PET time activity curve (TACS) for
-    long scans present in a BIDS directory or BIDS subject directory.
+    Collect and merge all TSV files that should be combined across runs.
 
-    The tsv_type parameter can be changed to specify a deseg.tsv or morph.tsv where
-    appropriate.
+    This function is primarily aimed at combining PET Time Activity Curves (TACs) for long scans present in a BIDS directory or BIDS subject directory.
 
-    Parameters
-    ----------
-    bids_dir : str
-        Path to the BIDS directory.
-    tsv_type : str
-        Type of TSV file to output to merge corresponding the bids suffix.
-    subjects : list
-        List of subjects to run this function on.
-    **kwargs : dict
-        Keyword arguments to pass to pandas.read_csv.
+    Parameters:
+        bids_dir (str): Path to the BIDS directory.
+        subjects (list): List of subjects to process. Defaults to an empty list.
+        kwargs (dict): Additional keyword arguments to pass to `pandas.read_csv`.
 
-    Returns
-    -------
-    pandas.DataFrame
-        Collected TSVs.
+    Returns:
+        pandas.Dataframe: A DataFrame containing the collected TSVs.
     """
-
     # get every file in the bids directory with a tacs suffix
     all_tsvs = []
     for root, folders, files in os.walk(bids_dir):
@@ -90,7 +79,7 @@ def collect_and_merge_tsvs(bids_dir, subjects=[], **kwargs):
                 subjects_to_be_merged[subject][k] = []
             subjects_to_be_merged[subject][k].append(tsv)
 
-    # now we only focuse on subjects that are specified if that's given in thes arguments
+    # now we only focus on subjects that are specified if that's given in these arguments
     # subjects = [01, 02, ...] for this function
     if subjects != []:
         subjects_to_remove = list(set(subjects_to_be_merged.keys() - set(subjects)))
@@ -127,18 +116,15 @@ def merge_tsvs(*args, **kwargs):
     """
     Merge TACs from different files into a single file.
 
-    Parameters
-    ----------
-    *args : list
-        List of tsv tac file paths to merge.
-    **kwargs : dict
-        Keyword arguments to pass to pandas.read_csv.
+    :param args: List of tsv tac file paths to merge.
+    :type args: list
+    :param kwargs: Keyword arguments to pass to pandas.read_csv.
+    :type kwargs: dict
 
-    Returns
-    -------
-    pandas.DataFrame
-        Merged TACs.
+    :return: Merged TACs.
+    :rtype: pandas.DataFrame
     """
+
     tacs = []
     args = [pathlib.Path(arg).resolve() for arg in args if pathlib.Path(arg).exists()]
 
@@ -150,6 +136,17 @@ def merge_tsvs(*args, **kwargs):
 
 
 def main():
+    """
+    This function is the entry point for the merge_tacs.py script.
+    It accepts two input arguments at the command line:
+    - bids_dir: Path to the BIDS directory.
+    - subjects: List of subjects to merge tsvs to merge. If not provided, all subjects will be processed.
+
+    can be called via:
+    $ python merge_tacs.py /path/to/bids_dir --subjects 01 02 03
+    or
+    merge_tacs /path/to/bids_dir --subjects 01 02 03
+    """
     parser = argparse.ArgumentParser(
         description="Merge TACs from different files into a single file."
     )

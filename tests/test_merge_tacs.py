@@ -22,7 +22,7 @@ def test_collect_and_merge_tsvs():
         # get all tsvs with glob
         all_tsvs = glob.glob(f"{tempdir}/**/*.tsv", recursive=True)
 
-        # ignore everthing that doesn't have run in it.
+        # ignore everything that doesn't have run in it.
         unmerged_run_tsvs = [tsv for tsv in all_tsvs if "_run-" in tsv]
         unmerged_run_tsvs.sort()
 
@@ -39,7 +39,7 @@ def test_collect_and_merge_tsvs():
         merged_tsvs = collect_and_merge_tsvs(bids_dir=tempdir)
         merged_tsvs = {tsv: pandas.read_csv(tsv, sep="\t") for tsv in merged_tsvs}
 
-        # check that the merged tsvs are the concatentaion of the unmerged tac tsvs same as the unmerged run tsvs
+        # check that the merged tsvs are the concatenation of the unmerged tac tsvs same as the unmerged run tsvs
         tacs = [unmerged_run_tsvs[tsv] for tsv in unmerged_run_tsvs if "tacs" in tsv]
 
         # add up lengths of split tacs
