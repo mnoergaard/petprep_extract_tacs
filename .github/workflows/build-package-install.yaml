@@ -38,6 +38,7 @@ jobs:
 
           - name: Install Built Package
             run: |
+              pip install setuptools
               pip install dist/*.whl
 
           - name: Test Installation
