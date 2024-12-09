@@ -1,0 +1,45 @@
+name: Build and Install
+
+on:
+    push:
+        branches:
+            - '**'
+
+jobs:
+    build-install:
+        runs-on: ${{ matrix.os }}
+
+        strategy:
+          matrix:
+            os: [ubuntu-latest, macos-latest]
+
+        steps:
+          - name: Checkout repository
+            uses: actions/checkout@v2
+
+          - name: Set up Python
+            uses: actions/setup-python@v2
+            with:
+              python-version: '3.x'
+
+          - name: Install Poetry
+            run: |
+              curl -sSL https://install.python-poetry.org | python3 -
+
+          - name: Install dependencies
+            run: |
+              poetry install
+
+          - name: Package with Poetry
+            run: |
+              poetry build
+
+          - name: Install Built Package
+            run: |
+              pip install dist/*.whl
+
+          - name: Test Installation
+            run: |
+              petdeface --version
+              mergetacs --help
+
