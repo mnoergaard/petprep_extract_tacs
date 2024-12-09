@@ -79,7 +79,7 @@ def collect_and_merge_tsvs(bids_dir, subjects=[], **kwargs):
                 subjects_to_be_merged[subject][k] = []
             subjects_to_be_merged[subject][k].append(tsv)
 
-    # now we only focuse on subjects that are specified if that's given in thes arguments
+    # now we only focus on subjects that are specified if that's given in these arguments
     # subjects = [01, 02, ...] for this function
     if subjects != []:
         subjects_to_remove = list(set(subjects_to_be_merged.keys() - set(subjects)))
