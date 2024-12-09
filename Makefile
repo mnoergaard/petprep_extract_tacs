@@ -1,11 +1,11 @@
 # Quickly run black on all python files in this repository, local version of the pre-commit hook
 black:
 	@for file in `find . -name "*.py"`; do \
-		black $$file; \
+		poetry run black $$file; \
 	done
 
 check-black:
-	black --check . --exclude="dist/*" --exclude="build/*" --exclude="docs/*";
+	poetry run black --check . --exclude="dist/*" --exclude="build/*" --exclude="docs/*";
 
 # install python dependencies
 pythondeps:
