@@ -103,7 +103,7 @@ def determine_in_docker():
 
 def main(args):
     """
-    Runs the PETPrep extract tacs workflow when provided with arguments collected from 
+    Runs the PETPrep extract tacs workflow when provided with arguments collected from
     the cli function.
     """
     # Check whether BIDS directory exists and instantiate BIDSLayout
@@ -264,7 +264,7 @@ def main(args):
 
 def init_anat_wf(args: Union[argparse.Namespace, dict], subject_list: list = []):
     """
-    Starts the anatomical workflow for the PETPrep extract tacs workflow by 
+    Starts the anatomical workflow for the PETPrep extract tacs workflow by
     creating nodes with init_single_subject_anat_wf.
     """
     from bids import BIDSLayout
@@ -1471,10 +1471,10 @@ def locate_freesurfer_license():
 
     Parameters:
         None
-    
+
     Returns:
         fs_license (pathlib.Path): Path to Freesurfer license file
-    
+
     Raises:
         ValueError: if FREESURFER_HOME environment variable is not set
     """
@@ -1500,10 +1500,10 @@ def check_docker_installed():
 
     Parameters:
         None
-    
+
     Returns:
         docker_installed (bool): Status of docker installation
-    
+
     Raises:
         Exception: if docker is not installed
     """
@@ -1527,7 +1527,7 @@ def check_docker_image_exists(image_name, build=False):
     Parameters:
         image_name (str): Name of docker image
         build (bool): Try to build a docker image if none is found, defaults to False
-    
+
     Returns:
         image_exists (bool): Status of whether or not the image exists
     """

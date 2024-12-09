@@ -17,7 +17,7 @@ def collect_and_merge_tsvs(bids_dir, subjects=[], **kwargs):
     Collect and merge all TSV files that should be combined across runs.
 
     This function is primarily aimed at combining PET Time Activity Curves (TACs) for long scans present in a BIDS directory or BIDS subject directory.
-    
+
     Parameters:
         bids_dir (str): Path to the BIDS directory.
         subjects (list): List of subjects to process. Defaults to an empty list.
@@ -141,7 +141,7 @@ def main():
     It accepts two input arguments at the command line:
     - bids_dir: Path to the BIDS directory.
     - subjects: List of subjects to merge tsvs to merge. If not provided, all subjects will be processed.
-    
+
     can be called via:
     $ python merge_tacs.py /path/to/bids_dir --subjects 01 02 03
     or

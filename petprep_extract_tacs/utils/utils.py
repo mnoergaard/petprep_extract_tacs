@@ -20,7 +20,7 @@ def get_opt_fwhm(opt_params):
         - **tsv_file** (*str*): Path to the generated TSV file with FWHM values.
     :rtype: tuple
 
-    :notes: 
+    :notes:
         This function reads the optimal FWHM parameters from the given file, creates a DataFrame,
         saves it as a TSV file named `pvc-agtm_desc-fwhm_confounds.tsv` in the current working directory,
         and returns the FWHM values along with the path to the TSV file.
