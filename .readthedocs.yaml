@@ -15,6 +15,7 @@ build:
       - poetry config virtualenvs.create false
     post_install:
       - poetry install --with dev
+      - pip install sphinx-rtd-theme
 
 # Build documentation in the "docs/" directory with Sphinx
 sphinx:
