@@ -362,7 +362,6 @@ def init_single_subject_anat_wf(args, subject_id):
 
 def init_petprep_extract_tacs_wf(
     args: Union[argparse.Namespace, dict],
-    dict,
     subject_list: list = [],
     sessions_to_exclude: list = [],
 ):
@@ -392,7 +391,7 @@ def init_petprep_extract_tacs_wf(
         try:
             check_nifti_json_frame_consistency(layout, [subject_id])
             # For each subject, create a subject-specific workflow
-            subject_wf = init_single_subject_wf(subject_id, sessions_to_exclude)
+            subject_wf = init_single_subject_wf(args, subject_id, sessions_to_exclude)
             petprep_extract_tacs_wf.add_nodes([subject_wf])
         except (PETFrameTimingError, KeyError) as err:
             # use warnings to display an error message in red text to the user
