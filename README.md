@@ -5,6 +5,8 @@
 [![Documentation Status](https://readthedocs.org/projects/petprep_extract_tacs/badge/?version=latest)](https://petprep_extract_tacs.readthedocs.io/en/latest/?badge=latest)
 [![Lint and Spellcheck](https://github.com/mnoergaard/petprep_extract_tacs/actions/workflows/lint-and-spellcheck.yaml/badge.svg)](https://github.com/mnoergaard/petprep_extract_tacs/actions/workflows/lint-and-spellcheck.yaml)
 
+![Docker Build](https://codebuild.us-east-1.amazonaws.com/badges?uuid=eyJlbmNyeXB0ZWREYXRhIjoiSEE1Qm1PdW82YlZjOHV0anF5OEVFUzRaZUxpN0RRc1UwcmVsMHhoK3N2dTVNbGVFMUVGZzRoM0NtOEdiTXA3eGlFOWJuMjRIeWlxS2FWL2JkNmpUR29FPSIsIml2UGFyYW1ldGVyU3BlYyI6Im80Vkp5Y2w1dDk5ZjV5alQiLCJtYXRlcmlhbFNldFNlcmlhbCI6MX0%3D&branch=main)
+
 ## Overview
 
 This BIDS App is designed to extract time activity curves (TACs) from PET data. The workflow has options to extract TACs from different regions of the brain, and it uses the Brain Imaging Data Structure (BIDS) standard for organizing and describing the data. This README will guide you through how to use the app and the various options available. The workflow requires that freesurfer's recon-all was already executed for these subjects, and exist as a 'freesurfer' directory inside the derivatives directory for the given BIDS dataset.
