@@ -84,7 +84,6 @@ ENV PATH=/opt/freesurfer/bin:/opt/freesurfer/fsfast/bin:/opt/freesurfer/tktools:
 RUN /opt/freesurfer/bin/fs_install_mcr R2019b 
 
 # copy the project files
-COPY setup.py /petprep_extract_tacs/setup.py
 COPY . /petprep_extract_tacs/
 
 # install dependencies
