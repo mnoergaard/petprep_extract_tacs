@@ -5,7 +5,9 @@
 [![Documentation Status](https://readthedocs.org/projects/petprep_extract_tacs/badge/?version=latest)](https://petprep_extract_tacs.readthedocs.io/en/latest/?badge=latest)
 [![Lint and Spellcheck](https://github.com/mnoergaard/petprep_extract_tacs/actions/workflows/lint-and-spellcheck.yaml/badge.svg)](https://github.com/mnoergaard/petprep_extract_tacs/actions/workflows/lint-and-spellcheck.yaml)
 
-![Docker Build](https://codebuild.us-east-1.amazonaws.com/badges?uuid=eyJlbmNyeXB0ZWREYXRhIjoiSEE1Qm1PdW82YlZjOHV0anF5OEVFUzRaZUxpN0RRc1UwcmVsMHhoK3N2dTVNbGVFMUVGZzRoM0NtOEdiTXA3eGlFOWJuMjRIeWlxS2FWL2JkNmpUR29FPSIsIml2UGFyYW1ldGVyU3BlYyI6Im80Vkp5Y2w1dDk5ZjV5alQiLCJtYXRlcmlhbFNldFNlcmlhbCI6MX0%3D&branch=main)
+| CI  | Status |   
+|---------| ------ |
+| `docker build` | ![Docker Build](https://codebuild.us-east-1.amazonaws.com/badges?uuid=eyJlbmNyeXB0ZWREYXRhIjoiSEE1Qm1PdW82YlZjOHV0anF5OEVFUzRaZUxpN0RRc1UwcmVsMHhoK3N2dTVNbGVFMUVGZzRoM0NtOEdiTXA3eGlFOWJuMjRIeWlxS2FWL2JkNmpUR29FPSIsIml2UGFyYW1ldGVyU3BlYyI6Im80Vkp5Y2w1dDk5ZjV5alQiLCJtYXRlcmlhbFNldFNlcmlhbCI6MX0%3D&branch=main) |
 
 ## Overview
 
