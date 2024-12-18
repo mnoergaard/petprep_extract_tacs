@@ -53,6 +53,7 @@ pytest = "^8.2.2"
 sphinx-autobuild = "^2024.10.3"
 sphinx = "^7.2.6"
 sphinx-rtd-theme = "^1.2.2"
+myst-parser = "2.0.0"
 
 [tool.poetry.scripts]
 petprep_extract_tacs = "petprep_extract_tacs.extract_tacs:cli"
