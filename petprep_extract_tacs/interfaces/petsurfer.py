@@ -109,7 +109,12 @@ class GTMSegOutputSpec(TraitedSpec):
 
 
 class GTMSeg(FSCommand):
-    """create an anatomical segmentation for the geometric transfer matrix (GTM).
+    """Run ``gtmseg`` unless the output already exists.
+
+    The interface looks for ``gtmseg.mgz`` (or the filename provided via
+    ``out_file``) in the subject's ``mri`` directory. If the file is found,
+    the command is skipped and the provided ``runtime`` is returned
+    unchanged.
 
     Examples
     --------
@@ -132,6 +137,13 @@ class GTMSeg(FSCommand):
             self.inputs.out_file,
         )
         return outputs
+
+    def _run_interface(self, runtime):
+        outputs = self._list_outputs()
+        if os.path.exists(outputs["out_file"]):
+            return runtime
+
+        return super()._run_interface(runtime)
 
 
 class GTMPVCInputSpec(FSTraitedSpec):
