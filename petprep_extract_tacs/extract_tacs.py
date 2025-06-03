@@ -101,68 +101,6 @@ def determine_in_docker():
     return in_docker
 
 
-def run_mricoreg_if_needed(
-    pet_file,
-    source_file,
-    reference_file,
-    subjects_dir,
-    subject_id,
-    output_dir,
-):
-    """Return existing registration or run ``MRICoreg``.
-
-    Parameters
-    ----------
-    pet_file : str
-        Path to the original PET file used to derive ``source_file``.
-    source_file : str
-        File that should be registered to ``reference_file`` when a
-        registration does not already exist.
-    reference_file : str
-        Anatomical reference for registration.
-    subjects_dir : str
-        FreeSurfer subjects directory.
-    subject_id : str
-        Subject identifier (without ``sub-`` prefix).
-    output_dir : str
-        Root derivatives directory where registration files may already
-        exist.
-
-    Returns
-    -------
-    str
-        Path to the registration file.
-    """
-
-    def strip_extensions(filename):
-        while os.path.splitext(filename)[1]:
-            filename = os.path.splitext(filename)[0]
-        return filename
-
-    prefix = strip_extensions(os.path.basename(pet_file)).replace("_pet", "")
-
-    session = None
-    match = re.search(r"ses-([A-Za-z0-9]+)", pet_file)
-    reg_dir = Path(output_dir) / f"sub-{subject_id}"
-    if match:
-        session = match.group(1)
-        reg_dir = reg_dir / f"ses-{session}"
-
-    reg_file = reg_dir / f"{prefix}_from-pet_to-t1w_reg.lta"
-
-    if reg_file.exists():
-        return str(reg_file)
-
-    coreg = MRICoreg(
-        out_lta_file="from-pet_to-t1w_reg.lta", subject_id=f"sub-{subject_id}"
-    )
-    coreg.inputs.source_file = source_file
-    coreg.inputs.reference_file = reference_file
-    coreg.inputs.subjects_dir = subjects_dir
-    result = coreg.run()
-    return str(result.outputs.out_lta_file)
-
-
 def main(args):
     """
     Runs the PETPrep extract tacs workflow when provided with arguments collected from
@@ -537,22 +475,11 @@ def init_single_subject_wf(
         _output_dir = args.output_dir
 
     coreg_pet_to_t1w = Node(
-        Function(
-            input_names=[
-                "pet_file",
-                "source_file",
-                "reference_file",
-                "subjects_dir",
-                "subject_id",
-                "output_dir",
-            ],
-            output_names=["out_lta_file"],
-            function=run_mricoreg_if_needed,
+        MRICoreg(
+            out_lta_file="from-pet_to-t1w_reg.lta", subject_id=f"sub-{subject_id}"
         ),
         name="coreg_pet_to_t1w",
     )
-    coreg_pet_to_t1w.inputs.subject_id = subject_id
-    coreg_pet_to_t1w.inputs.output_dir = _output_dir
 
     create_time_weighted_average = Node(
         Function(
@@ -600,7 +527,6 @@ def init_single_subject_wf(
             (inputs, selectfiles, [("pet_file", "pet_file")]),
             (selectfiles, create_time_weighted_average, [("pet_file", "pet_file")]),
             (selectfiles, create_time_weighted_average, [("json_file", "json_file")]),
-            (selectfiles, coreg_pet_to_t1w, [("pet_file", "pet_file")]),
             (selectfiles, coreg_pet_to_t1w, [("brainmask_file", "reference_file")]),
             (selectfiles, coreg_pet_to_t1w, [("fs_subject_dir", "subjects_dir")]),
             (
