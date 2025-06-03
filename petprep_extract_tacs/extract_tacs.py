@@ -101,6 +101,60 @@ def determine_in_docker():
     return in_docker
 
 
+def run_coreg_if_needed(
+    source_file: str,
+    reference_file: str,
+    subjects_dir: str,
+    subject_id: str,
+    output_dir: str,
+):
+    """Run :class:`~nipype.interfaces.freesurfer.MRICoreg` if transform is missing.
+
+    Parameters
+    ----------
+    source_file : str
+        Time weighted PET volume.
+    reference_file : str
+        Reference anatomical image (typically ``T1.mgz``).
+    subjects_dir : str
+        FreeSurfer subjects directory.
+    subject_id : str
+        BIDS subject identifier **without** the ``sub-`` prefix.
+    output_dir : str
+        Root derivatives directory where transforms are cached.
+
+    Returns
+    -------
+    str
+        Path to the LTA transform file.
+    """
+
+    import re
+    from pathlib import Path
+
+    prefix = Path(source_file).name.split("_desc-wavg_pet")[0]
+    ses = re.search(r"(ses-[^_]+)", prefix)
+
+    dest = Path(output_dir) / f"sub-{subject_id}"
+    if ses:
+        dest = dest / ses.group(1)
+    dest.mkdir(parents=True, exist_ok=True)
+
+    out_lta = dest / f"{prefix}_from-pet_to-t1w_reg.lta"
+    if out_lta.exists():
+        return str(out_lta)
+
+    reg = MRICoreg(
+        source_file=source_file,
+        reference_file=reference_file,
+        subjects_dir=subjects_dir,
+        subject_id=f"sub-{subject_id}",
+        out_lta_file=str(out_lta),
+    )
+    reg.run()
+    return str(out_lta)
+
+
 def main(args):
     """
     Runs the PETPrep extract tacs workflow when provided with arguments collected from
@@ -475,11 +529,22 @@ def init_single_subject_wf(
         _output_dir = args.output_dir
 
     coreg_pet_to_t1w = Node(
-        MRICoreg(
-            out_lta_file="from-pet_to-t1w_reg.lta", subject_id=f"sub-{subject_id}"
+        Function(
+            input_names=[
+                "source_file",
+                "reference_file",
+                "subjects_dir",
+                "subject_id",
+                "output_dir",
+            ],
+            output_names=["out_lta_file"],
+            function=run_coreg_if_needed,
         ),
         name="coreg_pet_to_t1w",
     )
+
+    coreg_pet_to_t1w.inputs.subject_id = subject_id
+    coreg_pet_to_t1w.inputs.output_dir = _output_dir
 
     create_time_weighted_average = Node(
         Function(
