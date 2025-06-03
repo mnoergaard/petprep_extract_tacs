@@ -319,12 +319,12 @@ def init_single_subject_anat_wf(args, subject_id):
 
     segmentation_nodes = []
 
-    if 'gtm' in args.seg:
+    if args.seg == "gtm":
         gtmseg = Node(GTMSeg(subject_id=subject_label, xcerseg=True), name="gtmseg")
         gtmseg.inputs.subjects_dir = fs_subject_dir
         segmentation_nodes.append(('gtmseg', gtmseg))
 
-    if 'brainstem' in args.seg:
+    if args.seg == "brainstem":
         bs = Node(SegmentBS(subject_id=subject_label), name="brainstem")
         bs.inputs.subjects_dir = fs_subject_dir
         segmentation_nodes.append(('brainstem', bs))
@@ -347,19 +347,19 @@ def init_single_subject_anat_wf(args, subject_id):
     conform_nodes = []
 
     smriprep_templates = {
-        'aparcaseg': f"{subject_session}_desc-aparcaseg_dseg.nii.gz",
-        'aseg': f"{subject_session}_desc-aseg_dseg.nii.gz",
+        'aparcaseg': f"{subject_id}_desc-aparcaseg_dseg.nii.gz",
+        'aseg': f"{subject_id}_desc-aseg_dseg.nii.gz",
         'GM+WM+CSF': [
-            f"{subject_session}_label-GM_probseg.nii.gz",
-            f"{subject_session}_label-WM_probseg.nii.gz",
-            f"{subject_session}_label-CSF_probseg.nii.gz"
+            f"{subject_id}_label-GM_probseg.nii.gz",
+            f"{subject_id}_label-WM_probseg.nii.gz",
+            f"{subject_id}_label-CSF_probseg.nii.gz"
         ]
     }
 
     for seg_choice in ['aparcaseg', 'aseg']:
         if seg_choice in args.seg:
             in_file = os.path.join(smriprep_dir, smriprep_templates[seg_choice])
-            out_file = f"{subject_session}_desc-{seg_choice}+conform_dseg.nii.gz"
+            out_file = f"{subject_id}_desc-{seg_choice}+conform_dseg.nii.gz"
 
             conform = Node(MRIConvert(conform=True, resample_type='nearest', no_change=True), name=f"conform_{seg_choice}")
             conform.inputs.in_file = in_file
@@ -369,7 +369,7 @@ def init_single_subject_anat_wf(args, subject_id):
 
     if 'GM+WM+CSF' in args.seg:
         gm_wm_csf_files = [os.path.join(smriprep_dir, fname) for fname in smriprep_templates['GM+WM+CSF']]
-        gm_wm_csf_out = [f"{subject_session}_label-{label}+conform_probseg.nii.gz" for label in ['GM', 'WM', 'CSF']]
+        gm_wm_csf_out = [f"{subject_id}_label-{label}+conform_probseg.nii.gz" for label in ['GM', 'WM', 'CSF']]
 
         conform_gm_wm_csf = MapNode(
             MRIConvert(conform=True, resample_type='nearest', no_change=True),
@@ -379,7 +379,7 @@ def init_single_subject_anat_wf(args, subject_id):
         conform_gm_wm_csf.inputs.in_file = gm_wm_csf_files
         conform_gm_wm_csf.inputs.out_file = gm_wm_csf_out
 
-        concat_probseg = Node(Concatenate(concatenated_file=f"{subject_session}_desc-GM_WM_CSF+conform_probseg.nii.gz"),
+        concat_probseg = Node(Concatenate(concatenated_file=f"{subject_id}_desc-GM_WM_CSF+conform_probseg.nii.gz"),
                               name="concat_probseg")
 
         subject_wf.add_nodes([conform_gm_wm_csf, concat_probseg])
@@ -677,7 +677,7 @@ def init_single_subject_wf(
                 ]
             )
 
-    if args.gtm is True or args.agtm is True:
+    if args.seg is True or args.agtm is True:
 
         templates.update(
             {"gtm_file": f"derivatives/freesurfer/sub-{subject_id}/mri/gtmseg.mgz"}
@@ -841,7 +841,7 @@ def init_single_subject_wf(
             ]
         )
 
-    if args.brainstem is True:
+    if args.seg == 'brainstem':
 
         templates.update(
             {
@@ -918,7 +918,7 @@ def init_single_subject_wf(
             ]
         )
 
-    if args.thalamicNuclei is True:
+    if args.seg == 'thalamicNuclei':
 
         templates.update(
             {
@@ -1000,7 +1000,7 @@ def init_single_subject_wf(
             ]
         )
 
-    if args.hippocampusAmygdala is True:
+    if args.seg == 'hippocampusAmygdala':
 
         templates.update(
             {
@@ -1250,7 +1250,7 @@ def init_single_subject_wf(
             ]
         )
 
-    if args.wm is True:
+    if args.seg == 'wm':
         segstats_wm = Node(
             SegStats(
                 exclude_id=0,
@@ -1318,7 +1318,7 @@ def init_single_subject_wf(
             ]
         )
 
-    if args.raphe is True:
+    if args.seg == 'raphe':
         segment_raphe = Node(
             MRISclimbicSeg(
                 keep_ac=True,
@@ -1406,7 +1406,7 @@ def init_single_subject_wf(
             ]
         )
 
-    if args.limbic is True:
+    if args.seg == 'limbic':
         segment_limbic = Node(
             MRISclimbicSeg(write_volumes=True, out_file="desc-limbic_dseg.nii.gz"),
             name="segment_limbic",
