@@ -131,6 +131,7 @@ def run_coreg_if_needed(
 
     import re
     from pathlib import Path
+    from nipype.interfaces.freesurfer import MRICoreg
 
     prefix = Path(source_file).name.split("_desc-wavg_pet")[0]
     ses = re.search(r"(ses-[^_]+)", prefix)
