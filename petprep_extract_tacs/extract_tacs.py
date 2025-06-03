@@ -15,7 +15,7 @@ import pkg_resources
 from bids import BIDSLayout
 from nipype.interfaces.utility import IdentityInterface, Merge
 from nipype.pipeline import Workflow
-from nipype import Node, Function, DataSink
+from nipype import Node, Function, DataSink, MapNode
 from nipype.interfaces.io import SelectFiles
 from niworkflows.utils.misc import check_valid_fs_license
 from petprep_extract_tacs.utils.pet import create_weighted_average_pet
@@ -302,7 +302,8 @@ def init_single_subject_anat_wf(args, subject_id):
     subject_wf = Workflow(name=f"subject_{subject_id}_wf", base_dir=args.bids_dir)
     subject_wf.config["execution"]["remove_unnecessary_outputs"] = "false"
 
-    templates = {"fs_subject_dir": "derivatives/freesurfer"}
+    templates = {"fs_subject_dir": "derivatives/freesurfer",
+                 "smriprep_dir": "derivatives/smriprep"}
 
     selectfiles = Node(
         SelectFiles(templates, base_directory=args.bids_dir), name="select_files"
@@ -316,46 +317,81 @@ def init_single_subject_anat_wf(args, subject_id):
         name="datasink",
     )
 
-    if args.gtm is True or args.agtm is True:
-        gtmseg = Node(
-            GTMSeg(subject_id=f"sub-{subject_id}", xcerseg=True), name="gtmseg"
+    segmentation_nodes = []
+
+    if 'gtm' in args.seg:
+        gtmseg = Node(GTMSeg(subject_id=subject_label, xcerseg=True), name="gtmseg")
+        gtmseg.inputs.subjects_dir = fs_subject_dir
+        segmentation_nodes.append(('gtmseg', gtmseg))
+
+    if 'brainstem' in args.seg:
+        bs = Node(SegmentBS(subject_id=subject_label), name="brainstem")
+        bs.inputs.subjects_dir = fs_subject_dir
+        segmentation_nodes.append(('brainstem', bs))
+
+    if 'thalamicNuclei' in args.seg:
+        th = Node(SegmentThalamicNuclei(subject_id=subject_label), name="thalamicNuclei")
+        th.inputs.subjects_dir = fs_subject_dir
+        segmentation_nodes.append(('thalamicNuclei', th))
+
+    if 'hippocampusAmygdala' in args.seg:
+        ha = Node(SegmentHA_T1(subject_id=subject_label), name="hippocampusAmygdala")
+        ha.inputs.subjects_dir = fs_subject_dir
+        segmentation_nodes.append(('hippocampusAmygdala', ha))
+
+    for node_name, node in segmentation_nodes:
+        subject_wf.add_nodes([node])
+        subject_wf.connect([(node, datasink, [('out_file', node_name)])])
+
+    # smriprep workflows
+    conform_nodes = []
+
+    smriprep_templates = {
+        'aparcaseg': f"{subject_session}_desc-aparcaseg_dseg.nii.gz",
+        'aseg': f"{subject_session}_desc-aseg_dseg.nii.gz",
+        'GM+WM+CSF': [
+            f"{subject_session}_label-GM_probseg.nii.gz",
+            f"{subject_session}_label-WM_probseg.nii.gz",
+            f"{subject_session}_label-CSF_probseg.nii.gz"
+        ]
+    }
+
+    for seg_choice in ['aparcaseg', 'aseg']:
+        if seg_choice in args.seg:
+            in_file = os.path.join(smriprep_dir, smriprep_templates[seg_choice])
+            out_file = f"{subject_session}_desc-{seg_choice}+conform_dseg.nii.gz"
+
+            conform = Node(MRIConvert(conform=True, resample_type='nearest', no_change=True), name=f"conform_{seg_choice}")
+            conform.inputs.in_file = in_file
+            conform.inputs.out_file = out_file
+
+            conform_nodes.append((f"conform_{seg_choice}", conform))
+
+    if 'GM+WM+CSF' in args.seg:
+        gm_wm_csf_files = [os.path.join(smriprep_dir, fname) for fname in smriprep_templates['GM+WM+CSF']]
+        gm_wm_csf_out = [f"{subject_session}_label-{label}+conform_probseg.nii.gz" for label in ['GM', 'WM', 'CSF']]
+
+        conform_gm_wm_csf = MapNode(
+            MRIConvert(conform=True, resample_type='nearest', no_change=True),
+            iterfield=['in_file', 'out_file'],
+            name='conform_GM_WM_CSF'
         )
+        conform_gm_wm_csf.inputs.in_file = gm_wm_csf_files
+        conform_gm_wm_csf.inputs.out_file = gm_wm_csf_out
 
-        subject_wf.connect(
-            [(selectfiles, gtmseg, [("fs_subject_dir", "subjects_dir")])]
-        )
+        concat_probseg = Node(Concatenate(concatenated_file=f"{subject_session}_desc-GM_WM_CSF+conform_probseg.nii.gz"),
+                              name="concat_probseg")
 
-    if args.brainstem is True:
-        segment_bs = Node(SegmentBS(subject_id=f"sub-{subject_id}"), name="segment_bs")
+        subject_wf.add_nodes([conform_gm_wm_csf, concat_probseg])
+        subject_wf.connect([
+            (conform_gm_wm_csf, concat_probseg, [('out_file', 'in_files')]),
+            (concat_probseg, datasink, [('concatenated_file', 'GM_WM_CSF_probseg')])
+        ])
 
-        subject_wf.connect(
-            [(selectfiles, segment_bs, [("fs_subject_dir", "subjects_dir")])]
-        )
-
-    if args.thalamicNuclei is True:
-        segment_th = Node(
-            SegmentThalamicNuclei(subject_id=f"sub-{subject_id}"), name="segment_th"
-        )
-
-        subject_wf.connect(
-            [(selectfiles, segment_th, [("fs_subject_dir", "subjects_dir")])]
-        )
-
-    if args.hippocampusAmygdala is True:
-        segment_ha = Node(
-            SegmentHA_T1(subject_id=f"sub-{subject_id}"), name="segment_ha"
-        )
-
-        subject_wf.connect(
-            [(selectfiles, segment_ha, [("fs_subject_dir", "subjects_dir")])]
-        )
-
-    #   if args.cvs is True:
-    #       cvs = Node(CVSReg(subject_id = f'sub-{subject_id}'),
-    #                   name = 'cvs')
-    #
-    #       subject_wf.connect([(selectfiles, cvs, [('fs_subject_dir', 'subjects_dir')])
-    #                           ])
+    # Connect conform nodes
+    for node_name, node in conform_nodes:
+        subject_wf.add_nodes([node])
+        subject_wf.connect([(node, datasink, [('out_file', node_name)])])
 
     return subject_wf
 
@@ -1649,39 +1685,10 @@ def cli():
         default=2,
     )
     parser.add_argument(
-        "--gtm",
-        help="Extract time activity curves from the geometric transfer matrix segmentation (gtmseg)",
-        action="store_true",
-    )
-    parser.add_argument(
-        "--brainstem",
-        help="Extract time activity curves from the brainstem",
-        action="store_true",
-    )
-    parser.add_argument(
-        "--thalamicNuclei",
-        help="Extract time activity curves from the thalamic nuclei",
-        action="store_true",
-    )
-    parser.add_argument(
-        "--hippocampusAmygdala",
-        help="Extract time activity curves from the hippocampus and amygdala",
-        action="store_true",
-    )
-    parser.add_argument(
-        "--wm",
-        help="Extract time activity curves from the white matter",
-        action="store_true",
-    )
-    parser.add_argument(
-        "--raphe",
-        help="Extract time activity curves from the raphe nuclei",
-        action="store_true",
-    )
-    parser.add_argument(
-        "--limbic",
-        help="Extract time activity curves from the limbic system",
-        action="store_true",
+        '--seg',
+        nargs='+',
+        choices=['gtm', 'brainstem', 'thalamicNuclei', 'hippocampusAmygdala', 'aparcaseg', 'wm', 'raphe', 'limbic','aseg','GM+WM+CSF'],
+        default=[], help='Select segmentation workflows to run.'
     )
     parser.add_argument(
         "--surface",
