@@ -68,7 +68,8 @@ This is the directory with your input dataset formatted according to the BIDS st
 
 #### `output_dir`
 
-This is the directory where the output files should be stored. If you are running group level analysis, this folder should be prepopulated with the results of the participant level analysis.
+This is the directory where the output files should be stored. If you are running group level analysis, this folder should be prepopulated with the results of the participant level analysis.  
+If a file named `<prefix>_from-pet_to-t1w_reg.lta` exists inside `sub-*/[ses-*/]` folders of this directory, the workflow reuses it and skips the registration step.
 
 #### `analysis_level`
 
