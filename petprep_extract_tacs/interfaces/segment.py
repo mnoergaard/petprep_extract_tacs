@@ -74,17 +74,6 @@ class SegmentBS(BaseInterface):
         outputs["bs_volumes_txt"] = os.path.join(fs_path, "brainstemSsVolumes.v13.txt")
         return outputs
 
-    from nipype.interfaces.base import (
-        CommandLine,
-        CommandLineInputSpec,
-        TraitedSpec,
-        File,
-        traits,
-        isdefined,
-        InputMultiObject,
-        OutputMultiObject,
-    )
-
 
 class MRISclimbicSegInputSpec(CommandLineInputSpec):
     in_file = File(desc="T1-w image(s) to segment.", exists=True, argstr="--i %s")
