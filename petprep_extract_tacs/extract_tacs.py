@@ -317,81 +317,40 @@ def init_single_subject_anat_wf(args, subject_id):
         name="datasink",
     )
 
-    segmentation_nodes = []
-
     if args.seg == "gtm":
-        gtmseg = Node(GTMSeg(subject_id=subject_label, xcerseg=True), name="gtmseg")
-        gtmseg.inputs.subjects_dir = fs_subject_dir
-        segmentation_nodes.append(('gtmseg', gtmseg))
+        gtmseg = Node(
+            GTMSeg(subject_id=f"sub-{subject_id}", xcerseg=True), name="gtmseg"
+        )
+
+        subject_wf.connect(
+            [(selectfiles, gtmseg, [("fs_subject_dir", "subjects_dir")])]
+        )
 
     if args.seg == "brainstem":
-        bs = Node(SegmentBS(subject_id=subject_label), name="brainstem")
-        bs.inputs.subjects_dir = fs_subject_dir
-        segmentation_nodes.append(('brainstem', bs))
+        segment_bs = Node(SegmentBS(subject_id=f"sub-{subject_id}"), name="segment_bs")
 
-    if 'thalamicNuclei' in args.seg:
-        th = Node(SegmentThalamicNuclei(subject_id=subject_label), name="thalamicNuclei")
-        th.inputs.subjects_dir = fs_subject_dir
-        segmentation_nodes.append(('thalamicNuclei', th))
-
-    if 'hippocampusAmygdala' in args.seg:
-        ha = Node(SegmentHA_T1(subject_id=subject_label), name="hippocampusAmygdala")
-        ha.inputs.subjects_dir = fs_subject_dir
-        segmentation_nodes.append(('hippocampusAmygdala', ha))
-
-    for node_name, node in segmentation_nodes:
-        subject_wf.add_nodes([node])
-        subject_wf.connect([(node, datasink, [('out_file', node_name)])])
-
-    # smriprep workflows
-    conform_nodes = []
-
-    smriprep_templates = {
-        'aparcaseg': f"{subject_id}_desc-aparcaseg_dseg.nii.gz",
-        'aseg': f"{subject_id}_desc-aseg_dseg.nii.gz",
-        'GM+WM+CSF': [
-            f"{subject_id}_label-GM_probseg.nii.gz",
-            f"{subject_id}_label-WM_probseg.nii.gz",
-            f"{subject_id}_label-CSF_probseg.nii.gz"
-        ]
-    }
-
-    for seg_choice in ['aparcaseg', 'aseg']:
-        if seg_choice in args.seg:
-            in_file = os.path.join(smriprep_dir, smriprep_templates[seg_choice])
-            out_file = f"{subject_id}_desc-{seg_choice}+conform_dseg.nii.gz"
-
-            conform = Node(MRIConvert(conform=True, resample_type='nearest', no_change=True), name=f"conform_{seg_choice}")
-            conform.inputs.in_file = in_file
-            conform.inputs.out_file = out_file
-
-            conform_nodes.append((f"conform_{seg_choice}", conform))
-
-    if 'GM+WM+CSF' in args.seg:
-        gm_wm_csf_files = [os.path.join(smriprep_dir, fname) for fname in smriprep_templates['GM+WM+CSF']]
-        gm_wm_csf_out = [f"{subject_id}_label-{label}+conform_probseg.nii.gz" for label in ['GM', 'WM', 'CSF']]
-
-        conform_gm_wm_csf = MapNode(
-            MRIConvert(conform=True, resample_type='nearest', no_change=True),
-            iterfield=['in_file', 'out_file'],
-            name='conform_GM_WM_CSF'
+        subject_wf.connect(
+            [(selectfiles, segment_bs, [("fs_subject_dir", "subjects_dir")])]
         )
-        conform_gm_wm_csf.inputs.in_file = gm_wm_csf_files
-        conform_gm_wm_csf.inputs.out_file = gm_wm_csf_out
 
-        concat_probseg = Node(Concatenate(concatenated_file=f"{subject_id}_desc-GM_WM_CSF+conform_probseg.nii.gz"),
-                              name="concat_probseg")
+    if args.seg == "ThalamicNuclei":
+        segment_th = Node(
+            SegmentThalamicNuclei(subject_id=f"sub-{subject_id}"), name="segment_th"
+        )
 
-        subject_wf.add_nodes([conform_gm_wm_csf, concat_probseg])
-        subject_wf.connect([
-            (conform_gm_wm_csf, concat_probseg, [('out_file', 'in_files')]),
-            (concat_probseg, datasink, [('concatenated_file', 'GM_WM_CSF_probseg')])
-        ])
+        subject_wf.connect(
+            [(selectfiles, segment_th, [("fs_subject_dir", "subjects_dir")])]
+        )
 
-    # Connect conform nodes
-    for node_name, node in conform_nodes:
-        subject_wf.add_nodes([node])
-        subject_wf.connect([(node, datasink, [('out_file', node_name)])])
+
+    if args.seg == "HippocampusAmgydala":
+        segment_ha = Node(
+            SegmentHA_T1(subject_id=f"sub-{subject_id}"), name="segment_ha"
+        )
+
+        subject_wf.connect(
+            [(selectfiles, segment_ha, [("fs_subject_dir", "subjects_dir")])]
+        )
 
     return subject_wf
 
@@ -1686,9 +1645,8 @@ def cli():
     )
     parser.add_argument(
         '--seg',
-        nargs='+',
         choices=['gtm', 'brainstem', 'thalamicNuclei', 'hippocampusAmygdala', 'aparcaseg', 'wm', 'raphe', 'limbic','aseg','GM+WM+CSF'],
-        default=[], help='Select segmentation workflows to run.'
+        default='gtm', help='Select segmentation workflows to run.'
     )
     parser.add_argument(
         "--surface",
