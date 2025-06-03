@@ -29,12 +29,31 @@ class SegmentBSOutputSpec(TraitedSpec):
 
 
 class SegmentBS(BaseInterface):
+    """Run ``segmentBS.sh`` unless outputs already exist.
+
+    The interface checks for ``brainstemSsLabels.v13.mgz``,
+    ``brainstemSsLabels.v13.FSvoxelSpace.mgz`` and
+    ``brainstemSsVolumes.v13.txt`` in the subject's ``mri`` directory. If all
+    three files are present, the command is skipped and the provided ``runtime``
+    is returned unchanged.
+    """
+
     input_spec = SegmentBSInputSpec
     output_spec = SegmentBSOutputSpec
 
     def _run_interface(self, runtime):
         subjects_dir = self.inputs.subjects_dir
         subject_id = self.inputs.subject_id
+
+        fs_path = os.path.join(subjects_dir, subject_id, "mri")
+        expected = [
+            "brainstemSsLabels.v13.mgz",
+            "brainstemSsLabels.v13.FSvoxelSpace.mgz",
+            "brainstemSsVolumes.v13.txt",
+        ]
+
+        if all(os.path.exists(os.path.join(fs_path, f)) for f in expected):
+            return runtime
 
         cmd = CommandLine(
             command="segmentBS.sh",
@@ -136,9 +155,20 @@ class MRISclimbicSegOutputSpec(TraitedSpec):
 
 
 class MRISclimbicSeg(CommandLine):
+    """Run ``mri_sclimbic_seg`` unless outputs already exist."""
+
     _cmd = "mri_sclimbic_seg"
     input_spec = MRISclimbicSegInputSpec
     output_spec = MRISclimbicSegOutputSpec
+
+    def _run_interface(self, runtime):
+        outputs = self._list_outputs()
+        expected = [outputs["out_file"], outputs["out_stats"]]
+
+        if all(os.path.exists(f) for f in expected):
+            return runtime
+
+        return super()._run_interface(runtime)
 
     def _list_outputs(self):
         outputs = self.output_spec().get()
@@ -186,9 +216,34 @@ class SegmentHA_T1OutputSpec(TraitedSpec):
 
 
 class SegmentHA_T1(FSCommand):
+    """Run ``segmentHA_T1.sh`` unless outputs already exist."""
+
     _cmd = "segmentHA_T1.sh"
     input_spec = SegmentHA_T1InputSpec
     output_spec = SegmentHA_T1OutputSpec
+
+    def _run_interface(self, runtime):
+        fs_path = os.path.join(self.inputs.subjects_dir, self.inputs.subject_id, "mri")
+        expected = [
+            "lh.hippoAmygLabels-T1.v22.FSvoxelSpace.mgz",
+            "rh.hippoAmygLabels-T1.v22.FSvoxelSpace.mgz",
+            "lh.hippoSfVolumes-T1.v22.txt",
+            "lh.amygNucVolumes-T1.v22.txt",
+            "rh.hippoSfVolumes-T1.v22.txt",
+            "rh.amygNucVolumes-T1.v22.txt",
+        ]
+
+        if all(os.path.exists(os.path.join(fs_path, f)) for f in expected):
+            return runtime
+
+        cmd = CommandLine(
+            command="segmentHA_T1.sh",
+            args=self.inputs.subject_id,
+            environ={"SUBJECTS_DIR": self.inputs.subjects_dir},
+        )
+        runtime = cmd.run()
+
+        return runtime
 
     def _list_outputs(self):
         outputs = self.output_spec().get()
@@ -238,12 +293,23 @@ class SegmentThalamicNucleiOutputSpec(TraitedSpec):
 
 
 class SegmentThalamicNuclei(BaseInterface):
+    """Run ``segmentThalamicNuclei.sh`` unless outputs already exist."""
+
     input_spec = SegmentThalamicNucleiInputSpec
     output_spec = SegmentThalamicNucleiOutputSpec
 
     def _run_interface(self, runtime):
         subjects_dir = self.inputs.subjects_dir
         subject_id = self.inputs.subject_id
+
+        fs_path = os.path.join(subjects_dir, subject_id, "mri")
+        expected = [
+            "ThalamicNuclei.v13.T1.FSvoxelSpace.mgz",
+            "ThalamicNuclei.v13.T1.volumes.txt",
+        ]
+
+        if all(os.path.exists(os.path.join(fs_path, f)) for f in expected):
+            return runtime
 
         cmd = CommandLine(
             command="segmentThalamicNuclei.sh",
