@@ -149,7 +149,6 @@ def run_coreg_if_needed(
         source_file=source_file,
         reference_file=reference_file,
         subjects_dir=subjects_dir,
-        subject_id=f"sub-{subject_id}",
         out_lta_file=str(out_lta),
     )
     reg.run()
