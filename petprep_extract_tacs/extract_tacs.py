@@ -246,11 +246,12 @@ def main(args):
     # Loop through directories and store according to PET-BIDS specification
     reg_files = glob.glob(
         os.path.join(
-            Path(args.bids_dir),
+            args.bids_dir,
             "petprep_extract_tacs_wf",
-            "datasink",
+            "**",
             "from-pet_to-t1w_reg.lta",
-        )
+        ),
+        recursive=True,
     )
 
     for idx, x in enumerate(reg_files):
@@ -276,8 +277,10 @@ def main(args):
 
         os.makedirs(sub_out_dir, exist_ok=True)
 
+        datasink_dir = Path(reg_files[idx]).parents[1]
+
         # copy all files and add prefix
-        for root, dirs, files in os.walk(os.path.dirname(reg_files[idx])):
+        for root, dirs, files in os.walk(datasink_dir):
             for file in files:
                 if not file.startswith("."):
                     shutil.copy(
