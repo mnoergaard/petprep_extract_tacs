@@ -11,7 +11,11 @@ import pathlib
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from pathlib import Path
-from petprep_extract_tacs.utils.merge_tacs import collect_and_merge_tsvs, merge_tsvs
+
+try:
+    from petprep_extract_tacs.utils.merge_tacs import collect_and_merge_tsvs, merge_tsvs
+except ModuleNotFoundError:  # pragma: no cover - requires optional dependency
+    pytest.skip("niworkflows is required for merge_tacs tests", allow_module_level=True)
 
 test_data = Path(__file__).parent.parent / "data"
 
