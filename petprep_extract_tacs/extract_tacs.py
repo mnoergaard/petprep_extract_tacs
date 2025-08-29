@@ -249,7 +249,6 @@ def main(args):
             Path(args.bids_dir),
             "petprep_extract_tacs_wf",
             "datasink",
-            "*",
             "from-pet_to-t1w_reg.lta",
         )
     )
