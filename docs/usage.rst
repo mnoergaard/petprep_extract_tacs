@@ -48,10 +48,10 @@ Smoothing and output space options (surface and/or volume)
 
 ``--surface``, ``--surface_smooth`` (e.g. ``--surface_smooth 10``), ``--volume``, ``--volume_smooth`` (e.g. ``--volume_smooth 10``)
 
-Partial Volume Correction (using adaptive GTM)
-----------------------------------------------
+Partial Volume Correction
+-------------------------
 
-``--agtm``, ``--psf`` (initial PSF guess, e.g. ``--psf 3``)
+``--pvc {gtm, agtm}``, ``--psf`` (initial PSF guess for ``--pvc agtm``, e.g. ``--psf 3``)
 
 Advanced options
 ----------------

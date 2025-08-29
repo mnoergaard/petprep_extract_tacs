@@ -108,9 +108,9 @@ These options, when specified, instruct the workflow to extract time activity cu
 
 `--surface`, `--surface_smooth` (e.g. `--surface_smooth 10`), `--volume`, `--volume_smooth` (e.g. `--volume_smooth 10`) 
 
-#### Partial Volume Correction (using adaptive GTM)
+#### Partial Volume Correction
 
-`--agtm`, `--psf` (initial PSF guess, e.g. `--psf 3`)
+`--pvc gtm` (standard GTM PVC), `--pvc agtm` (adaptive GTM PVC), `--psf` (initial PSF guess for `--pvc agtm`, e.g. `--psf 3`)
 
 ### Advanced options
 

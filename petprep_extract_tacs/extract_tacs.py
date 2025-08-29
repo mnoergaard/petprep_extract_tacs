@@ -11,7 +11,7 @@ import pathlib
 import json
 import warnings
 from platform import system
-import pkg_resources
+from importlib import resources
 from bids import BIDSLayout
 from nipype.interfaces.utility import IdentityInterface, Merge
 from nipype.pipeline import Workflow
@@ -706,7 +706,7 @@ def init_single_subject_wf(
                 ]
             )
 
-    if args.seg == 'gtm' or args.agtm is True:
+    if args.seg == 'gtm' or args.pvc in ["gtm", "agtm"]:
 
         templates.update(
             {"gtm_file": f"derivatives/freesurfer/sub-{subject_id}/mri/gtmseg.mgz"}
@@ -790,7 +790,42 @@ def init_single_subject_wf(
             ]
         )
 
-    if args.agtm is True and args.psf is not None:
+    if args.pvc == "gtm":
+
+        gtmpvc_pvc = Node(
+            GTMPVC(
+                default_seg_merge=True,
+                auto_mask=(1, 0.1),
+                pvc_dir="gtm",
+                no_rescale=True,
+            ),
+            name="gtmpvc_pvc",
+        )
+
+        create_gtmpvc_tacs = Node(
+            Function(
+                input_names=["in_file", "json_file", "gtm_stats", "pvc_dir"],
+                output_names=["out_file"],
+                function=gtm_to_tacs,
+            ),
+            name="create_gtmpvc_tacs",
+        )
+
+        create_gtmpvc_tacs.inputs.pvc_dir = gtmpvc_pvc.inputs.pvc_dir
+
+        subject_wf.connect(
+            [
+                (selectfiles, gtmpvc_pvc, [("pet_file", "in_file")]),
+                (selectfiles, gtmpvc_pvc, [("gtm_file", "segmentation")]),
+                (coreg_pet_to_t1w, gtmpvc_pvc, [("out_lta_file", "reg_file")]),
+                (gtmpvc_pvc, create_gtmpvc_tacs, [("gtm_file", "in_file")]),
+                (gtmpvc_pvc, create_gtmpvc_tacs, [("gtm_stats", "gtm_stats")]),
+                (selectfiles, create_gtmpvc_tacs, [("json_file", "json_file")]),
+                (create_gtmpvc_tacs, datasink, [("out_file", "datasink.@gtmpvc_tacs")]),
+            ]
+        )
+
+    if args.pvc == "agtm" and args.psf is not None:
 
         templates.update(
             {"gtm_file": f"derivatives/freesurfer/sub-{subject_id}/mri/gtmseg.mgz"}
@@ -1360,11 +1395,11 @@ def init_single_subject_wf(
             name="segment_raphe",
         )
 
-        segment_raphe.inputs.model = pkg_resources.resource_filename(
-            "petprep_extract_tacs", "utils/raphe+pons.n21.d114.h5"
+        segment_raphe.inputs.model = str(
+            resources.files("petprep_extract_tacs").joinpath("utils/raphe+pons.n21.d114.h5")
         )
-        segment_raphe.inputs.ctab = pkg_resources.resource_filename(
-            "petprep_extract_tacs", "utils/raphe+pons.ctab"
+        segment_raphe.inputs.ctab = str(
+            resources.files("petprep_extract_tacs").joinpath("utils/raphe+pons.ctab")
         )
 
         segstats_raphe = Node(
@@ -1377,8 +1412,8 @@ def init_single_subject_wf(
             name="segstats_raphe",
         )
 
-        segstats_raphe.inputs.color_table_file = pkg_resources.resource_filename(
-            "petprep_extract_tacs", "utils/raphe+pons_cleaned.ctab"
+        segstats_raphe.inputs.color_table_file = str(
+            resources.files("petprep_extract_tacs").joinpath("utils/raphe+pons_cleaned.ctab")
         )
 
         create_raphe_tacs = Node(
@@ -1390,8 +1425,8 @@ def init_single_subject_wf(
             name="create_raphe_tacs",
         )
 
-        create_raphe_tacs.inputs.ctab_file = pkg_resources.resource_filename(
-            "petprep_extract_tacs", "utils/raphe+pons_cleaned.ctab"
+        create_raphe_tacs.inputs.ctab_file = str(
+            resources.files("petprep_extract_tacs").joinpath("utils/raphe+pons_cleaned.ctab")
         )
 
         create_raphe_stats = Node(
@@ -1441,8 +1476,8 @@ def init_single_subject_wf(
             MRISclimbicSeg(write_volumes=True, out_file="desc-limbic_dseg.nii.gz"),
             name="segment_limbic",
         )
-        segment_limbic.inputs.ctab = pkg_resources.resource_filename(
-            "petprep_extract_tacs", "utils/sclimbic.ctab"
+        segment_limbic.inputs.ctab = str(
+            resources.files("petprep_extract_tacs").joinpath("utils/sclimbic.ctab")
         )
 
         segstats_limbic = Node(
@@ -1455,8 +1490,8 @@ def init_single_subject_wf(
             name="segstats_limbic",
         )
 
-        segstats_limbic.inputs.color_table_file = pkg_resources.resource_filename(
-            "petprep_extract_tacs", "utils/sclimbic_cleaned.ctab"
+        segstats_limbic.inputs.color_table_file = str(
+            resources.files("petprep_extract_tacs").joinpath("utils/sclimbic_cleaned.ctab")
         )
 
         create_limbic_tacs = Node(
@@ -1468,8 +1503,8 @@ def init_single_subject_wf(
             name="create_limbic_tacs",
         )
 
-        create_limbic_tacs.inputs.ctab_file = pkg_resources.resource_filename(
-            "petprep_extract_tacs", "utils/sclimbic_cleaned.ctab"
+        create_limbic_tacs.inputs.ctab_file = str(
+            resources.files("petprep_extract_tacs").joinpath("utils/sclimbic_cleaned.ctab")
         )
 
         create_limbic_stats = Node(
@@ -1652,7 +1687,7 @@ def cli():
     - --surface_smooth (int, optional): Smooth surface-based time activity curves in fsaverage.
     - --volume (bool, optional): Extract volume-based time activity curves in mni305.
     - --volume_smooth (int, optional): Smooth volume-based time activity curves in mni305.
-    - --agtm (bool, optional): Extract time activity curves from the adaptive gtm PVC.
+    - --pvc {gtm, agtm} (str, optional): Perform partial volume correction using the selected method.
     - --psf (float, optional): Initial guess of point spread function of PET scanner for agtm.
     - --petprep_hmc (bool, optional): Use outputs from petprep_hmc as input to workflow.
     - --skip_bids_validator (bool, optional): Whether or not to perform BIDS dataset validation.
@@ -1752,9 +1787,10 @@ def cli():
         type=int,
     )
     parser.add_argument(
-        "--agtm",
-        help="Extract time activity curves from the adaptive gtm PVC",
-        action="store_true",
+        "--pvc",
+        choices=["gtm", "agtm"],
+        help="Select PVC method",
+        default=None,
     )
     parser.add_argument(
         "--psf",
@@ -1815,6 +1851,11 @@ def cli():
     )
 
     args, unknown = parser.parse_known_args()
+
+    if args.pvc == "agtm" and args.psf is None:
+        parser.error("--psf is required when --pvc agtm is selected")
+    if args.pvc != "agtm" and args.psf is not None:
+        parser.error("--psf can only be used with --pvc agtm")
 
     # determine the present working directory
     pwd = pathlib.Path.cwd()
