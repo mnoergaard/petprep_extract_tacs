@@ -266,7 +266,7 @@ def gtm_stats_to_stats(gtm_stats):
 
     # Create the output file name by replacing '.stats' with '.tsv' in the input file name.
 
-    tsv_file = os.path.join(new_pth, "desc-gtmseg_morph.tsv")
+    tsv_file = os.path.join(new_pth, "seg-gtm_desc-preproc_morph.tsv")
 
     # Write the new DataFrame to the output file.
     # We use a tab separator, and we don't write the index.
@@ -329,9 +329,11 @@ def gtm_to_tacs(in_file, json_file, gtm_stats, pvc_dir):
 
     # Create the output .tsv file name
     if pvc_dir == "nopvc":
-        tsv_file = in_file.replace("nopvc.nii.gz", "desc-gtmseg_tacs.tsv")
+        tsv_file = in_file.replace("nopvc.nii.gz", "seg-gtm_desc-preproc_tacs.tsv")
     elif pvc_dir == "agtm":
-        tsv_file = in_file.replace("gtm.nii.gz", "pvc-agtm_desc-gtmseg_tacs.tsv")
+        tsv_file = in_file.replace(
+            "gtm.nii.gz", "pvc-agtm_seg-gtm_desc-preproc_tacs.tsv"
+        )
 
     # Write the DataFrame to the .tsv file (without the index)
     in_file_df.to_csv(tsv_file, sep="\t", index=False)
@@ -354,7 +356,7 @@ def gtm_to_dsegtsv(gtm_stats):
     )
 
     # Create the output file name by replacing '.stats' with '.tsv' in the input file name.
-    tsv_file = gtm_stats.replace("gtm.stats.dat", "desc-gtmseg_dseg.tsv")
+    tsv_file = gtm_stats.replace("gtm.stats.dat", "seg-gtm_desc-preproc_dseg.tsv")
 
     # Write the new DataFrame to the output file.
     # We use a tab separator, and we don't write the index.
