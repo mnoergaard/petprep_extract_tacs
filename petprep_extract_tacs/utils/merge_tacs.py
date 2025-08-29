@@ -8,8 +8,6 @@ import re
 import glob
 import shutil
 
-from niworkflows.utils.bids import collect_participants, collect_data
-from niworkflows.utils.bids import collect_participants, collect_data
 
 
 def collect_and_merge_tsvs(bids_dir, subjects=[], **kwargs):
