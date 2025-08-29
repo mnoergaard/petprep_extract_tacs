@@ -756,7 +756,8 @@ def init_single_subject_wf(
         )
 
         convert_gtmseg_file = Node(
-            MRIConvert(out_file="desc-gtmseg_dseg.nii.gz"), name="convert_gtmseg_file"
+            MRIConvert(out_file="seg-gtm_desc-preproc_dseg.nii.gz"),
+            name="convert_gtmseg_file",
         )
 
         subject_wf.connect(
