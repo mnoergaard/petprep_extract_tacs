@@ -103,7 +103,7 @@ def avgwf_to_tacs(avgwf_file, ctab_file, json_file):
         - Reads the `.ctab` file to obtain region names.
         - Reads the average waveform data from the `avgwf` file.
         - Reads frame timing information (``FrameTimesStart`` and ``FrameDuration``) from the `.json` file.
-        - Inserts the frame timings into the waveform DataFrame.
+        - Inserts PET-BIDS compliant ``frame_start`` and ``frame_end`` columns into the waveform DataFrame.
         - Writes the combined data to a `.tsv` file with column names based on the `.ctab` file.
 
         The resulting `.tsv` file contains TACs suitable for further analysis.
@@ -136,9 +136,9 @@ def avgwf_to_tacs(avgwf_file, ctab_file, json_file):
     frame_times = np.array(json_data["FrameTimesStart"])
     frame_durations = np.array(json_data["FrameDuration"])
 
-    # Insert frame times and durations into the avgwf DataFrame
-    avgwf_df.insert(0, "FrameTimesStart", frame_times)
-    avgwf_df.insert(1, "FrameDuration", frame_durations)
+    # Insert frame times and derived frame endpoints into the avgwf DataFrame
+    avgwf_df.insert(0, "frame_start", frame_times)
+    avgwf_df.insert(1, "frame_end", frame_times + frame_durations)
 
     # Create the output .tsv file name
     tsv_file = avgwf_file.replace(".txt", ".tsv")
@@ -280,11 +280,11 @@ def gtm_stats_to_stats(gtm_stats):
 def gtm_to_tacs(in_file, json_file, gtm_stats, pvc_dir):
     """
     This function reads a .ctab file and a .json file into pandas DataFrames. It also reads a .gtm file and extracts the 'FrameTimesStart' and 'FrameDuration' lists,
-    which are converted into numpy arrays and inserted as the first and second columns, respectively, to the gtm DataFrame. The modified gtm DataFrame is then written to a .tsv file with column names based on the .ctab file.
+    which are converted into numpy arrays and inserted as PET-BIDS compliant ``frame_start`` and ``frame_end`` columns in the gtm DataFrame. The modified gtm DataFrame is then written to a .tsv file with column names based on the .ctab file.
 
     :param in_file: The path to the .gtm file to be read.
     :type in_file: str
-    :param json_file: The path to the .json file to be read. The 'FrameTimesStart' and 'FrameDuration' lists from this file are added as columns to the gtm DataFrame.
+    :param json_file: The path to the .json file to be read. The 'FrameTimesStart' and 'FrameDuration' lists from this file are transformed into 'frame_start' and 'frame_end' columns in the gtm DataFrame.
     :type json_file: str
     :param ctab_file: The path to the .ctab file to be read. The first column of this file is used as column names for the gtm DataFrame.
     :type ctab_file: str
