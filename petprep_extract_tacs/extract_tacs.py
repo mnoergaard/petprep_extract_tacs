@@ -652,7 +652,7 @@ def init_single_subject_wf(
         )
 
         convert_gtmseg_file = Node(
-            MRIConvert(out_file="desc-gtmseg_dseg.nii.gz"), name="convert_gtmseg_file"
+            MRIConvert(out_file="seg-gtmseg_dseg.nii.gz"), name="convert_gtmseg_file"
         )
 
         subject_wf.connect(
@@ -780,9 +780,9 @@ def init_single_subject_wf(
             SegStats(
                 exclude_id=0,
                 default_color_table=True,
-                avgwf_txt_file="desc-brainstem_tacs.txt",
-                ctab_out_file="desc-brainstem_dseg.ctab",
-                summary_file="desc-brainstem_morph.txt",
+                avgwf_txt_file="seg-brainstem_tacs.txt",
+                ctab_out_file="seg-brainstem_dseg.ctab",
+                summary_file="seg-brainstem_morph.txt",
             ),
             name="segstats_bs",
         )
@@ -815,7 +815,7 @@ def init_single_subject_wf(
         )
 
         convert_bs_seg_file = Node(
-            MRIConvert(out_file="desc-brainstem_dseg.nii.gz"),
+            MRIConvert(out_file="seg-brainstem_dseg.nii.gz"),
             name="convert_bs_seg_file",
         )
 
@@ -855,9 +855,9 @@ def init_single_subject_wf(
             SegStats(
                 exclude_id=0,
                 default_color_table=True,
-                avgwf_txt_file="desc-thalamus_tacs.txt",
-                ctab_out_file="desc-thalamus_dseg.ctab",
-                summary_file="desc-thalamus_morph.txt",
+                avgwf_txt_file="seg-thalamus_tacs.txt",
+                ctab_out_file="seg-thalamus_dseg.ctab",
+                summary_file="seg-thalamus_morph.txt",
             ),
             name="segstats_th",
         )
@@ -890,7 +890,7 @@ def init_single_subject_wf(
         )
 
         convert_th_seg_file = Node(
-            MRIConvert(out_file="desc-thalamus_dseg.nii.gz"), name="convert_th_seg_file"
+            MRIConvert(out_file="seg-thalamus_dseg.nii.gz"), name="convert_th_seg_file"
         )
 
         subject_wf.connect(
@@ -938,9 +938,9 @@ def init_single_subject_wf(
             SegStats(
                 exclude_id=0,
                 default_color_table=True,
-                avgwf_txt_file="hemi-L_desc-hippocampusAmygdala_tacs.txt",
-                ctab_out_file="hemi-L_desc-hippocampusAmygdala_dseg.ctab",
-                summary_file="hemi-L_desc-hippocampusAmygdala_morph.txt",
+                avgwf_txt_file="hemi-L_seg-hippocampusAmygdala_tacs.txt",
+                ctab_out_file="hemi-L_seg-hippocampusAmygdala_dseg.ctab",
+                summary_file="hemi-L_seg-hippocampusAmygdala_morph.txt",
             ),
             name="segstats_ha_lh",
         )
@@ -973,7 +973,7 @@ def init_single_subject_wf(
         )
 
         convert_ha_seg_file_lh = Node(
-            MRIConvert(out_file="hemi-L_desc-hippocampusAmygdala_dseg.nii.gz"),
+            MRIConvert(out_file="hemi-L_seg-hippocampusAmygdala_dseg.nii.gz"),
             name="convert_ha_seg_file_lh",
         )
 
@@ -981,9 +981,9 @@ def init_single_subject_wf(
             SegStats(
                 exclude_id=0,
                 default_color_table=True,
-                avgwf_txt_file="hemi-R_desc-hippocampusAmygdala_tacs.txt",
-                ctab_out_file="hemi-R_desc-hippocampusAmygdala_dseg.ctab",
-                summary_file="hemi-R_desc-hippocampusAmygdala_morph.txt",
+                avgwf_txt_file="hemi-R_seg-hippocampusAmygdala_tacs.txt",
+                ctab_out_file="hemi-R_seg-hippocampusAmygdala_dseg.ctab",
+                summary_file="hemi-R_seg-hippocampusAmygdala_morph.txt",
             ),
             name="segstats_ha_rh",
         )
@@ -1016,7 +1016,7 @@ def init_single_subject_wf(
         )
 
         convert_ha_seg_file_rh = Node(
-            MRIConvert(out_file="hemi-R_desc-hippocampusAmygdala_dseg.nii.gz"),
+            MRIConvert(out_file="hemi-R_seg-hippocampusAmygdala_dseg.nii.gz"),
             name="convert_ha_seg_file_rh",
         )
 
@@ -1024,7 +1024,7 @@ def init_single_subject_wf(
 
         combine_ha_lr_dseg = Node(
             Concatenate(
-                concatenated_file="desc-hippocampusAmygdala_dseg.nii.gz", combine=True
+                concatenated_file="seg-hippocampusAmygdala_dseg.nii.gz", combine=True
             ),
             name="combine_ha_lr_dseg",
         )
@@ -1033,9 +1033,9 @@ def init_single_subject_wf(
             SegStats(
                 exclude_id=0,
                 default_color_table=True,
-                avgwf_txt_file="desc-hippocampusAmygdala_tacs.txt",
-                ctab_out_file="desc-hippocampusAmygdala_dseg.ctab",
-                summary_file="desc-hippocampusAmygdala_morph.txt",
+                avgwf_txt_file="seg-hippocampusAmygdala_tacs.txt",
+                ctab_out_file="seg-hippocampusAmygdala_dseg.ctab",
+                summary_file="seg-hippocampusAmygdala_morph.txt",
             ),
             name="segstats_ha",
         )
@@ -1180,9 +1180,9 @@ def init_single_subject_wf(
             SegStats(
                 exclude_id=0,
                 default_color_table=True,
-                avgwf_txt_file="desc-whiteMatter_tacs.txt",
-                ctab_out_file="desc-whiteMatter_dseg.ctab",
-                summary_file="desc-whiteMatter_morph.txt",
+                avgwf_txt_file="seg-whiteMatter_tacs.txt",
+                ctab_out_file="seg-whiteMatter_dseg.ctab",
+                summary_file="seg-whiteMatter_morph.txt",
             ),
             name="segstats_wm",
         )
@@ -1215,7 +1215,7 @@ def init_single_subject_wf(
         )
 
         convert_wm_seg_file = Node(
-            MRIConvert(out_file="desc-whiteMatter_dseg.nii.gz"),
+            MRIConvert(out_file="seg-whiteMatter_dseg.nii.gz"),
             name="convert_wm_seg_file",
         )
 
@@ -1250,7 +1250,7 @@ def init_single_subject_wf(
                 percentile=99.9,
                 vmp=True,
                 write_volumes=True,
-                out_file="desc-raphe_dseg.nii.gz",
+                out_file="seg-raphe_dseg.nii.gz",
             ),
             name="segment_raphe",
         )
@@ -1265,9 +1265,9 @@ def init_single_subject_wf(
         segstats_raphe = Node(
             SegStats(
                 exclude_id=0,
-                avgwf_txt_file="desc-raphe_tacs.txt",
-                ctab_out_file="desc-raphe_dseg.ctab",
-                summary_file="desc-raphe_morph.txt",
+                avgwf_txt_file="seg-raphe_tacs.txt",
+                ctab_out_file="seg-raphe_dseg.ctab",
+                summary_file="seg-raphe_morph.txt",
             ),
             name="segstats_raphe",
         )
@@ -1333,7 +1333,7 @@ def init_single_subject_wf(
 
     if args.limbic is True:
         segment_limbic = Node(
-            MRISclimbicSeg(write_volumes=True, out_file="desc-limbic_dseg.nii.gz"),
+            MRISclimbicSeg(write_volumes=True, out_file="seg-limbic_dseg.nii.gz"),
             name="segment_limbic",
         )
         segment_limbic.inputs.ctab = pkg_resources.resource_filename(
@@ -1343,9 +1343,9 @@ def init_single_subject_wf(
         segstats_limbic = Node(
             SegStats(
                 exclude_id=0,
-                avgwf_txt_file="desc-limbic_tacs.txt",
-                ctab_out_file="desc-limbic_dseg.ctab",
-                summary_file="desc-limbic_morph.txt",
+                avgwf_txt_file="seg-limbic_tacs.txt",
+                ctab_out_file="seg-limbic_dseg.ctab",
+                summary_file="seg-limbic_morph.txt",
             ),
             name="segstats_limbic",
         )
