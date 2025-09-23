@@ -27,7 +27,9 @@ def test_avgwf_to_tacs_generates_bids_columns(tmp_path):
     assert df["frame_start"].tolist() == metadata["FrameTimesStart"]
     expected_end = [
         start + duration
-        for start, duration in zip(metadata["FrameTimesStart"], metadata["FrameDuration"])
+        for start, duration in zip(
+            metadata["FrameTimesStart"], metadata["FrameDuration"]
+        )
     ]
     assert df["frame_end"].tolist() == expected_end
     assert df["regionA"].tolist() == [1, 3]
